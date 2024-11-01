@@ -1,4 +1,4 @@
-package com.github.cchabanois.intellijmesfavoris.listeners
+package mesfavoris.listeners
 
 import com.intellij.openapi.application.ApplicationActivationListener
 import com.intellij.openapi.diagnostic.thisLogger

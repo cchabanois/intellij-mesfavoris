@@ -1,4 +1,4 @@
-package com.github.cchabanois.intellijmesfavoris
+package mesfavoris
 
 import com.intellij.DynamicBundle
 import org.jetbrains.annotations.NonNls

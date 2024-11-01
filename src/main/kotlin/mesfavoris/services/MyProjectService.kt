@@ -1,9 +1,9 @@
-package com.github.cchabanois.intellijmesfavoris.services
+package mesfavoris.services
 
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
-import com.github.cchabanois.intellijmesfavoris.MyBundle
+import mesfavoris.MyBundle
 
 @Service(Service.Level.PROJECT)
 class MyProjectService(project: Project) {
