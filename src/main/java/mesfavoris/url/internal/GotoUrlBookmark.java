@@ -12,11 +12,10 @@ public class GotoUrlBookmark implements IGotoBookmark {
 
 	@Override
 	public boolean gotoBookmark(Project project, Bookmark bookmark, IBookmarkLocation bookmarkLocation) {
-		if (!(bookmarkLocation instanceof UrlBookmarkLocation)) {
+		if (!(bookmarkLocation instanceof UrlBookmarkLocation urlBookmarkLocation)) {
 			return false;
 		}
-		UrlBookmarkLocation urlBookmarkLocation = (UrlBookmarkLocation) bookmarkLocation;
-		try {
+        try {
 			BrowserLauncher.getInstance().browse(urlBookmarkLocation.getUrl().toURI());
 			return true;
 		} catch (URISyntaxException e) {

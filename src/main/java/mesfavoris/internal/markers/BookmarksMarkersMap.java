@@ -14,7 +14,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class BookmarksMarkersMap implements PersistentStateComponent<Element> {
     private final Map<BookmarkId, BookmarkMarker> bookmarkIdToMarkerMap = new HashMap<>();
-    private final MultiMap<VirtualFile, BookmarkMarker> fileToMarkerMap = new MultiMap<VirtualFile, BookmarkMarker>() {
+    private final MultiMap<VirtualFile, BookmarkMarker> fileToMarkerMap = new MultiMap<>() {
         @Override
         protected @NotNull Collection<BookmarkMarker> createCollection() {
             return new HashSet<>();

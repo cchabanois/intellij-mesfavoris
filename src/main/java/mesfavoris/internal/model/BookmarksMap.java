@@ -9,6 +9,7 @@ import org.javimmutable.collections.util.JImmutables;
 
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkId;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Persistent map of all bookmarks (id -> Bookmark)
@@ -28,7 +29,7 @@ public class BookmarksMap implements Iterable<Bookmark> {
 	}
 
 	@Override
-	public Iterator<Bookmark> iterator() {
+	public @NotNull Iterator<Bookmark> iterator() {
 		return idToBookmark.valuesCursor().iterator();
 
 	}
@@ -100,11 +101,8 @@ public class BookmarksMap implements Iterable<Bookmark> {
 			return false;
 		BookmarksMap other = (BookmarksMap) obj;
 		if (idToBookmark == null) {
-			if (other.idToBookmark != null)
-				return false;
-		} else if (!idToBookmark.equals(other.idToBookmark))
-			return false;
-		return true;
-	}
+            return other.idToBookmark == null;
+		} else return idToBookmark.equals(other.idToBookmark);
+    }
 
 }

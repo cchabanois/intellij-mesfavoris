@@ -62,7 +62,7 @@ public class PathPlaceholderResolver implements IPathPlaceholderResolver {
 		if (placeholderNames.length == 0) {
 			pathPlaceholders = mappings;
 		} else {
-			pathPlaceholders = Arrays.stream(placeholderNames).map(name -> mappings.get(name)).filter(Objects::nonNull)
+			pathPlaceholders = Arrays.stream(placeholderNames).map(mappings::get).filter(Objects::nonNull)
 					.collect(Collectors.toList());
 		}
 

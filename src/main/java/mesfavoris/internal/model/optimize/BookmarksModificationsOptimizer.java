@@ -68,8 +68,8 @@ public class BookmarksModificationsOptimizer {
 
 	private boolean modificationCancelled(BookmarksTree sourceTree, BookmarksTree targetTree,
 			BookmarksAddedModification modification) {
-		return !modification.getBookmarks().stream().map(bookmark -> bookmark.getId())
-				.filter(bookmarkId -> targetTree.getBookmark(bookmarkId) != null).findAny().isPresent();
+		return modification.getBookmarks().stream().map(Bookmark::getId)
+				.noneMatch(bookmarkId -> targetTree.getBookmark(bookmarkId) != null);
 	}
 
 	private boolean modificationCancelled(BookmarksTree sourceTree, BookmarksTree targetTree,

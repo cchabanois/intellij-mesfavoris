@@ -65,9 +65,8 @@ public class BitapStringMatcher implements IFuzzyStringMatcher {
 
 		// Initialise the bit arrays.
 		long matchMask = 1L << (pattern.length() - 1);
-		bestLocation = -1;
 
-		int startLocation = 1;
+        int startLocation = 1;
 		int finishLocation = text.length() + pattern.length();
 		// Empty initialization added to appease Java compiler.
 		long[] last_rd = new long[0];

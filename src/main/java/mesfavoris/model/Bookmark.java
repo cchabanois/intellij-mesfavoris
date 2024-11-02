@@ -73,7 +73,7 @@ public class Bookmark {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("Bookmark [");
-		sb.append("id="+id);
+		sb.append("id=").append(id);
 		for (Map.Entry<String, String> entry : getProperties().entrySet()) {
 			sb.append(", ").append(entry.getKey()).append("=").append(entry.getValue());
 		}

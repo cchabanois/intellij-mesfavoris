@@ -123,7 +123,7 @@ public class BookmarksTreeModifier implements IBookmarksTreeModifier {
 		List<BookmarksModification> newModifications  = bookmarksModificationsOptimizer.optimize(modifications);
 		this.modifications.clear();
 		this.modifications.addAll(newModifications);
-		if (modifications.size() > 0) {
+		if (!modifications.isEmpty()) {
 			currentTree = modifications.get(modifications.size()-1).getTargetTree();
 		} else {
 			currentTree = originalTree;

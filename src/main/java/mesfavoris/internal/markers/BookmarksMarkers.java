@@ -51,15 +51,12 @@ public class BookmarksMarkers implements IBookmarksMarkers, PersistentStateCompo
     }
 
     private void handleBookmarksModificationEvent(BookmarksModification event) {
-        if (event instanceof BookmarkDeletedModification) {
-            BookmarkDeletedModification bookmarkDeletedModification = (BookmarkDeletedModification) event;
+        if (event instanceof BookmarkDeletedModification bookmarkDeletedModification) {
             List<Bookmark> deletedBookmarks = Lists.newArrayList(bookmarkDeletedModification.getDeletedBookmarks());
             deletedBookmarks.forEach(b -> deleteMarker(b.getId()));
-        } else if (event instanceof BookmarksAddedModification) {
-            BookmarksAddedModification bookmarksAddedModification = (BookmarksAddedModification) event;
-            bookmarksAddedModification.getBookmarks().forEach(b -> createOrUpdateMarker(b));
-        } else if (event instanceof BookmarkPropertiesModification) {
-            BookmarkPropertiesModification bookmarkPropertiesModification = (BookmarkPropertiesModification) event;
+        } else if (event instanceof BookmarksAddedModification bookmarksAddedModification) {
+            bookmarksAddedModification.getBookmarks().forEach(this::createOrUpdateMarker);
+        } else if (event instanceof BookmarkPropertiesModification bookmarkPropertiesModification) {
             createOrUpdateMarker(bookmarkPropertiesModification.getTargetTree()
                     .getBookmark(bookmarkPropertiesModification.getBookmarkId()));
         }

@@ -29,7 +29,7 @@ public class BookmarksTreeIterator implements Iterator<Bookmark> {
 
 	@Override
 	public boolean hasNext() {
-		return getCurrentIterator().map(it->it.hasNext()).orElse(false);
+		return getCurrentIterator().map(BookmarkIterator::hasNext).orElse(false);
 	}
 
 	private Optional<BookmarkIterator> getCurrentIterator() {
@@ -51,7 +51,7 @@ public class BookmarksTreeIterator implements Iterator<Bookmark> {
 		Bookmark nextBookmark = null;
 		while (nextBookmark == null) {
 			Bookmark bookmark = null;
-			BookmarkIterator currentIterator  = getCurrentIterator().orElseThrow(()->new NoSuchElementException());			
+			BookmarkIterator currentIterator  = getCurrentIterator().orElseThrow(NoSuchElementException::new);
 			bookmark = currentIterator.next();
 			if (bookmark instanceof BookmarkFolder && currentIterator.goInside) {
 				if (algorithm == Algorithm.PRE_ORDER) {
