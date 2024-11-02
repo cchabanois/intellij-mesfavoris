@@ -1,6 +1,9 @@
 [versions]
 # libraries
 junit = "4.13.2"
+javimmutable-collections = "2.4.1"
+assertj = "3.11.1"
+mockito = "5.14.2"
 
 # plugins
 changelog = "2.2.1"
@@ -11,6 +14,9 @@ qodana = "2024.2.3"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+javimmutableCollections = { group = "org.javimmutable", name = "javimmutable-collections", version.ref = "javimmutable-collections" }
+assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
+mockito =  { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
 
 [plugins]
 changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }
