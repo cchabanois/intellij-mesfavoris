@@ -81,10 +81,9 @@ public class BookmarkIcon implements Icon {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof BookmarkIcon)) {
+        if (!(obj instanceof BookmarkIcon descriptor)) {
             return false;
         }
-        BookmarkIcon descriptor = (BookmarkIcon) obj;
         return Arrays.equals(descriptor.favIconBytes, favIconBytes);
     }
 

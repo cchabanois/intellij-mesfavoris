@@ -74,12 +74,9 @@ public class BookmarksParentsMap {
 			return false;
 		BookmarksParentsMap other = (BookmarksParentsMap) obj;
 		if (idToParent == null) {
-			if (other.idToParent != null)
-				return false;
-		} else if (!idToParent.equals(other.idToParent))
-			return false;
-		return true;
-	}
+            return other.idToParent == null;
+		} else return idToParent.equals(other.idToParent);
+    }
 
 
 }

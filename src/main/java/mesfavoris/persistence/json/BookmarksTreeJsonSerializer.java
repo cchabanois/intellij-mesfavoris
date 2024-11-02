@@ -30,14 +30,12 @@ public class BookmarksTreeJsonSerializer implements IBookmarksTreeSerializer {
 	@Override
 	public void serialize(BookmarksTree bookmarksTree, BookmarkId bookmarkFolderId, Writer writer) throws IOException {
 		JsonWriter jsonWriter = new JsonWriter(writer);
-		if (indent) {
-			jsonWriter.setIndent("  ");
-		}
-		try {
-			serialize(bookmarksTree, bookmarkFolderId, jsonWriter);
-		} finally {
-			jsonWriter.close();
-		}
+        try (jsonWriter) {
+            if (indent) {
+                jsonWriter.setIndent("  ");
+            }
+            serialize(bookmarksTree, bookmarkFolderId, jsonWriter);
+        }
 	}
 
 	private void serialize(BookmarksTree bookmarksTree, BookmarkId bookmarkFolderId, JsonWriter writer) throws IOException {

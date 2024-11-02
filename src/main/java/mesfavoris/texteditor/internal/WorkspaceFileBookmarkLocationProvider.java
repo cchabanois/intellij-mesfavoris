@@ -31,7 +31,7 @@ public class WorkspaceFileBookmarkLocationProvider extends AbstractFileBookmarkL
     @Override
     public WorkspaceFileBookmarkLocation getBookmarkLocation(Project project, Bookmark bookmark, ProgressIndicator monitor) {
         Optional<VirtualFile> workspaceFile = getWorkspaceFile(project, bookmark, monitor);
-        if (!workspaceFile.isPresent()) {
+        if (workspaceFile.isEmpty()) {
             return null;
         }
         String lineContent = bookmark.getPropertyValue(TextEditorBookmarkProperties.PROP_LINE_CONTENT);

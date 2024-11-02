@@ -100,7 +100,7 @@ public class BookmarksTree implements Iterable<Bookmark> {
 	}
 
 	private List<BookmarkId> getBookmarkIds(List<Bookmark> bookmarks) {
-		return bookmarks.stream().map(b -> b.getId()).collect(Collectors.toList());
+		return bookmarks.stream().map(Bookmark::getId).collect(Collectors.toList());
 	}
 
 	public BookmarksTree addBookmarksBefore(BookmarkId parentId, BookmarkId existingBookmarkId,
@@ -258,8 +258,8 @@ public class BookmarksTree implements Iterable<Bookmark> {
 	}
 
 	private void getAllBookmarksUnder(BookmarkId bookmarkFolderId, Set<Bookmark> bookmarks) {
-		List<Bookmark> children = childrenMap.getChildren(bookmarkFolderId).stream().map(id -> getBookmark(id))
-				.collect(Collectors.toList());
+		List<Bookmark> children = childrenMap.getChildren(bookmarkFolderId).stream().map(this::getBookmark)
+				.toList();
 		bookmarks.addAll(children);
 		for (Bookmark bookmark : children) {
 			if (bookmark instanceof BookmarkFolder) {
@@ -366,9 +366,7 @@ public class BookmarksTree implements Iterable<Bookmark> {
 	}
 
 	private void toString(StringBuilder sb, Bookmark bookmark, int level) {
-		for (int i = 0; i < level; i++) {
-			sb.append("  ");
-		}
+        sb.append("  ".repeat(Math.max(0, level)));
 		sb.append(bookmark.toString());
 		sb.append('\n');
 		if (bookmark instanceof BookmarkFolder) {

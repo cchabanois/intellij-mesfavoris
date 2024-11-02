@@ -22,7 +22,7 @@ public class FuzzyStringMatcher implements IFuzzyStringMatcher {
 		if (text.equals(pattern)) {
 			// Shortcut (potentially not guaranteed by the algorithm)
 			return 0;
-		} else if (text.length() == 0) {
+		} else if (text.isEmpty()) {
 			// Nothing to match.
 			return -1;
 		} else if (expectedLocation + pattern.length() <= text.length()

@@ -31,11 +31,8 @@ public class BookmarksTreeJsonDeserializer implements IBookmarksTreeDeserializer
 
     @Override
     public BookmarksTree deserialize(Reader reader) throws IOException {
-        JsonReader jsonReader = new JsonReader(reader);
-        try {
+        try (JsonReader jsonReader = new JsonReader(reader)) {
             return deserialize(jsonReader);
-        } finally {
-            jsonReader.close();
         }
     }
 

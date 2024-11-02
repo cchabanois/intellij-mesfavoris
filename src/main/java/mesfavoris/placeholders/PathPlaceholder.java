@@ -43,12 +43,9 @@ public class PathPlaceholder {
 		} else if (!name.equals(other.name))
 			return false;
 		if (path == null) {
-			if (other.path != null)
-				return false;
-		} else if (!path.equals(other.path))
-			return false;
-		return true;
-	}
+            return other.path == null;
+		} else return path.equals(other.path);
+    }
 
 	@Override
 	public String toString() {

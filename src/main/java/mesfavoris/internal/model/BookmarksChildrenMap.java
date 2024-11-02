@@ -147,11 +147,8 @@ public class BookmarksChildrenMap {
 			return false;
 		BookmarksChildrenMap other = (BookmarksChildrenMap) obj;
 		if (idToChildren == null) {
-			if (other.idToChildren != null)
-				return false;
-		} else if (!idToChildren.equals(other.idToChildren))
-			return false;
-		return true;
-	}
+            return other.idToChildren == null;
+		} else return idToChildren.equals(other.idToChildren);
+    }
 
 }

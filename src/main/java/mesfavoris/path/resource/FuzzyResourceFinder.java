@@ -70,7 +70,7 @@ public class FuzzyResourceFinder {
         public boolean process(PsiFileSystemItem item) {
             canceled.checkCanceled();
             Optional<Path> optionalPath = fileSystemItemPathProvider.getPath(item);
-            if (!optionalPath.isPresent()) {
+            if (optionalPath.isEmpty()) {
                 return true;
             }
             Path path = optionalPath.get();

@@ -44,12 +44,9 @@ public abstract class BookmarksModification {
 		} else if (!sourceTree.equals(other.sourceTree))
 			return false;
 		if (targetTree == null) {
-			if (other.targetTree != null)
-				return false;
-		} else if (!targetTree.equals(other.targetTree))
-			return false;
-		return true;
-	}
+            return other.targetTree == null;
+		} else return targetTree.equals(other.targetTree);
+    }
 
 	
 	
