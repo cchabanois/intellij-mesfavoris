@@ -9,7 +9,12 @@
     <resource-bundle>messages.MyBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="mesfavoris.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
+        <applicationService serviceImplementation="mesfavoris.internal.toolwindow.services.MyApplicationService"/>
+        <projectService serviceImplementation="mesfavoris.internal.toolwindow.services.MyProjectService"/>
+        <projectService serviceImplementation="mesfavoris.internal.MesFavorisProjectIdManager"/>
+        <toolWindow id="Mes Favoris" secondary="true" icon="AllIcons.General.Modified" anchor="right"
+                    factoryClass="mesfavoris.internal.toolwindow.MesFavorisToolWindowFactory"/>
+        <postStartupActivity implementation="mesfavoris.internal.markers.BookmarksHighlighters$BookmarksHighlightersStartupActivity"/>
     </extensions>
 
     <applicationListeners>
