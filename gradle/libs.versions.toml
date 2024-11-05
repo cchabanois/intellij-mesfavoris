@@ -1,7 +1,7 @@
 [versions]
 # libraries
 junit = "4.13.2"
-javimmutable-collections = "2.4.1"
+javimmutable-collections = "3.2.1"
 assertj = "3.26.3"
 mockito = "5.14.2"
 
