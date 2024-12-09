@@ -13,8 +13,6 @@ import mesfavoris.model.IBookmarksListener;
 import mesfavoris.model.modification.BookmarksModification;
 import mesfavoris.ui.details.IBookmarkDetailPart;
 
-import javax.swing.*;
-
 public abstract class AbstractBookmarkDetailPart implements IBookmarkDetailPart {
 	protected final BookmarkDatabase bookmarkDatabase;
 	protected final Project project;
