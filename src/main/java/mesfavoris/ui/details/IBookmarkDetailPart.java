@@ -14,6 +14,15 @@ public interface IBookmarkDetailPart {
 
 	String getTitle();
 
+	/**
+	 * Init the bookmark detail part. This is called before the component is created
+	 */
+	void init();
+
+	/**
+	 * Create the component for the detail part
+	 * @return the component
+	 */
 	JComponent createComponent();
 
 	/**
@@ -34,5 +43,8 @@ public interface IBookmarkDetailPart {
 	 */
 	boolean canHandle(Bookmark bookmark);
 
+	/**
+	 * Called when the bookmark detail part is not needed anymore
+	 */
 	void dispose();
 }

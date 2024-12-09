@@ -39,7 +39,6 @@ public class CommentBookmarkDetailPart extends AbstractBookmarkDetailPart {
 
     @Override
     public JComponent createComponent() {
-        super.createComponent();
         Set<EditorCustomization> features = new HashSet<>();
         features.add(SoftWrapsEditorCustomization.ENABLED);
         features.add(AdditionalPageAtBottomEditorCustomization.DISABLED);
