@@ -28,9 +28,8 @@ public abstract class AbstractBookmarkDetailPart implements IBookmarkDetailPart 
 	}
 
 	@Override
-	public JComponent createComponent() {
+	public void init() {
 		bookmarkDatabase.addListener(bookmarksListener);
-		return null;
 	}
 
 	@Override

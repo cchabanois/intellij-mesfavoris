@@ -27,7 +27,7 @@ public class BookmarkDetailsPart implements IBookmarkDetailPart {
 	private final List<IBookmarkDetailPart> bookmarkDetailParts;
 	private final BookmarkDatabase bookmarkDatabase;
 	private final Project project;
-	private JBTabs tabFolder;
+	private JBTabs tabs;
 	private final IdentityHashMap<TabInfo, IBookmarkDetailPart> tabItem2BookmarkDetailPart = new IdentityHashMap<>();
 	
 	public BookmarkDetailsPart(Project project, List<IBookmarkDetailPart> bookmarkDetailParts) {
@@ -36,14 +36,25 @@ public class BookmarkDetailsPart implements IBookmarkDetailPart {
 		BookmarksService bookmarksService = project.getService(BookmarksService.class);
 		this.bookmarkDatabase = bookmarksService.getBookmarkDatabase();
 	}
-	
+
 	@Override
-	public JComponent createComponent() {
-		this.tabFolder = new JBTabsImpl(project);
-		return tabFolder.getComponent();
+	public void init() {
+		for (IBookmarkDetailPart bookmarkDetailPart : bookmarkDetailParts) {
+			try {
+				bookmarkDetailPart.init();
+			} catch (Exception e) {
+				LOG.error("Error while initializing bookmarkDetailPart", e);
+			}
+		}
 	}
 
-	private TabInfo createTabItem(IBookmarkDetailPart bookmarkDetailPart) {
+	@Override
+	public JComponent createComponent() {
+		this.tabs = new JBTabsImpl(project);
+		return tabs.getComponent();
+	}
+
+	private TabInfo createTabInfo(IBookmarkDetailPart bookmarkDetailPart) {
 		TabInfo tabInfo = new TabInfo(bookmarkDetailPart.createComponent());
 		tabInfo.setText(bookmarkDetailPart.getTitle());
 		return tabInfo;
@@ -54,22 +65,22 @@ public class BookmarkDetailsPart implements IBookmarkDetailPart {
 		if (bookmark != null && bookmarkDatabase.getBookmarksTree().getBookmark(bookmark.getId()) == null) {
 			bookmark = null;
 		}
-		IBookmarkDetailPart previouslySelectedBookmarkDetailsPart = tabItem2BookmarkDetailPart.get(tabFolder.getSelectedInfo());
+		IBookmarkDetailPart previouslySelectedBookmarkDetailsPart = tabItem2BookmarkDetailPart.get(tabs.getSelectedInfo());
 		tabItem2BookmarkDetailPart.clear();
-		tabFolder.removeAllTabs();
+		tabs.removeAllTabs();
 		TabInfo selectedTabItem = null;
 		for (IBookmarkDetailPart bookmarkDetailPart : bookmarkDetailParts) {
 			if (bookmarkDetailPart.canHandle(bookmark)) {
-				TabInfo tabItem = createTabItem(bookmarkDetailPart);
-				tabFolder.addTab(tabItem);
-				tabItem2BookmarkDetailPart.put(tabItem, bookmarkDetailPart);
+				TabInfo tabInfo = createTabInfo(bookmarkDetailPart);
+				tabs.addTab(tabInfo);
+				tabItem2BookmarkDetailPart.put(tabInfo, bookmarkDetailPart);
 				bookmarkDetailPart.setBookmark(bookmark);
 				if (previouslySelectedBookmarkDetailsPart == bookmarkDetailPart) {
-					selectedTabItem = tabItem;
+					selectedTabItem = tabInfo;
 				}
 			}
 		}
-        tabFolder.select(Objects.requireNonNullElseGet(selectedTabItem, () -> tabFolder.getTabAt(0)), false);
+        tabs.select(Objects.requireNonNullElseGet(selectedTabItem, () -> tabs.getTabAt(0)), false);
 	}
 	
 	@Override
