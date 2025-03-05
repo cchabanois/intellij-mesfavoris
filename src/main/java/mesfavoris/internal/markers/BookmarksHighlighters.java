@@ -1,6 +1,5 @@
 package mesfavoris.internal.markers;
 
-import com.intellij.ide.bookmarks.Bookmark;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
@@ -259,7 +258,7 @@ public class BookmarksHighlighters implements Disposable {
     }
 
     private class HighlightersDocumentListener implements BulkAwareDocumentListener.Simple {
-        private Map<Document, List<BookmarkHighlighterRangeSnapshot>> beforeChangeHighlighters = new HashMap<>();
+        private final Map<Document, List<BookmarkHighlighterRangeSnapshot>> beforeChangeHighlighters = new HashMap<>();
 
         @Override
         public void beforeDocumentChange(@NotNull DocumentEvent e) {
@@ -305,7 +304,7 @@ public class BookmarksHighlighters implements Disposable {
             }
             Document document = e.getDocument();
             List<BookmarkHighlighterRangeSnapshot> beforeChangeHighlighters = this.beforeChangeHighlighters.remove(document);
-            if (beforeChangeHighlighters == null || beforeChangeHighlighters.size() == 0) {
+            if (beforeChangeHighlighters == null || beforeChangeHighlighters.isEmpty()) {
                 return;
             }
             List<BookmarkHighlighterRangeSnapshot> afterChangeHighlighters = takeHighlightersSnapshot(document);
@@ -323,7 +322,7 @@ public class BookmarksHighlighters implements Disposable {
 
     }
 
-    public static interface BookmarksHighlightersListener {
+    public interface BookmarksHighlightersListener {
         Topic<BookmarksHighlightersListener> TOPIC = Topic.create("BookmarksHighlightersListener", BookmarksHighlightersListener.class);
 
         default BookmarkId getBookmarkId(RangeHighlighterEx highlighter) {
