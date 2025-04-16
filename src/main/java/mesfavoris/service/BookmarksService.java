@@ -1,6 +1,7 @@
 package mesfavoris.service;
 
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -8,20 +9,29 @@ import com.intellij.openapi.project.Project;
 import mesfavoris.BookmarksException;
 import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.IBookmarkLocationProvider;
+import mesfavoris.bookmarktype.IBookmarkPropertiesProvider;
 import mesfavoris.bookmarktype.IGotoBookmark;
 import mesfavoris.internal.MesFavorisProjectIdManager;
 import mesfavoris.internal.bookmarktypes.BookmarkLocationProvider;
 import mesfavoris.internal.bookmarktypes.BookmarkMarkerAttributesProvider;
+import mesfavoris.internal.bookmarktypes.BookmarkPropertiesProvider;
 import mesfavoris.internal.bookmarktypes.GotoBookmark;
 import mesfavoris.internal.markers.BookmarksMarkers;
+import mesfavoris.internal.placeholders.PathPlaceholderResolver;
+import mesfavoris.internal.placeholders.PathPlaceholdersMap;
+import mesfavoris.internal.service.operations.AddBookmarkOperation;
 import mesfavoris.internal.service.operations.GotoBookmarkOperation;
+import mesfavoris.internal.service.operations.utils.INewBookmarkPositionProvider;
+import mesfavoris.internal.service.operations.utils.NewBookmarkPositionProvider;
 import mesfavoris.internal.validation.AcceptAllBookmarksModificationValidator;
 import mesfavoris.internal.workspace.BookmarksWorkspaceFactory;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.modification.IBookmarksModificationValidator;
 import mesfavoris.persistence.json.BookmarksTreeJsonDeserializer;
+import mesfavoris.placeholders.IPathPlaceholderResolver;
 import mesfavoris.texteditor.internal.GotoWorkspaceFileBookmark;
+import mesfavoris.texteditor.internal.TextEditorBookmarkPropertiesProvider;
 import mesfavoris.texteditor.internal.WorkspaceFileBookmarkLocationProvider;
 import mesfavoris.texteditor.internal.WorkspaceFileBookmarkMarkerAttributesProvider;
 import mesfavoris.url.internal.GotoUrlBookmark;
@@ -36,6 +46,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 
 @Service(Service.Level.PROJECT)
 @State(name = "BookmarksService", storages = @Storage(value = "mesfavoris.xml", roamingType = RoamingType.PER_OS))
@@ -45,6 +56,8 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
     private IBookmarkLocationProvider bookmarkLocationProvider;
     private IGotoBookmark gotoBookmark;
     private BookmarksMarkers bookmarksMarkers;
+    private IBookmarkPropertiesProvider bookmarkPropertiesProvider;
+    private INewBookmarkPositionProvider newBookmarkPositionProvider;
 
     public BookmarksService(Project project) throws IOException {
         this.project = project;
@@ -57,6 +70,10 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
         this.bookmarkDatabase = loadBookmarkDatabase(bookmarksModificationValidator);
         this.bookmarkLocationProvider = new BookmarkLocationProvider(Arrays.asList(new UrlBookmarkLocationProvider(), new WorkspaceFileBookmarkLocationProvider()));
         this.gotoBookmark = new GotoBookmark(Arrays.asList(new GotoUrlBookmark(), new GotoWorkspaceFileBookmark()));
+        PathPlaceholdersMap mappings = new PathPlaceholdersMap();
+        IPathPlaceholderResolver pathPlaceholderResolver = new PathPlaceholderResolver(mappings);
+        this.bookmarkPropertiesProvider = new BookmarkPropertiesProvider(List.of(new TextEditorBookmarkPropertiesProvider(pathPlaceholderResolver)));
+        this.newBookmarkPositionProvider = new NewBookmarkPositionProvider(project, bookmarkDatabase);
         this.bookmarksMarkers = new BookmarksMarkers(project, bookmarkDatabase, new BookmarkMarkerAttributesProvider(Arrays.asList(new WorkspaceFileBookmarkMarkerAttributesProvider())));
         this.bookmarksMarkers.init();
     }
@@ -102,6 +119,12 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
         gotoBookmarkOperation.gotoBookmark(bookmarkId, progress);
     }
 
+    public BookmarkId addBookmark(DataContext dataContext, ProgressIndicator progress)
+            throws BookmarksException {
+        AddBookmarkOperation operation = new AddBookmarkOperation(bookmarkDatabase, bookmarkPropertiesProvider,
+                newBookmarkPositionProvider);
+        return operation.addBookmark(dataContext, progress);
+    }
 
     @Override
     public void dispose() {
