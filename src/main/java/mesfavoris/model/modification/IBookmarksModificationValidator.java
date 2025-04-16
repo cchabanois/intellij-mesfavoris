@@ -1,6 +1,7 @@
 package mesfavoris.model.modification;
 
 import mesfavoris.BookmarksException;
+import mesfavoris.commons.Status;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.BookmarksTree;
 
@@ -12,7 +13,7 @@ public interface IBookmarksModificationValidator {
 	 * @param bookmarksModification
 	 * @return
 	 */
-	void validateModification(BookmarksModification bookmarksModification) throws BookmarksException;
+	Status validateModification(BookmarksModification bookmarksModification);
 
 	/**
 	 * Check if given bookmark can be modified
@@ -21,6 +22,6 @@ public interface IBookmarksModificationValidator {
 	 * @param bookmarkId
 	 * @return
 	 */
-	void validateModification(BookmarksTree bookmarksTree, BookmarkId bookmarkId) throws BookmarksException;
+	Status validateModification(BookmarksTree bookmarksTree, BookmarkId bookmarkId);
 
 }

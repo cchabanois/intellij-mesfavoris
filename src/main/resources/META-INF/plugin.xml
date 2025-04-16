@@ -9,7 +9,7 @@
     <resource-bundle>messages.MyBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow id="Mes Favoris" secondary="true" icon="AllIcons.General.Modified" anchor="right"
+        <toolWindow id="mesfavoris" secondary="true" icon="AllIcons.General.Modified" anchor="right"
                     factoryClass="mesfavoris.internal.toolwindow.MesFavorisToolWindowFactory"/>
         <postStartupActivity implementation="mesfavoris.internal.markers.BookmarksHighlighters$BookmarksHighlightersStartupActivity"/>
     </extensions>
@@ -17,4 +17,10 @@
     <applicationListeners>
         <listener class="mesfavoris.listeners.MyApplicationActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
     </applicationListeners>
+    <actions>
+        <action id="mesfavoris.internal.actions.AddBookmarkAction" class="mesfavoris.internal.actions.AddBookmarkAction"
+                text="Add Favori" description="Add a Bookmark">
+            <keyboard-shortcut keymap="$default" first-keystroke="alt shift B" second-keystroke="B"/>
+        </action>
+    </actions>
 </idea-plugin>
