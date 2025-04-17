@@ -1,7 +1,11 @@
 package mesfavoris.internal.toolwindow;
 
+import com.intellij.ide.DataManager;
 import com.intellij.ide.dnd.aware.DnDAwareTree;
 //import com.intellij.ide.favoritesTreeView.actions.DeleteFromFavoritesAction;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
@@ -21,7 +25,9 @@ import mesfavoris.texteditor.internal.TextEditorBookmarkLabelProvider;
 import mesfavoris.ui.renderers.BookmarkFolderLabelProvider;
 import mesfavoris.ui.renderers.BookmarksTreeCellRenderer;
 import mesfavoris.url.internal.UrlBookmarkLabelProvider;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.TreePath;
@@ -29,7 +35,7 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 
-public class MesFavorisPanel extends JPanel {
+public class MesFavorisPanel extends JPanel implements DataProvider, Disposable {
     private static final Convertor<? super TreePath, String> TO_STRING = path -> path.getLastPathComponent().toString();
     private final Project project;
     private final DnDAwareTree tree;
@@ -71,8 +77,7 @@ public class MesFavorisPanel extends JPanel {
 
         tree.getSelectionModel().addTreeSelectionListener(event -> {
             TreePath path = event.getPath();
-            Object object = path.getLastPathComponent();
-            Bookmark bookmark = Adapters.adapt(object, Bookmark.class);
+            Bookmark bookmark = getBookmark(path);
             bookmarkDetailsPart.setBookmark(bookmark);
 
 /*            SwingUtilities.invokeLater(() -> {
@@ -103,4 +108,21 @@ public class MesFavorisPanel extends JPanel {
         add(splitter, BorderLayout.CENTER);
     }
 
+    private Bookmark getBookmark(TreePath path) {
+        Object object = path.getLastPathComponent();
+        return Adapters.adapt(object, Bookmark.class);
+    }
+
+    @Override
+    public void dispose() {
+        DataManager.removeDataProvider(this);
+    }
+
+    @Override
+    public @Nullable Object getData(@NotNull @NonNls String dataId) {
+        if (PlatformDataKeys.SELECTED_ITEMS.is(dataId)) {
+            return Arrays.stream(tree.getSelectionModel().getSelectionPaths()).map(this::getBookmark).toArray();
+        }
+        return null;
+    }
 }

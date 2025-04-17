@@ -1,6 +1,7 @@
 package mesfavoris.internal.toolwindow;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.DataManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
@@ -26,5 +27,6 @@ public class MesFavorisToolWindowFactory  implements ToolWindowFactory {
         ContentManager contentManager = toolWindow.getContentManager();
         Content content = contentManager.getFactory().createContent(panel, null, false);
         contentManager.addContent(content);
+        DataManager.registerDataProvider(panel, panel);
     }
 }

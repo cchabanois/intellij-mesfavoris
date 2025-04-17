@@ -2,6 +2,7 @@ package mesfavoris.internal.service.operations.utils;
 
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -18,6 +19,7 @@ import static mesfavoris.internal.Constants.DEFAULT_BOOKMARKFOLDER_ID;
 import com.intellij.openapi.diagnostic.Logger;
 
 import java.awt.*;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -97,7 +99,8 @@ public class NewBookmarkPositionProvider implements INewBookmarkPositionProvider
 		Content content = bookmarksToolWindow.getContentManager().getContent(0);
 		Component component = content.getComponent();
 		DataContext dataContext = DataManager.getInstance().getDataContext(component);
-		return Collections.emptyList();
+		Object[] objects = dataContext.getData(PlatformDataKeys.SELECTED_ITEMS);
+		return Arrays.stream(objects).map(object -> (Bookmark)object).toList();
 	}
 
 
