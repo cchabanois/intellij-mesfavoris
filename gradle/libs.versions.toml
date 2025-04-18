@@ -3,7 +3,7 @@
 junit = "4.13.2"
 javimmutable-collections = "2.4.1"
 assertj = "3.27.3"
-mockito = "5.14.2"
+mockito = "5.17.0"
 
 # plugins
 changelog = "2.2.1"
