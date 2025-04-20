@@ -17,6 +17,8 @@ import mesfavoris.internal.bookmarktypes.BookmarkMarkerAttributesProvider;
 import mesfavoris.internal.bookmarktypes.BookmarkPropertiesProvider;
 import mesfavoris.internal.bookmarktypes.GotoBookmark;
 import mesfavoris.internal.markers.BookmarksMarkers;
+import mesfavoris.internal.persistence.BookmarksAutoSaver;
+import mesfavoris.internal.persistence.LocalBookmarksSaver;
 import mesfavoris.internal.placeholders.PathPlaceholderResolver;
 import mesfavoris.internal.placeholders.PathPlaceholdersMap;
 import mesfavoris.internal.service.operations.AddBookmarkOperation;
@@ -29,6 +31,7 @@ import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.modification.IBookmarksModificationValidator;
 import mesfavoris.persistence.json.BookmarksTreeJsonDeserializer;
+import mesfavoris.persistence.json.BookmarksTreeJsonSerializer;
 import mesfavoris.placeholders.IPathPlaceholderResolver;
 import mesfavoris.texteditor.internal.GotoWorkspaceFileBookmark;
 import mesfavoris.texteditor.internal.TextEditorBookmarkPropertiesProvider;
@@ -58,6 +61,7 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
     private BookmarksMarkers bookmarksMarkers;
     private IBookmarkPropertiesProvider bookmarkPropertiesProvider;
     private INewBookmarkPositionProvider newBookmarkPositionProvider;
+    private BookmarksAutoSaver bookmarksSaver;
 
     public BookmarksService(Project project) throws IOException {
         this.project = project;
@@ -76,6 +80,10 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
         this.newBookmarkPositionProvider = new NewBookmarkPositionProvider(project, bookmarkDatabase);
         this.bookmarksMarkers = new BookmarksMarkers(project, bookmarkDatabase, new BookmarkMarkerAttributesProvider(Arrays.asList(new WorkspaceFileBookmarkMarkerAttributesProvider())));
         this.bookmarksMarkers.init();
+        LocalBookmarksSaver localBookmarksSaver = new LocalBookmarksSaver(getBookmarksFilePath(project).toFile(),
+                new BookmarksTreeJsonSerializer(true));
+        bookmarksSaver = new BookmarksAutoSaver(bookmarkDatabase, localBookmarksSaver);
+        bookmarksSaver.init();
     }
 
     private Path getBookmarksFilePath(Project project) throws IOException {
@@ -128,7 +136,7 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
 
     @Override
     public void dispose() {
-
+        bookmarksSaver.close();
     }
 
     @Override
