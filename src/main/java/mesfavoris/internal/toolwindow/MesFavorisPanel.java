@@ -58,7 +58,7 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
                     return false;
                 }
                 TreePath selectionPath = tree.getSelectionPath();
-                if (selectionPath == null || !clickPath.equals(selectionPath)) return false;
+                if (!clickPath.equals(selectionPath)) return false;
                 Object object = selectionPath.getLastPathComponent();
                 Bookmark bookmark = Adapters.adapt(object, Bookmark.class);
                 try {

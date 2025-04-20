@@ -1,31 +1,67 @@
 package mesfavoris.internal.toolwindow;
 
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.ui.tree.BaseTreeModel;
-import mesfavoris.model.BookmarkDatabase;
-import mesfavoris.model.BookmarkFolder;
+import mesfavoris.model.*;
+import mesfavoris.model.modification.BookmarksAddedModification;
+import mesfavoris.model.modification.BookmarksModification;
 
+import javax.swing.*;
+import javax.swing.tree.TreePath;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class BookmarksTreeModel extends BaseTreeModel<Object> {
     private final BookmarkDatabase bookmarkDatabase;
 
+    private final IBookmarksListener bookmarksListener = modifications -> {
+        ApplicationManager.getApplication().invokeLater(() -> {
+            for (BookmarksModification modification : modifications) {
+                if (modification instanceof BookmarksAddedModification bookmarksAddedModification) {
+                    treeStructureChanged(getTreePathForBookmark(bookmarksAddedModification.getParentId()), new int[0], new Object[0]);
+                }
+            }
+        }, ModalityState.defaultModalityState());
+    };
+
     public BookmarksTreeModel(BookmarkDatabase bookmarkDatabase) {
         this.bookmarkDatabase = bookmarkDatabase;
+        bookmarkDatabase.addListener(bookmarksListener);
     }
 
     @Override
-    public Object getRoot() {
+    public void dispose() {
+        bookmarkDatabase.removeListener(bookmarksListener);
+        super.dispose();
+    }
+
+    @Override
+    public BookmarkFolder getRoot() {
         return bookmarkDatabase.getBookmarksTree().getRootFolder();
     }
 
     @Override
-    public List<?> getChildren(Object parent) {
-        if (parent instanceof BookmarkFolder) {
-            BookmarkFolder bookmarkFolder = (BookmarkFolder) parent;
+    public List<Bookmark> getChildren(Object parent) {
+        if (parent instanceof BookmarkFolder bookmarkFolder) {
             return bookmarkDatabase.getBookmarksTree().getChildren(bookmarkFolder.getId());
         }
         return Collections.emptyList();
 
     }
+
+    public TreePath getTreePathForBookmark(BookmarkId bookmarkId) {
+        return getTreePathForBookmark(bookmarkDatabase.getBookmarksTree().getBookmark(bookmarkId));
+    }
+
+    public TreePath getTreePathForBookmark(Bookmark bookmark) {
+        List<Object> path = new ArrayList<>();
+        while (bookmark != null) {
+            path.add(0, bookmark);
+            bookmark = bookmarkDatabase.getBookmarksTree().getParentBookmark(bookmark.getId());
+        }
+        return new TreePath(path.toArray());
+    }
+
 }
