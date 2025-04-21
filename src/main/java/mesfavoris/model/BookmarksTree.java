@@ -151,7 +151,7 @@ public class BookmarksTree implements Iterable<Bookmark> {
 	}
 
 	private BookmarksTree deleteBookmarksUnder(BookmarkId bookmarkFolderId) {
-		Set<Bookmark> subTreeBookmarks = new HashSet<Bookmark>();
+		Set<Bookmark> subTreeBookmarks = new HashSet<>();
 		getAllBookmarksUnder(bookmarkFolderId, subTreeBookmarks);
 		BookmarksMap newIdToBookmark = bookmarksMap;
 		BookmarksChildrenMap newIdToChildren = childrenMap;
@@ -230,7 +230,7 @@ public class BookmarksTree implements Iterable<Bookmark> {
 
 	public List<Bookmark> getChildren(BookmarkId bookmarkFolderId) {
 		checkBookmarkFolderExist(bookmarkFolderId);
-		return childrenMap.getChildren(bookmarkFolderId).stream().map(id -> getBookmark(id))
+		return childrenMap.getChildren(bookmarkFolderId).stream().map(this::getBookmark)
 				.collect(Collectors.toList());
 	}
 
@@ -240,7 +240,7 @@ public class BookmarksTree implements Iterable<Bookmark> {
 
 	public BookmarksTree subTree(BookmarkId bookmarkFolderId) {
 		BookmarkFolder bookmarkFolder = checkBookmarkFolderExist(bookmarkFolderId);
-		Set<Bookmark> subTreeBookmarks = new HashSet<Bookmark>();
+		Set<Bookmark> subTreeBookmarks = new HashSet<>();
 		getAllBookmarksUnder(bookmarkFolderId, subTreeBookmarks);
 		subTreeBookmarks.add(bookmarkFolder);
 		BookmarksMap newIdToBookmark = bookmarksMap;

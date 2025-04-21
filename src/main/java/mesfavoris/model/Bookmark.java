@@ -17,14 +17,14 @@ public class Bookmark {
 	public Bookmark(BookmarkId id) {
 		Preconditions.checkNotNull(id);
 		this.id = id;
-		this.properties = JImmutableTreeMap.<String, String>of();
+		this.properties = JImmutableTreeMap.of();
 	}
 	
 	public Bookmark(BookmarkId id, Map<String, String> properties) {
 		Preconditions.checkNotNull(id);
 		Preconditions.checkNotNull(properties);
 		this.id = id;
-		this.properties = JImmutableTreeMap.<String, String>of(properties);
+		this.properties = JImmutableTreeMap.of(properties);
 	}
 	
 	protected Bookmark(BookmarkId id, JImmutableTreeMap<String,String> properties) { 
@@ -37,8 +37,7 @@ public class Bookmark {
 	}
 	
 	public String getPropertyValue(String propertyName) {
-		String value = properties.get(propertyName);
-		return value;
+		return properties.get(propertyName);
 	}
 	
 	public Map<String,String> getProperties() {

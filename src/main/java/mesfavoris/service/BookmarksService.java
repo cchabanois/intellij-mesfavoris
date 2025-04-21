@@ -30,6 +30,7 @@ import mesfavoris.internal.workspace.BookmarksWorkspaceFactory;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.modification.IBookmarksModificationValidator;
+import mesfavoris.persistence.IBookmarksDirtyStateTracker;
 import mesfavoris.persistence.json.BookmarksTreeJsonDeserializer;
 import mesfavoris.persistence.json.BookmarksTreeJsonSerializer;
 import mesfavoris.placeholders.IPathPlaceholderResolver;
@@ -118,6 +119,8 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
         return bookmarksMarkers;
     }
 
+    public IBookmarksDirtyStateTracker getBookmarksDirtyStateTracker() { return bookmarksSaver; }
+
     private GotoBookmarkOperation getGotoBookmarkOperation() {
         return new GotoBookmarkOperation(project, bookmarkDatabase, bookmarkLocationProvider, gotoBookmark, bookmarksMarkers);
     }
@@ -133,6 +136,8 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
                 newBookmarkPositionProvider);
         return operation.addBookmark(dataContext, progress);
     }
+
+
 
     @Override
     public void dispose() {

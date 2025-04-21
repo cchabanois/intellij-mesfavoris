@@ -36,41 +36,20 @@ import java.awt.event.MouseEvent;
 import java.util.Arrays;
 
 public class MesFavorisPanel extends JPanel implements DataProvider, Disposable {
-    private static final Convertor<? super TreePath, String> TO_STRING = path -> path.getLastPathComponent().toString();
     private final Project project;
     private final DnDAwareTree tree;
+    private final BookmarksService bookmarksService;
 
     public MesFavorisPanel(@NotNull Project project) {
         super(new BorderLayout());
         this.project = project;
-        BookmarksService bookmarksService = project.getService(BookmarksService.class);
+        this.bookmarksService = project.getService(BookmarksService.class);
         BookmarkDatabase bookmarkDatabase = bookmarksService.getBookmarkDatabase();
         tree = new DnDAwareTree(new BookmarksTreeModel(bookmarkDatabase));
-        tree.setCellRenderer(new BookmarksTreeCellRenderer(project, bookmarkDatabase, new BookmarkLabelProvider(Arrays.asList(new UrlBookmarkLabelProvider(), new BookmarkFolderLabelProvider(), new TextEditorBookmarkLabelProvider()))));
+        tree.setCellRenderer(new BookmarksTreeCellRenderer(project, bookmarkDatabase, bookmarksService.getBookmarksDirtyStateTracker(), new BookmarkLabelProvider(Arrays.asList(new UrlBookmarkLabelProvider(), new BookmarkFolderLabelProvider(), new TextEditorBookmarkLabelProvider()))));
         tree.setRootVisible(false);
-        TreeUIHelper.getInstance().installTreeSpeedSearch(tree, TO_STRING, true);
-
-        new DoubleClickListener() {
-            @Override
-            protected boolean onDoubleClick(@NotNull MouseEvent event) {
-                TreePath clickPath = tree.getClosestPathForLocation(event.getX(), event.getY());
-                if (clickPath == null) {
-                    return false;
-                }
-                TreePath selectionPath = tree.getSelectionPath();
-                if (!clickPath.equals(selectionPath)) return false;
-                Object object = selectionPath.getLastPathComponent();
-                Bookmark bookmark = Adapters.adapt(object, Bookmark.class);
-                try {
-                    ProgressIndicator progress = EmptyProgressIndicator.notNullize(ProgressIndicatorProvider.getGlobalProgressIndicator());
-                    bookmarksService.gotoBookmark(bookmark.getId(), progress);
-                } catch (BookmarksException e) {
-                    e.printStackTrace();
-                }
-                return true;
-            }
-        }.installOn(tree);
-
+        installTreeSpeedSearch();
+        installDoubleClickListener();
 
         BookmarkDetailsPart bookmarkDetailsPart = new BookmarkDetailsPart(project, Arrays.asList(new CommentBookmarkDetailPart(project)));
         JComponent bookmarksDetailsComponent = bookmarkDetailsPart.createComponent();
@@ -106,6 +85,34 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         splitter.setSecondComponent(bookmarksDetailsComponent); // tabs.getComponent());
 
         add(splitter, BorderLayout.CENTER);
+    }
+
+    private void installDoubleClickListener() {
+        new DoubleClickListener() {
+            @Override
+            protected boolean onDoubleClick(@NotNull MouseEvent event) {
+                TreePath clickPath = tree.getClosestPathForLocation(event.getX(), event.getY());
+                if (clickPath == null) {
+                    return false;
+                }
+                TreePath selectionPath = tree.getSelectionPath();
+                if (!clickPath.equals(selectionPath)) return false;
+                Object object = selectionPath.getLastPathComponent();
+                Bookmark bookmark = Adapters.adapt(object, Bookmark.class);
+                try {
+                    ProgressIndicator progress = EmptyProgressIndicator.notNullize(ProgressIndicatorProvider.getGlobalProgressIndicator());
+                    bookmarksService.gotoBookmark(bookmark.getId(), progress);
+                } catch (BookmarksException e) {
+                    e.printStackTrace();
+                }
+                return true;
+            }
+        }.installOn(tree);
+    }
+
+    private void installTreeSpeedSearch() {
+        Convertor<? super TreePath, String> TO_STRING = path -> path.getLastPathComponent().toString();
+        TreeUIHelper.getInstance().installTreeSpeedSearch(tree, TO_STRING, true);
     }
 
     private Bookmark getBookmark(TreePath path) {
