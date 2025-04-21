@@ -2,6 +2,7 @@ package mesfavoris.internal.ui.details;
 
 import java.util.List;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import mesfavoris.service.BookmarksService;
 
@@ -54,7 +55,7 @@ public abstract class AbstractBookmarkDetailPart implements IBookmarkDetailPart 
 		}
 		Bookmark oldBookmark = bookmark;
 		bookmark = newBookmark;
-		bookmarkModified(oldBookmark, bookmark);
+		ApplicationManager.getApplication().invokeLater(() -> bookmarkModified(oldBookmark, bookmark));
 	}
 
 	/**

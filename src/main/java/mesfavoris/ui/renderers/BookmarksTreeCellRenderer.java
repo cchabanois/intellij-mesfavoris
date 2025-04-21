@@ -1,6 +1,7 @@
 package mesfavoris.ui.renderers;
 
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
@@ -26,9 +27,12 @@ public class BookmarksTreeCellRenderer extends ColoredTreeCellRenderer implement
     private final IBookmarksDirtyStateTracker bookmarksDirtyStateTracker;
     private final BookmarkDatabaseLabelProviderContext context;
     private final Color commentColor = new JBColor(new Color(63, 127, 95), new Color(63, 127, 95));
-    private final IBookmarksDirtyStateListener dirtyStateListener = dirtyBookmarks -> {
+    private final IBookmarksDirtyStateListener dirtyStateListener = dirtyBookmarks -> ApplicationManager.getApplication().invokeLater(() -> {
+        if (!getTree().isShowing()) {
+            return;
+        }
         getTree().repaint();
-    };
+    });
 
     public BookmarksTreeCellRenderer(Project project, BookmarkDatabase bookmarkDatabase, IBookmarksDirtyStateTracker bookmarksDirtyStateTracker, IBookmarkLabelProvider bookmarkLabelProvider) {
         this.bookmarkDatabase = bookmarkDatabase;
