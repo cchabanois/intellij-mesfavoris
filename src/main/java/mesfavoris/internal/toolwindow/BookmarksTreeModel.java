@@ -7,24 +7,21 @@ import mesfavoris.model.*;
 import mesfavoris.model.modification.BookmarksAddedModification;
 import mesfavoris.model.modification.BookmarksModification;
 
-import javax.swing.*;
 import javax.swing.tree.TreePath;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class BookmarksTreeModel extends BaseTreeModel<Object> {
+public class BookmarksTreeModel extends BaseTreeModel<Bookmark> {
     private final BookmarkDatabase bookmarkDatabase;
 
-    private final IBookmarksListener bookmarksListener = modifications -> {
-        ApplicationManager.getApplication().invokeLater(() -> {
-            for (BookmarksModification modification : modifications) {
-                if (modification instanceof BookmarksAddedModification bookmarksAddedModification) {
-                    treeStructureChanged(getTreePathForBookmark(bookmarksAddedModification.getParentId()), new int[0], new Object[0]);
-                }
+    private final IBookmarksListener bookmarksListener = modifications -> ApplicationManager.getApplication().invokeLater(() -> {
+        for (BookmarksModification modification : modifications) {
+            if (modification instanceof BookmarksAddedModification bookmarksAddedModification) {
+                treeStructureChanged(getTreePathForBookmark(bookmarksAddedModification.getParentId()), new int[0], new Object[0]);
             }
-        }, ModalityState.defaultModalityState());
-    };
+        }
+    }, ModalityState.defaultModalityState());
 
     public BookmarksTreeModel(BookmarkDatabase bookmarkDatabase) {
         this.bookmarkDatabase = bookmarkDatabase;
@@ -49,6 +46,11 @@ public class BookmarksTreeModel extends BaseTreeModel<Object> {
         }
         return Collections.emptyList();
 
+    }
+
+    @Override
+    public boolean isLeaf(Object object) {
+        return !(object instanceof BookmarkFolder);
     }
 
     public TreePath getTreePathForBookmark(BookmarkId bookmarkId) {

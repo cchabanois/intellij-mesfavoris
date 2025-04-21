@@ -1,7 +1,9 @@
 package mesfavoris.ui.renderers;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.UIUtil;
 import mesfavoris.bookmarktype.BookmarkDatabaseLabelProviderContext;
@@ -9,6 +11,8 @@ import mesfavoris.bookmarktype.IBookmarkLabelProvider;
 import mesfavoris.commons.Adapters;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
+import mesfavoris.persistence.IBookmarksDirtyStateListener;
+import mesfavoris.persistence.IBookmarksDirtyStateTracker;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -16,16 +20,27 @@ import java.awt.*;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
-public class BookmarksTreeCellRenderer extends ColoredTreeCellRenderer {
+public class BookmarksTreeCellRenderer extends ColoredTreeCellRenderer implements Disposable {
     private final BookmarkDatabase bookmarkDatabase;
     private final IBookmarkLabelProvider bookmarkLabelProvider;
+    private final IBookmarksDirtyStateTracker bookmarksDirtyStateTracker;
     private final BookmarkDatabaseLabelProviderContext context;
-    private final Color commentColor = new Color(63, 127, 95);
+    private final Color commentColor = new JBColor(new Color(63, 127, 95), new Color(63, 127, 95));
+    private final IBookmarksDirtyStateListener dirtyStateListener = dirtyBookmarks -> {
+        getTree().repaint();
+    };
 
-    public BookmarksTreeCellRenderer(Project project, BookmarkDatabase bookmarkDatabase, IBookmarkLabelProvider bookmarkLabelProvider) {
+    public BookmarksTreeCellRenderer(Project project, BookmarkDatabase bookmarkDatabase, IBookmarksDirtyStateTracker bookmarksDirtyStateTracker, IBookmarkLabelProvider bookmarkLabelProvider) {
         this.bookmarkDatabase = bookmarkDatabase;
         this.bookmarkLabelProvider = bookmarkLabelProvider;
+        this.bookmarksDirtyStateTracker = bookmarksDirtyStateTracker;
         this.context = new BookmarkDatabaseLabelProviderContext(project, bookmarkDatabase);
+        bookmarksDirtyStateTracker.addListener(dirtyStateListener);
+    }
+
+    @Override
+    public void dispose() {
+        bookmarksDirtyStateTracker.removeListener(dirtyStateListener);
     }
 
     @Override
@@ -37,19 +52,19 @@ public class BookmarksTreeCellRenderer extends ColoredTreeCellRenderer {
     }
 
     private Icon getIcon(final Object element) {
-        Bookmark bookmark = (Bookmark) Adapters.adapt(element, Bookmark.class);
+        Bookmark bookmark = Adapters.adapt(element, Bookmark.class);
         return bookmarkLabelProvider.getIcon(context, bookmark);
     }
 
     private StyledString getStyledText(final Object element) {
-        Bookmark bookmark = (Bookmark) Adapters.adapt(element, Bookmark.class);
+        Bookmark bookmark = Adapters.adapt(element, Bookmark.class);
         String comment = getFirstCommentLine(bookmark);
-        boolean hasComment = comment != null && comment.trim().length() > 0;
+        boolean hasComment = comment != null && !comment.trim().isEmpty();
         boolean isDisabled = false; //isUnderDisconnectedRemoteBookmarkFolder(bookmark);
         StyledString styledString = new StyledString();
-//        if (dirtyBookmarksProvider.getDirtyBookmarks().contains(bookmark.getId())) {
-//            styledString = styledString.append("> ");
-//        }
+        if (bookmarksDirtyStateTracker.getDirtyBookmarks().contains(bookmark.getId())) {
+            styledString = styledString.append("> ");
+        }
         styledString = styledString.append(bookmarkLabelProvider.getStyledText(context, bookmark));
         if (isDisabled) {
             styledString = styledString.setStyle(SimpleTextAttributes.GRAYED_ATTRIBUTES);
