@@ -39,19 +39,23 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
     private final Project project;
     private final DnDAwareTree tree;
     private final BookmarksService bookmarksService;
+    private final BookmarksTreeModel bookmarksTreeModel;
+    private final BookmarksTreeCellRenderer bookmarksTreeCellRenderer;
 
     public MesFavorisPanel(@NotNull Project project) {
         super(new BorderLayout());
         this.project = project;
         this.bookmarksService = project.getService(BookmarksService.class);
         BookmarkDatabase bookmarkDatabase = bookmarksService.getBookmarkDatabase();
-        tree = new DnDAwareTree(new BookmarksTreeModel(bookmarkDatabase));
-        tree.setCellRenderer(new BookmarksTreeCellRenderer(project, bookmarkDatabase, bookmarksService.getBookmarksDirtyStateTracker(), new BookmarkLabelProvider(Arrays.asList(new UrlBookmarkLabelProvider(), new BookmarkFolderLabelProvider(), new TextEditorBookmarkLabelProvider()))));
+        bookmarksTreeModel = new BookmarksTreeModel(bookmarkDatabase);
+        tree = new DnDAwareTree(bookmarksTreeModel);
+        bookmarksTreeCellRenderer = new BookmarksTreeCellRenderer(project, bookmarkDatabase, bookmarksService.getBookmarksDirtyStateTracker(), new BookmarkLabelProvider(Arrays.asList(new UrlBookmarkLabelProvider(), new BookmarkFolderLabelProvider(), new TextEditorBookmarkLabelProvider())));
+        tree.setCellRenderer(bookmarksTreeCellRenderer);
         tree.setRootVisible(false);
         installTreeSpeedSearch();
         installDoubleClickListener();
 
-        BookmarkDetailsPart bookmarkDetailsPart = new BookmarkDetailsPart(project, Arrays.asList(new CommentBookmarkDetailPart(project)));
+        BookmarkDetailsPart bookmarkDetailsPart = new BookmarkDetailsPart(project, Arrays.asList(new CommentBookmarkDetailPart(project, bookmarkDatabase)));
         JComponent bookmarksDetailsComponent = bookmarkDetailsPart.createComponent();
 
         tree.getSelectionModel().addTreeSelectionListener(event -> {
@@ -123,6 +127,8 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
     @Override
     public void dispose() {
         DataManager.removeDataProvider(this);
+        bookmarksTreeCellRenderer.dispose();
+        bookmarksTreeModel.dispose();
     }
 
     @Override
