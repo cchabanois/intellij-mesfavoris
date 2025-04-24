@@ -22,5 +22,7 @@
                 text="Add Favori" description="Add a Bookmark">
             <keyboard-shortcut keymap="$default" first-keystroke="alt shift B" second-keystroke="B"/>
         </action>
+        <action id="mesfavoris.internal.actions.GotoBookmarkAction"
+                class="mesfavoris.internal.actions.GotoBookmarkAction" text="Goto Bookmark" description="Goto Bookmark"/>
     </actions>
 </idea-plugin>

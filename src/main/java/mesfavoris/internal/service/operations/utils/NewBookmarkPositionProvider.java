@@ -3,6 +3,8 @@ package mesfavoris.internal.service.operations.utils;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -20,8 +22,8 @@ import com.intellij.openapi.diagnostic.Logger;
 
 import java.awt.*;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Provides the position where to add a new bookmark.
@@ -98,11 +100,18 @@ public class NewBookmarkPositionProvider implements INewBookmarkPositionProvider
 		ToolWindow bookmarksToolWindow = ToolWindowManager.getInstance(project).getToolWindow("mesfavoris");
 		Content content = bookmarksToolWindow.getContentManager().getContent(0);
 		Component component = content.getComponent();
-		DataContext dataContext = DataManager.getInstance().getDataContext(component);
-		Object[] objects = dataContext.getData(PlatformDataKeys.SELECTED_ITEMS);
-		return Arrays.stream(objects).map(object -> (Bookmark)object).toList();
+		return Arrays.stream(getSelectedItemsFromDataContext(component)).map(object -> (Bookmark)object).toList();
 	}
 
+	private Object[] getSelectedItemsFromDataContext(Component component) {
+		AtomicReference<Object[]> results = new AtomicReference<>();
+		ApplicationManager.getApplication().invokeAndWait(() -> ReadAction.run(() -> {
+			DataContext dataContext = DataManager.getInstance().getDataContext(component);
+			Object[] objects = dataContext.getData(PlatformDataKeys.SELECTED_ITEMS);
+			results.set(objects);
+        }));
+		return results.get();
+	}
 
 
 }

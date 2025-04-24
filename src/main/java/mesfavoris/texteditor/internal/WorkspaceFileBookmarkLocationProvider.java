@@ -1,5 +1,6 @@
 package mesfavoris.texteditor.internal;
 
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
@@ -30,21 +31,23 @@ public class WorkspaceFileBookmarkLocationProvider extends AbstractFileBookmarkL
 
     @Override
     public WorkspaceFileBookmarkLocation getBookmarkLocation(Project project, Bookmark bookmark, ProgressIndicator monitor) {
-        Optional<VirtualFile> workspaceFile = getWorkspaceFile(project, bookmark, monitor);
-        if (workspaceFile.isEmpty()) {
-            return null;
-        }
-        String lineContent = bookmark.getPropertyValue(TextEditorBookmarkProperties.PROP_LINE_CONTENT);
-        Integer lineNumber = getExpectedLineNumber(bookmark);
-        Integer lineOffset = null;
-        Document document = fileDocumentManager.getDocument(workspaceFile.get());
-        if (lineContent != null && document != null) {
-            lineNumber = getLineNumber(document, lineNumber, lineContent, monitor);
-        }
-        if (document != null && lineNumber != null) {
-            lineOffset = getLineOffset(document, lineNumber);
-        }
-        return new WorkspaceFileBookmarkLocation(workspaceFile.get(), lineNumber, lineOffset);
+        return ReadAction.compute(() -> {
+            Optional<VirtualFile> workspaceFile = getWorkspaceFile(project, bookmark, monitor);
+            if (workspaceFile.isEmpty()) {
+                return null;
+            }
+            String lineContent = bookmark.getPropertyValue(TextEditorBookmarkProperties.PROP_LINE_CONTENT);
+            Integer lineNumber = getExpectedLineNumber(bookmark);
+            Integer lineOffset = null;
+            Document document = fileDocumentManager.getDocument(workspaceFile.get());
+            if (lineContent != null && document != null) {
+                lineNumber = getLineNumber(document, lineNumber, lineContent, monitor);
+            }
+            if (document != null && lineNumber != null) {
+                lineOffset = getLineOffset(document, lineNumber);
+            }
+            return new WorkspaceFileBookmarkLocation(workspaceFile.get(), lineNumber, lineOffset);
+        });
     }
 
     private Integer getLineOffset(Document document, int lineNumber) {
