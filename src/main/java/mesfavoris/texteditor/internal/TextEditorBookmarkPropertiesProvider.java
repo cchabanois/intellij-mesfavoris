@@ -11,6 +11,7 @@ import java.util.Map;
 
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.SelectionModel;
@@ -33,13 +34,16 @@ public class TextEditorBookmarkPropertiesProvider extends AbstractBookmarkProper
 
 	@Override
 	public void addBookmarkProperties(Map<String, String> bookmarkProperties, DataContext dataContext, ProgressIndicator progress) {
-		Editor editor = dataContext.getData(CommonDataKeys.EDITOR);
-		VirtualFile virtualFile = dataContext.getData(CommonDataKeys.VIRTUAL_FILE);
-		Project project = dataContext.getData(CommonDataKeys.PROJECT);
-		if (editor == null || virtualFile == null) {
-			return;
-		}
-		addBookmarkProperties(bookmarkProperties, editor, virtualFile);
+		// readAction needed for VirtualFile
+		ReadAction.run(() -> {
+			Editor editor = dataContext.getData(CommonDataKeys.EDITOR);
+			VirtualFile virtualFile = dataContext.getData(CommonDataKeys.VIRTUAL_FILE);
+			Project project = dataContext.getData(CommonDataKeys.PROJECT);
+			if (editor == null || virtualFile == null) {
+				return;
+			}
+			addBookmarkProperties(bookmarkProperties, editor, virtualFile);
+		});
 	}
 
 	private void addBookmarkProperties(Map<String, String> properties, Editor editor, VirtualFile virtualFile) {

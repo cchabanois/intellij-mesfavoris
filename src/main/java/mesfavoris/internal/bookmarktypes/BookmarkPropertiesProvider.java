@@ -8,17 +8,23 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.progress.ProgressIndicator;
 
 import mesfavoris.bookmarktype.IBookmarkPropertiesProvider;
+import mesfavoris.commons.SubProgressIndicator;
 
 public class BookmarkPropertiesProvider implements IBookmarkPropertiesProvider {
 	private final List<IBookmarkPropertiesProvider> providers;
 
 	public BookmarkPropertiesProvider(List<IBookmarkPropertiesProvider> providers) {
-		this.providers = new ArrayList<IBookmarkPropertiesProvider>(providers);
+		this.providers = new ArrayList<>(providers);
 	}
 
 	@Override
 	public void addBookmarkProperties(Map<String, String> bookmarkProperties, DataContext dataContext, ProgressIndicator progress) {
-			providers.forEach(p -> p.addBookmarkProperties(bookmarkProperties, dataContext, progress));
+			double progressFraction = (double) 1 /providers.size();
+			providers.forEach(p -> {
+				try(SubProgressIndicator subProgressIndicator = new SubProgressIndicator(progress, progressFraction)) {
+					p.addBookmarkProperties(bookmarkProperties, dataContext, subProgressIndicator);
+				}
+			});
 	}
 
 }

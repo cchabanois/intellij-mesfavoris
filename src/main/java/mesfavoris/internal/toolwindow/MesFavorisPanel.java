@@ -4,16 +4,11 @@ import com.intellij.ide.DataManager;
 import com.intellij.ide.dnd.aware.DnDAwareTree;
 //import com.intellij.ide.favoritesTreeView.actions.DeleteFromFavoritesAction;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressIndicatorProvider;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.*;
 import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.JBUI;
-import mesfavoris.BookmarksException;
 import mesfavoris.commons.Adapters;
 import mesfavoris.internal.bookmarktypes.BookmarkLabelProvider;
 import mesfavoris.internal.ui.details.BookmarkDetailsPart;
@@ -94,21 +89,21 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
     private void installDoubleClickListener() {
         new DoubleClickListener() {
             @Override
-            protected boolean onDoubleClick(@NotNull MouseEvent event) {
-                TreePath clickPath = tree.getClosestPathForLocation(event.getX(), event.getY());
+            protected boolean onDoubleClick(@NotNull MouseEvent mouseEvent) {
+                TreePath clickPath = tree.getPathForLocation(mouseEvent.getX(), mouseEvent.getY());
                 if (clickPath == null) {
                     return false;
                 }
                 TreePath selectionPath = tree.getSelectionPath();
                 if (!clickPath.equals(selectionPath)) return false;
-                Object object = selectionPath.getLastPathComponent();
-                Bookmark bookmark = Adapters.adapt(object, Bookmark.class);
-                try {
-                    ProgressIndicator progress = EmptyProgressIndicator.notNullize(ProgressIndicatorProvider.getGlobalProgressIndicator());
-                    bookmarksService.gotoBookmark(bookmark.getId(), progress);
-                } catch (BookmarksException e) {
-                    e.printStackTrace();
-                }
+
+                DataContext context = DataManager.getInstance().getDataContext(MesFavorisPanel.this);
+
+                AnActionEvent event = AnActionEvent.createEvent(context, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, mouseEvent);
+
+                ActionManager.getInstance()
+                        .getAction("mesfavoris.internal.actions.GotoBookmarkAction")
+                        .actionPerformed(event);
                 return true;
             }
         }.installOn(tree);
@@ -133,6 +128,10 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
 
     @Override
     public @Nullable Object getData(@NotNull @NonNls String dataId) {
+        if (PlatformDataKeys.SELECTED_ITEM.is(dataId)) {
+            TreePath selectionPath = tree.getSelectionModel().getSelectionPath();
+            return selectionPath != null ? getBookmark(selectionPath) : null;
+        }
         if (PlatformDataKeys.SELECTED_ITEMS.is(dataId)) {
             return Arrays.stream(tree.getSelectionModel().getSelectionPaths()).map(this::getBookmark).toArray();
         }
