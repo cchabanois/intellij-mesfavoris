@@ -22,6 +22,7 @@ import mesfavoris.internal.persistence.LocalBookmarksSaver;
 import mesfavoris.internal.placeholders.PathPlaceholderResolver;
 import mesfavoris.internal.placeholders.PathPlaceholdersMap;
 import mesfavoris.internal.service.operations.AddBookmarkOperation;
+import mesfavoris.internal.service.operations.DeleteBookmarksOperation;
 import mesfavoris.internal.service.operations.GotoBookmarkOperation;
 import mesfavoris.internal.service.operations.utils.INewBookmarkPositionProvider;
 import mesfavoris.internal.service.operations.utils.NewBookmarkPositionProvider;
@@ -137,7 +138,10 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
         return operation.addBookmark(dataContext, progress);
     }
 
-
+    public void deleteBookmarks(List<BookmarkId> selection, boolean recurse) throws BookmarksException {
+        DeleteBookmarksOperation operation = new DeleteBookmarksOperation(bookmarkDatabase);
+        operation.deleteBookmarks(selection, recurse);
+    }
 
     @Override
     public void dispose() {

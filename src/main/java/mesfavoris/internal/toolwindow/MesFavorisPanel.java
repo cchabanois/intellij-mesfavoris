@@ -2,7 +2,6 @@ package mesfavoris.internal.toolwindow;
 
 import com.intellij.ide.DataManager;
 import com.intellij.ide.dnd.aware.DnDAwareTree;
-//import com.intellij.ide.favoritesTreeView.actions.DeleteFromFavoritesAction;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
@@ -15,6 +14,7 @@ import mesfavoris.internal.ui.details.BookmarkDetailsPart;
 import mesfavoris.internal.ui.details.CommentBookmarkDetailPart;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
+import mesfavoris.model.BookmarkFolder;
 import mesfavoris.service.BookmarksService;
 import mesfavoris.texteditor.internal.TextEditorBookmarkLabelProvider;
 import mesfavoris.ui.renderers.BookmarkFolderLabelProvider;
@@ -49,6 +49,7 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         tree.setRootVisible(false);
         installTreeSpeedSearch();
         installDoubleClickListener();
+        installPopupMenu();
 
         BookmarkDetailsPart bookmarkDetailsPart = new BookmarkDetailsPart(project, Arrays.asList(new CommentBookmarkDetailPart(project, bookmarkDatabase)));
         JComponent bookmarksDetailsComponent = bookmarkDetailsPart.createComponent();
@@ -97,16 +98,27 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
                 TreePath selectionPath = tree.getSelectionPath();
                 if (!clickPath.equals(selectionPath)) return false;
 
-                DataContext context = DataManager.getInstance().getDataContext(MesFavorisPanel.this);
+                Bookmark bookmark = getBookmark(selectionPath);
+                if (bookmark instanceof BookmarkFolder) {
+                    return false;
+                } else {
+                    DataContext context = DataManager.getInstance().getDataContext(MesFavorisPanel.this);
 
-                AnActionEvent event = AnActionEvent.createEvent(context, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, mouseEvent);
+                    AnActionEvent event = AnActionEvent.createEvent(context, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, mouseEvent);
 
-                ActionManager.getInstance()
-                        .getAction("mesfavoris.internal.actions.GotoBookmarkAction")
-                        .actionPerformed(event);
-                return true;
+                    ActionManager.getInstance()
+                            .getAction("mesfavoris.actions.GotoBookmarkAction")
+                            .actionPerformed(event);
+                    return true;
+                }
             }
         }.installOn(tree);
+    }
+
+    private void installPopupMenu() {
+        PopupHandler.installPopupMenu(tree,
+                (DefaultActionGroup)ActionManager.getInstance().getAction("mesfavoris.PopupMenu"),
+                ActionPlaces.UNKNOWN);
     }
 
     private void installTreeSpeedSearch() {

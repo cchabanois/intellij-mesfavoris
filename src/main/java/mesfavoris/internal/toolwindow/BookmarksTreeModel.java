@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.ui.tree.BaseTreeModel;
 import mesfavoris.model.*;
+import mesfavoris.model.modification.BookmarkDeletedModification;
 import mesfavoris.model.modification.BookmarkPropertiesModification;
 import mesfavoris.model.modification.BookmarksAddedModification;
 import mesfavoris.model.modification.BookmarksModification;
@@ -20,6 +21,9 @@ public class BookmarksTreeModel extends BaseTreeModel<Bookmark> {
         for (BookmarksModification modification : modifications) {
             if (modification instanceof BookmarksAddedModification bookmarksAddedModification) {
                 treeStructureChanged(getTreePathForBookmark(bookmarksAddedModification.getParentId()), new int[0], new Object[0]);
+            }
+            if (modification instanceof BookmarkDeletedModification bookmarkDeletedModification) {
+                treeStructureChanged(getTreePathForBookmark(bookmarkDeletedModification.getBookmarkParentId()), new int[0], new Object[0]);
             }
             if (modification instanceof BookmarkPropertiesModification bookmarksPropertiesModification) {
                 Bookmark bookmark = bookmarksPropertiesModification.getTargetTree().getBookmark(bookmarksPropertiesModification.getBookmarkId());
