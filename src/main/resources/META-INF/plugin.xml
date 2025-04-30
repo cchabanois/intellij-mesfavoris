@@ -18,11 +18,17 @@
         <listener class="mesfavoris.listeners.MyApplicationActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
     </applicationListeners>
     <actions>
-        <action id="mesfavoris.internal.actions.AddBookmarkAction" class="mesfavoris.internal.actions.AddBookmarkAction"
+        <action id="mesfavoris.actions.AddBookmarkAction" class="mesfavoris.internal.actions.AddBookmarkAction"
                 text="Add Favori" description="Add a Bookmark">
             <keyboard-shortcut keymap="$default" first-keystroke="alt shift B" second-keystroke="B"/>
         </action>
-        <action id="mesfavoris.internal.actions.GotoBookmarkAction"
-                class="mesfavoris.internal.actions.GotoBookmarkAction" text="Goto Bookmark" description="Goto Bookmark"/>
+        <action id="mesfavoris.actions.GotoBookmarkAction"
+                class="mesfavoris.internal.actions.GotoBookmarkAction" text="Goto Favori" description="Goto Bookmark"/>
+        <group id="mesfavoris.PopupMenu" text="Tree Popup" popup="true">
+            <action id="mesfavoris.actions.DeleteBookmarkAction" class="mesfavoris.internal.actions.DeleteBookmarkAction" text="Delete" description="Delete selected bookmarks">
+                <keyboard-shortcut first-keystroke="DELETE" keymap="$default"/>
+                <keyboard-shortcut first-keystroke="BACK_SPACE" keymap="$default"/>
+            </action>
+        </group>
     </actions>
 </idea-plugin>
