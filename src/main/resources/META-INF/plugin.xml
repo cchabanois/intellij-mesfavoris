@@ -29,6 +29,8 @@
                 <keyboard-shortcut first-keystroke="DELETE" keymap="$default"/>
                 <keyboard-shortcut first-keystroke="BACK_SPACE" keymap="$default"/>
             </action>
+            <action id="mesfavoris.actions.NewBookmarkFolderAction" class="mesfavoris.internal.actions.NewBookmarkFolderAction" text="New Bookmark Folder" description="Create a new Bookmark Folder">
+            </action>
         </group>
     </actions>
 </idea-plugin>

@@ -21,6 +21,7 @@ import mesfavoris.internal.persistence.BookmarksAutoSaver;
 import mesfavoris.internal.persistence.LocalBookmarksSaver;
 import mesfavoris.internal.placeholders.PathPlaceholderResolver;
 import mesfavoris.internal.placeholders.PathPlaceholdersMap;
+import mesfavoris.internal.service.operations.AddBookmarkFolderOperation;
 import mesfavoris.internal.service.operations.AddBookmarkOperation;
 import mesfavoris.internal.service.operations.DeleteBookmarksOperation;
 import mesfavoris.internal.service.operations.GotoBookmarkOperation;
@@ -30,6 +31,7 @@ import mesfavoris.internal.validation.AcceptAllBookmarksModificationValidator;
 import mesfavoris.internal.workspace.BookmarksWorkspaceFactory;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
+import mesfavoris.model.BookmarksTree;
 import mesfavoris.model.modification.IBookmarksModificationValidator;
 import mesfavoris.persistence.IBookmarksDirtyStateTracker;
 import mesfavoris.persistence.json.BookmarksTreeJsonDeserializer;
@@ -116,6 +118,10 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
         return bookmarkDatabase;
     }
 
+    public BookmarksTree getBookmarksTree() {
+        return bookmarkDatabase.getBookmarksTree();
+    }
+
     public IBookmarksMarkers getBookmarksMarkers() {
         return bookmarksMarkers;
     }
@@ -137,6 +143,11 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
                 newBookmarkPositionProvider);
         return operation.addBookmark(dataContext, progress);
     }
+
+    public void addBookmarkFolder(BookmarkId parentFolderId, String folderName) throws BookmarksException {
+        AddBookmarkFolderOperation operation = new AddBookmarkFolderOperation(bookmarkDatabase);
+		operation.addBookmarkFolder(parentFolderId, folderName);
+}
 
     public void deleteBookmarks(List<BookmarkId> selection, boolean recurse) throws BookmarksException {
         DeleteBookmarksOperation operation = new DeleteBookmarksOperation(bookmarkDatabase);
