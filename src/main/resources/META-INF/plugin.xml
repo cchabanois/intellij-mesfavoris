@@ -12,6 +12,11 @@
         <toolWindow id="mesfavoris" secondary="true" icon="AllIcons.General.Modified" anchor="right"
                     factoryClass="mesfavoris.internal.toolwindow.MesFavorisToolWindowFactory"/>
         <postStartupActivity implementation="mesfavoris.internal.markers.BookmarksHighlighters$BookmarksHighlightersStartupActivity"/>
+        <notificationGroup
+                id="com.cchabanois.mesfavoris.errors"
+                displayType="STICKY_BALLOON"
+                isLogByDefault="true"
+        />
     </extensions>
 
     <applicationListeners>
@@ -30,6 +35,8 @@
                 <keyboard-shortcut first-keystroke="BACK_SPACE" keymap="$default"/>
             </action>
             <action id="mesfavoris.actions.NewBookmarkFolderAction" class="mesfavoris.internal.actions.NewBookmarkFolderAction" text="New Bookmark Folder" description="Create a new Bookmark Folder">
+            </action>
+            <action id="mesfavoris.actions.RenameBookmarkAction"  class="mesfavoris.internal.actions.RenameBookmarkAction" text="Rename" description="Rename Bookmark">
             </action>
         </group>
     </actions>
