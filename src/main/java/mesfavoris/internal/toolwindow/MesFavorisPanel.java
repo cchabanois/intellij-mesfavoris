@@ -1,7 +1,6 @@
 package mesfavoris.internal.toolwindow;
 
 import com.intellij.ide.DataManager;
-import com.intellij.ide.dnd.aware.DnDAwareTree;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
@@ -32,9 +31,8 @@ import java.util.Arrays;
 
 public class MesFavorisPanel extends JPanel implements DataProvider, Disposable {
     private final Project project;
-    private final DnDAwareTree tree;
+    private final BookmarksJTree tree;
     private final BookmarksService bookmarksService;
-    private final BookmarksTreeModel bookmarksTreeModel;
     private final BookmarksTreeCellRenderer bookmarksTreeCellRenderer;
 
     public MesFavorisPanel(@NotNull Project project) {
@@ -42,11 +40,10 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         this.project = project;
         this.bookmarksService = project.getService(BookmarksService.class);
         BookmarkDatabase bookmarkDatabase = bookmarksService.getBookmarkDatabase();
-        bookmarksTreeModel = new BookmarksTreeModel(bookmarkDatabase);
-        tree = new DnDAwareTree(bookmarksTreeModel);
+        tree = new BookmarksJTree(bookmarkDatabase);
         bookmarksTreeCellRenderer = new BookmarksTreeCellRenderer(project, bookmarkDatabase, bookmarksService.getBookmarksDirtyStateTracker(), new BookmarkLabelProvider(Arrays.asList(new UrlBookmarkLabelProvider(), new BookmarkFolderLabelProvider(), new TextEditorBookmarkLabelProvider())));
         tree.setCellRenderer(bookmarksTreeCellRenderer);
-        tree.setRootVisible(false);
+        tree.setEditable(true);
         installTreeSpeedSearch();
         installDoubleClickListener();
         installPopupMenu();
@@ -135,7 +132,7 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
     public void dispose() {
         DataManager.removeDataProvider(this);
         bookmarksTreeCellRenderer.dispose();
-        bookmarksTreeModel.dispose();
+        tree.dispose();
     }
 
     @Override

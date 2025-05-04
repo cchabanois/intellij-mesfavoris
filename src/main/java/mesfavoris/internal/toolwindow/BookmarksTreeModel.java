@@ -1,8 +1,14 @@
 package mesfavoris.internal.toolwindow;
 
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.ui.tree.BaseTreeModel;
+import mesfavoris.BookmarksException;
+import mesfavoris.commons.Adapters;
+import mesfavoris.internal.service.operations.RenameBookmarkOperation;
 import mesfavoris.model.*;
 import mesfavoris.model.modification.BookmarkDeletedModification;
 import mesfavoris.model.modification.BookmarkPropertiesModification;
@@ -76,5 +82,30 @@ public class BookmarksTreeModel extends BaseTreeModel<Bookmark> {
         }
         return new TreePath(path.toArray());
     }
+
+    @Override
+    public void valueForPathChanged(TreePath path, Object newValue) {
+        Bookmark bookmark = getBookmark(path);
+        if (bookmark != null && newValue instanceof String newName) {
+            RenameBookmarkOperation operation = new RenameBookmarkOperation(bookmarkDatabase);
+            try {
+                operation.renameBookmark(bookmark.getId(), newName);
+            } catch (BookmarksException e) {
+                Notification notification = new Notification(
+                        "com.cchabanois.mesfavoris.errors",
+                        "Cannot rename bookmark",
+                        e.getMessage(),
+                        NotificationType.ERROR // ou ERROR
+                );
+                Notifications.Bus.notify(notification);
+            }
+        }
+    }
+
+    private Bookmark getBookmark(TreePath path) {
+        Object object = path.getLastPathComponent();
+        return Adapters.adapt(object, Bookmark.class);
+    }
+
 
 }
