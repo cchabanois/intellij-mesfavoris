@@ -2,13 +2,17 @@ package mesfavoris.internal.toolwindow;
 
 import com.intellij.ide.dnd.aware.DnDAwareTree;
 import com.intellij.openapi.Disposable;
+import mesfavoris.commons.Adapters;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
+import mesfavoris.model.BookmarkId;
 
-public class BookmarksJTree extends DnDAwareTree implements Disposable {
+import javax.swing.tree.TreePath;
+
+public class BookmarksTreeComponent extends DnDAwareTree implements Disposable {
     private final BookmarksTreeModel bookmarksTreeModel;
 
-    public BookmarksJTree(BookmarkDatabase bookmarkDatabase) {
+    public BookmarksTreeComponent(BookmarkDatabase bookmarkDatabase) {
         super();
         this.bookmarksTreeModel = new BookmarksTreeModel(bookmarkDatabase);
         setModel(this.bookmarksTreeModel);
@@ -26,6 +30,15 @@ public class BookmarksJTree extends DnDAwareTree implements Disposable {
         } else {
             return super.convertValueToText(value, selected, expanded, leaf, row, hasFocus);
         }
+    }
+
+    public TreePath getTreePathForBookmark(BookmarkId bookmarkId) {
+        return bookmarksTreeModel.getTreePathForBookmark(bookmarkId);
+    }
+
+    public Bookmark getBookmark(TreePath path) {
+        Object object = path.getLastPathComponent();
+        return Adapters.adapt(object, Bookmark.class);
     }
 
     @Override
