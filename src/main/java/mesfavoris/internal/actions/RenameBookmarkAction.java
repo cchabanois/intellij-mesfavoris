@@ -2,7 +2,7 @@ package mesfavoris.internal.actions;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
-import mesfavoris.internal.toolwindow.BookmarksJTree;
+import mesfavoris.internal.toolwindow.BookmarksTreeComponent;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.tree.TreePath;
@@ -12,7 +12,7 @@ public class RenameBookmarkAction extends AbstractBookmarkAction {
 
     @Override
     public void update(@NotNull AnActionEvent e) {
-        BookmarksJTree bookmarksTree = getBookmarksTree(e);
+        BookmarksTreeComponent bookmarksTree = getBookmarksTree(e);
         if (bookmarksTree == null) {
             return;
         }
@@ -22,7 +22,7 @@ public class RenameBookmarkAction extends AbstractBookmarkAction {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-        BookmarksJTree bookmarksTree = getBookmarksTree(e);
+        BookmarksTreeComponent bookmarksTree = getBookmarksTree(e);
         if (bookmarksTree == null) {
             return;
         }
@@ -32,9 +32,9 @@ public class RenameBookmarkAction extends AbstractBookmarkAction {
         }
     }
 
-    private BookmarksJTree getBookmarksTree(@NotNull AnActionEvent e) {
+    private BookmarksTreeComponent getBookmarksTree(@NotNull AnActionEvent e) {
         Component component = e.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT);
-        return component instanceof BookmarksJTree bookmarksTree ? bookmarksTree : null;
+        return component instanceof BookmarksTreeComponent bookmarksTree ? bookmarksTree : null;
     }
 
 }

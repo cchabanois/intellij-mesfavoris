@@ -7,7 +7,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.*;
 import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.JBUI;
-import mesfavoris.commons.Adapters;
 import mesfavoris.internal.bookmarktypes.BookmarkLabelProvider;
 import mesfavoris.internal.ui.details.BookmarkDetailsPart;
 import mesfavoris.internal.ui.details.CommentBookmarkDetailPart;
@@ -31,7 +30,7 @@ import java.util.Arrays;
 
 public class MesFavorisPanel extends JPanel implements DataProvider, Disposable {
     private final Project project;
-    private final BookmarksJTree tree;
+    private final BookmarksTreeComponent tree;
     private final BookmarksService bookmarksService;
     private final BookmarksTreeCellRenderer bookmarksTreeCellRenderer;
 
@@ -40,7 +39,7 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         this.project = project;
         this.bookmarksService = project.getService(BookmarksService.class);
         BookmarkDatabase bookmarkDatabase = bookmarksService.getBookmarkDatabase();
-        tree = new BookmarksJTree(bookmarkDatabase);
+        tree = new BookmarksTreeComponent(bookmarkDatabase);
         bookmarksTreeCellRenderer = new BookmarksTreeCellRenderer(project, bookmarkDatabase, bookmarksService.getBookmarksDirtyStateTracker(), new BookmarkLabelProvider(Arrays.asList(new UrlBookmarkLabelProvider(), new BookmarkFolderLabelProvider(), new TextEditorBookmarkLabelProvider())));
         tree.setCellRenderer(bookmarksTreeCellRenderer);
         tree.setEditable(true);
@@ -53,7 +52,7 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
 
         tree.getSelectionModel().addTreeSelectionListener(event -> {
             TreePath path = event.getPath();
-            Bookmark bookmark = getBookmark(path);
+            Bookmark bookmark = tree.getBookmark(path);
             bookmarkDetailsPart.setBookmark(bookmark);
 
 /*            SwingUtilities.invokeLater(() -> {
@@ -63,6 +62,8 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
                 }
             }); */
         });
+        BookmarksTreeComponentStateService bookmarksTreeComponentStateService = project.getService(BookmarksTreeComponentStateService.class);
+        bookmarksTreeComponentStateService.installTreeExpansionPersistance(tree);
 
 //        AnActionButton deleteActionButton = new DeleteFromFavoritesAction();
 //        deleteActionButton.setShortcut(CustomShortcutSet.fromString("DELETE", "BACK_SPACE"));
@@ -95,7 +96,7 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
                 TreePath selectionPath = tree.getSelectionPath();
                 if (!clickPath.equals(selectionPath)) return false;
 
-                Bookmark bookmark = getBookmark(selectionPath);
+                Bookmark bookmark = tree.getBookmark(selectionPath);
                 if (bookmark instanceof BookmarkFolder) {
                     return false;
                 } else {
@@ -123,11 +124,6 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         TreeUIHelper.getInstance().installTreeSpeedSearch(tree, TO_STRING, true);
     }
 
-    private Bookmark getBookmark(TreePath path) {
-        Object object = path.getLastPathComponent();
-        return Adapters.adapt(object, Bookmark.class);
-    }
-
     @Override
     public void dispose() {
         DataManager.removeDataProvider(this);
@@ -139,10 +135,10 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
     public @Nullable Object getData(@NotNull @NonNls String dataId) {
         if (PlatformDataKeys.SELECTED_ITEM.is(dataId)) {
             TreePath selectionPath = tree.getSelectionModel().getSelectionPath();
-            return selectionPath != null ? getBookmark(selectionPath) : null;
+            return selectionPath != null ? tree.getBookmark(selectionPath) : null;
         }
         if (PlatformDataKeys.SELECTED_ITEMS.is(dataId)) {
-            return Arrays.stream(tree.getSelectionModel().getSelectionPaths()).map(this::getBookmark).toArray();
+            return Arrays.stream(tree.getSelectionModel().getSelectionPaths()).map(tree::getBookmark).toArray();
         }
         return null;
     }

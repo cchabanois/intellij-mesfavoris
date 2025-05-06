@@ -17,6 +17,7 @@
                 displayType="STICKY_BALLOON"
                 isLogByDefault="true"
         />
+        <projectService serviceImplementation="mesfavoris.internal.toolwindow.BookmarksTreeComponentStateService"/>
     </extensions>
 
     <applicationListeners>
