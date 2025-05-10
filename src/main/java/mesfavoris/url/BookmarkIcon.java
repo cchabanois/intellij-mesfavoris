@@ -1,5 +1,7 @@
 package mesfavoris.url;
 
+import com.intellij.icons.AllIcons;
+
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
@@ -28,7 +30,7 @@ public class BookmarkIcon implements Icon {
                     try {
                         icon = new ImageIcon(getBestImage());
                     } catch (IOException e) {
-                        icon = UrlIcons.pageTagBlue;
+                        icon = AllIcons.General.Web;
                     }
                 }
             }

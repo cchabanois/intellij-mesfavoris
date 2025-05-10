@@ -1,9 +1,9 @@
 package mesfavoris.url.internal;
 
+import com.intellij.icons.AllIcons;
 import mesfavoris.bookmarktype.AbstractBookmarkLabelProvider;
 import mesfavoris.model.Bookmark;
 import mesfavoris.url.BookmarkIcon;
-import mesfavoris.url.UrlIcons;
 
 import javax.swing.*;
 import java.util.Base64;
@@ -20,8 +20,7 @@ public class UrlBookmarkLabelProvider extends AbstractBookmarkLabelProvider {
 		}
 		if (iconAsBase64 == null) {
 			if (bookmark.getPropertyValue(PROP_URL) != null) {
-				// taken from http://www.famfamfam.com/lab/icons/mini/icons/page_tag_blue.gif
-				return UrlIcons.pageTagBlue;
+				return AllIcons.General.Web;
 			} else {
 				return null;
 			}
