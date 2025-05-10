@@ -39,6 +39,10 @@
             </action>
             <action id="mesfavoris.actions.RenameBookmarkAction"  class="mesfavoris.internal.actions.RenameBookmarkAction" text="Rename" description="Rename Bookmark">
             </action>
+            <action id="mesfavoris.actions.PasteBookmarkAction"  class="mesfavoris.internal.actions.PasteBookmarkAction" text="Paste" description="Paste" icon="AllIcons.Actions.MenuPaste">
+                <keyboard-shortcut keymap="$default" first-keystroke="control V"/>
+                <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta V"/>
+            </action>
         </group>
     </actions>
 </idea-plugin>
