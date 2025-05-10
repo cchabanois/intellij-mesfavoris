@@ -40,6 +40,7 @@ import mesfavoris.texteditor.internal.WorkspaceFileBookmarkLocationProvider;
 import mesfavoris.texteditor.internal.WorkspaceFileBookmarkMarkerAttributesProvider;
 import mesfavoris.url.internal.GotoUrlBookmark;
 import mesfavoris.url.internal.UrlBookmarkLocationProvider;
+import mesfavoris.url.internal.UrlBookmarkPropertiesProvider;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -77,7 +78,7 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
         this.gotoBookmark = new GotoBookmark(Arrays.asList(new GotoUrlBookmark(), new GotoWorkspaceFileBookmark()));
         PathPlaceholdersMap mappings = new PathPlaceholdersMap();
         IPathPlaceholderResolver pathPlaceholderResolver = new PathPlaceholderResolver(mappings);
-        this.bookmarkPropertiesProvider = new BookmarkPropertiesProvider(List.of(new TextEditorBookmarkPropertiesProvider(pathPlaceholderResolver)));
+        this.bookmarkPropertiesProvider = new BookmarkPropertiesProvider(List.of(new TextEditorBookmarkPropertiesProvider(pathPlaceholderResolver), new UrlBookmarkPropertiesProvider()));
         this.newBookmarkPositionProvider = new NewBookmarkPositionProvider(project, bookmarkDatabase);
         this.bookmarksMarkers = new BookmarksMarkers(project, bookmarkDatabase, new BookmarkMarkerAttributesProvider(Arrays.asList(new WorkspaceFileBookmarkMarkerAttributesProvider())));
         this.bookmarksMarkers.init();

@@ -96,7 +96,7 @@ public class BackgroundBookmarksModificationsHandler {
 			try {
 				List<BookmarksModification> modifications = getBookmarksModifications();
 				previousSize.set(0);
-				if (modifications.size() == 0) {
+				if (modifications.isEmpty()) {
 					return;
 				}
 				bookmarksModificationsHandler.handle(modifications);
