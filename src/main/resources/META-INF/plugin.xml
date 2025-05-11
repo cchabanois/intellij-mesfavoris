@@ -1,48 +1,16 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
-<idea-plugin>
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
     <id>com.cchabanois.mesfavoris</id>
     <name>Mesfavoris</name>
     <vendor>cchabanois</vendor>
 
     <depends>com.intellij.modules.platform</depends>
 
+    <xi:include href="/META-INF/actions.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/extensions.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
     <resource-bundle>messages.MyBundle</resource-bundle>
-
-    <extensions defaultExtensionNs="com.intellij">
-        <toolWindow id="mesfavoris" secondary="true" icon="AllIcons.General.Modified" anchor="right"
-                    factoryClass="mesfavoris.internal.toolwindow.MesFavorisToolWindowFactory"/>
-        <postStartupActivity implementation="mesfavoris.internal.markers.BookmarksHighlighters$BookmarksHighlightersStartupActivity"/>
-        <notificationGroup
-                id="com.cchabanois.mesfavoris.errors"
-                displayType="STICKY_BALLOON"
-                isLogByDefault="true"
-        />
-        <projectService serviceImplementation="mesfavoris.internal.toolwindow.BookmarksTreeComponentStateService"/>
-    </extensions>
-
     <applicationListeners>
         <listener class="mesfavoris.listeners.MyApplicationActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
     </applicationListeners>
-    <actions>
-        <action id="mesfavoris.actions.AddBookmarkAction" class="mesfavoris.internal.actions.AddBookmarkAction"
-                text="Add Favori" description="Add a Bookmark">
-            <keyboard-shortcut keymap="$default" first-keystroke="alt shift B" second-keystroke="B"/>
-        </action>
-        <action id="mesfavoris.actions.GotoBookmarkAction"
-                class="mesfavoris.internal.actions.GotoBookmarkAction" text="Goto Favori" description="Goto Bookmark"/>
-        <group id="mesfavoris.PopupMenu" text="Tree Popup" popup="true">
-            <action id="mesfavoris.actions.DeleteBookmarkAction" class="mesfavoris.internal.actions.DeleteBookmarkAction" text="Delete" description="Delete selected bookmarks">
-                <keyboard-shortcut first-keystroke="DELETE" keymap="$default"/>
-                <keyboard-shortcut first-keystroke="BACK_SPACE" keymap="$default"/>
-            </action>
-            <action id="mesfavoris.actions.NewBookmarkFolderAction" class="mesfavoris.internal.actions.NewBookmarkFolderAction" text="New Bookmark Folder" description="Create a new Bookmark Folder">
-            </action>
-            <action id="mesfavoris.actions.RenameBookmarkAction"  class="mesfavoris.internal.actions.RenameBookmarkAction" text="Rename" description="Rename Bookmark">
-            </action>
-            <action id="mesfavoris.actions.PasteBookmarkAction"  class="mesfavoris.internal.actions.PasteBookmarkAction" text="Paste" description="Paste" icon="AllIcons.Actions.MenuPaste">
-                <keyboard-shortcut keymap="$default" first-keystroke="control V"/>
-                <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta V"/>
-            </action>
-        </group>
-    </actions>
 </idea-plugin>
