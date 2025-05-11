@@ -9,6 +9,7 @@ import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.JBUI;
 import mesfavoris.internal.bookmarktypes.BookmarkLabelProvider;
 import mesfavoris.internal.ui.details.BookmarkDetailsPart;
+import mesfavoris.internal.ui.details.BookmarkPropertiesDetailPart;
 import mesfavoris.internal.ui.details.CommentBookmarkDetailPart;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
@@ -33,6 +34,7 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
     private final BookmarksTreeComponent tree;
     private final BookmarksService bookmarksService;
     private final BookmarksTreeCellRenderer bookmarksTreeCellRenderer;
+    private final BookmarkDetailsPart bookmarkDetailsPart;
 
     public MesFavorisPanel(@NotNull Project project) {
         super(new BorderLayout());
@@ -47,7 +49,8 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         installDoubleClickListener();
         installPopupMenu();
 
-        BookmarkDetailsPart bookmarkDetailsPart = new BookmarkDetailsPart(project, Arrays.asList(new CommentBookmarkDetailPart(project, bookmarkDatabase)));
+        bookmarkDetailsPart = new BookmarkDetailsPart(project, Arrays.asList(new CommentBookmarkDetailPart(project, bookmarkDatabase), new BookmarkPropertiesDetailPart(project)));
+        bookmarkDetailsPart.init();
         JComponent bookmarksDetailsComponent = bookmarkDetailsPart.createComponent();
 
         tree.getSelectionModel().addTreeSelectionListener(event -> {
@@ -129,6 +132,7 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         DataManager.removeDataProvider(this);
         bookmarksTreeCellRenderer.dispose();
         tree.dispose();
+        bookmarkDetailsPart.dispose();
     }
 
     @Override
