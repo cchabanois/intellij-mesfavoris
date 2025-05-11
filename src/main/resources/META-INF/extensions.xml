@@ -1,0 +1,13 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="mesfavoris" secondary="true" icon="AllIcons.General.Modified" anchor="right"
+                    factoryClass="mesfavoris.internal.toolwindow.MesFavorisToolWindowFactory"/>
+        <postStartupActivity implementation="mesfavoris.internal.markers.BookmarksHighlighters$BookmarksHighlightersStartupActivity"/>
+        <notificationGroup
+                id="com.cchabanois.mesfavoris.errors"
+                displayType="STICKY_BALLOON"
+                isLogByDefault="true"
+        />
+        <projectService serviceImplementation="mesfavoris.internal.toolwindow.BookmarksTreeComponentStateService"/>
+    </extensions>
+</idea-plugin>

@@ -1,0 +1,24 @@
+<idea-plugin>
+    <actions>
+        <action id="mesfavoris.actions.AddBookmarkAction" class="mesfavoris.internal.actions.AddBookmarkAction"
+                text="Add Favori" description="Add a Bookmark">
+            <keyboard-shortcut keymap="$default" first-keystroke="alt shift B" second-keystroke="B"/>
+        </action>
+        <action id="mesfavoris.actions.GotoBookmarkAction"
+                class="mesfavoris.internal.actions.GotoBookmarkAction" text="Goto Favori" description="Goto Bookmark"/>
+        <group id="mesfavoris.PopupMenu" text="Tree Popup" popup="true">
+            <action id="mesfavoris.actions.DeleteBookmarkAction" class="mesfavoris.internal.actions.DeleteBookmarkAction" text="Delete" description="Delete selected bookmarks">
+                <keyboard-shortcut first-keystroke="DELETE" keymap="$default"/>
+                <keyboard-shortcut first-keystroke="BACK_SPACE" keymap="$default"/>
+            </action>
+            <action id="mesfavoris.actions.NewBookmarkFolderAction" class="mesfavoris.internal.actions.NewBookmarkFolderAction" text="New Bookmark Folder" description="Create a new Bookmark Folder">
+            </action>
+            <action id="mesfavoris.actions.RenameBookmarkAction"  class="mesfavoris.internal.actions.RenameBookmarkAction" text="Rename" description="Rename Bookmark">
+            </action>
+            <action id="mesfavoris.actions.PasteBookmarkAction"  class="mesfavoris.internal.actions.PasteBookmarkAction" text="Paste" description="Paste" icon="AllIcons.Actions.MenuPaste">
+                <keyboard-shortcut keymap="$default" first-keystroke="control V"/>
+                <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta V"/>
+            </action>
+        </group>
+    </actions>
+</idea-plugin>
