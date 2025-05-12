@@ -6,10 +6,13 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
+import mesfavoris.BookmarksException;
 import mesfavoris.model.Bookmark;
+import mesfavoris.service.BookmarksService;
 
 import javax.swing.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,13 +42,17 @@ public class BookmarkPropertiesDetailPart extends AbstractBookmarkDetailPart {
     @Override
     public void setBookmark(Bookmark bookmark) {
         super.setBookmark(bookmark);
+        updateTableItems();
+    }
+
+    private void updateTableItems() {
         List<Map.Entry<String, String>> items = new ArrayList<>(bookmark.getProperties().entrySet());
         listTableModel.setItems(items);
     }
 
     @Override
     protected void bookmarkModified(Bookmark oldBookmark, Bookmark newBookmark) {
-        ApplicationManager.getApplication().invokeLater(() -> setBookmark(newBookmark));
+        ApplicationManager.getApplication().invokeLater(this::updateTableItems);
     }
 
     private ColumnInfo<Map.Entry<String, String>, String> getPropertyNameColumnInfo() {
@@ -77,11 +84,19 @@ public class BookmarkPropertiesDetailPart extends AbstractBookmarkDetailPart {
 
             @Override
             public boolean isCellEditable(Map.Entry<String, String> item) {
-                return false;
+                return true;
             }
 
             @Override
             public void setValue(Map.Entry<String, String> item, String value) {
+                BookmarksService bookmarksService = project.getService(BookmarksService.class);
+                Map<String, String> newProperties = new HashMap<>(bookmark.getProperties());
+                newProperties.put(item.getKey(), value);
+                try {
+                    bookmarksService.setBookmarkProperties(bookmark.getId(), newProperties);
+                } catch (BookmarksException e) {
+                    // ignore
+                }
             }
 
             @Override
