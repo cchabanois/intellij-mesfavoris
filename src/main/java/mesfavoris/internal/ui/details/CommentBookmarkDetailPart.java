@@ -1,8 +1,5 @@
 package mesfavoris.internal.ui.details;
 
-import static com.intellij.util.containers.ContainerUtil.addIfNotNull;
-import static mesfavoris.model.Bookmark.PROPERTY_COMMENT;
-
 import com.intellij.ide.ui.UISettingsUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.SpellCheckingEditorCustomizationProvider;
@@ -24,6 +21,9 @@ import javax.swing.*;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+
+import static com.intellij.util.containers.ContainerUtil.addIfNotNull;
+import static mesfavoris.model.Bookmark.PROPERTY_COMMENT;
 
 /**
  * Create component to display bookmarks comments
@@ -96,12 +96,9 @@ public class CommentBookmarkDetailPart extends AbstractBookmarkDetailPart {
 
 	@Override
 	public void setBookmark(Bookmark bookmark) {
-		String oldComment = this.bookmark != null ? this.bookmark.getPropertyValue(PROPERTY_COMMENT): null;
         super.setBookmark(bookmark);
         String newComment = this.bookmark != null ? this.bookmark.getPropertyValue(PROPERTY_COMMENT): null;
-        if (!Objects.equals(newComment, oldComment)) {
-            editorField.setText(newComment);
-        }
+        editorField.setText(newComment);
 	}
 
 	@Override
@@ -117,7 +114,11 @@ public class CommentBookmarkDetailPart extends AbstractBookmarkDetailPart {
 
 	@Override
 	protected void bookmarkModified(Bookmark oldBookmark, Bookmark newBookmark) {
-        ApplicationManager.getApplication().invokeLater(() -> setBookmark(newBookmark));
+        String oldComment = oldBookmark.getPropertyValue(PROPERTY_COMMENT);
+        String newComment = newBookmark.getPropertyValue(PROPERTY_COMMENT);
+        if (!Objects.equals(newComment, oldComment)) {
+            ApplicationManager.getApplication().invokeLater(() -> editorField.setText(newComment));
+        }
 	}
 
 }

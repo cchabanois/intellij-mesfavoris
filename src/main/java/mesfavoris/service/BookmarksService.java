@@ -52,6 +52,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Service(Service.Level.PROJECT)
 @State(name = "BookmarksService", storages = @Storage(value = "mesfavoris.xml", roamingType = RoamingType.PER_OS))
@@ -155,6 +156,11 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
     public void renameBookmark(BookmarkId bookmarkId, String newName) throws BookmarksException {
         RenameBookmarkOperation operation = new RenameBookmarkOperation(bookmarkDatabase);
         operation.renameBookmark(bookmarkId, newName);
+    }
+
+    public void setBookmarkProperties(BookmarkId bookmarkId, Map<String, String> properties) throws BookmarksException {
+        SetBookmarkPropertiesOperation operation = new SetBookmarkPropertiesOperation(bookmarkDatabase);
+        operation.setProperties(bookmarkId, properties);
     }
 
     @Override
