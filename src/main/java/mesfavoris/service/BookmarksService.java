@@ -34,10 +34,7 @@ import mesfavoris.persistence.IBookmarksDirtyStateTracker;
 import mesfavoris.persistence.json.BookmarksTreeJsonDeserializer;
 import mesfavoris.persistence.json.BookmarksTreeJsonSerializer;
 import mesfavoris.placeholders.IPathPlaceholderResolver;
-import mesfavoris.texteditor.internal.GotoWorkspaceFileBookmark;
-import mesfavoris.texteditor.internal.TextEditorBookmarkPropertiesProvider;
-import mesfavoris.texteditor.internal.WorkspaceFileBookmarkLocationProvider;
-import mesfavoris.texteditor.internal.WorkspaceFileBookmarkMarkerAttributesProvider;
+import mesfavoris.texteditor.internal.*;
 import mesfavoris.url.internal.GotoUrlBookmark;
 import mesfavoris.url.internal.UrlBookmarkLocationProvider;
 import mesfavoris.url.internal.UrlBookmarkPropertiesProvider;
@@ -74,11 +71,11 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
     private void init() throws IOException {
         IBookmarksModificationValidator bookmarksModificationValidator = new AcceptAllBookmarksModificationValidator();
 
-        this.bookmarkDatabase = loadBookmarkDatabase(bookmarksModificationValidator);
-        this.bookmarkLocationProvider = new BookmarkLocationProvider(Arrays.asList(new UrlBookmarkLocationProvider(), new WorkspaceFileBookmarkLocationProvider()));
-        this.gotoBookmark = new GotoBookmark(Arrays.asList(new GotoUrlBookmark(), new GotoWorkspaceFileBookmark()));
         PathPlaceholdersMap mappings = new PathPlaceholdersMap();
         IPathPlaceholderResolver pathPlaceholderResolver = new PathPlaceholderResolver(mappings);
+        this.bookmarkDatabase = loadBookmarkDatabase(bookmarksModificationValidator);
+        this.bookmarkLocationProvider = new BookmarkLocationProvider(Arrays.asList(new UrlBookmarkLocationProvider(), new WorkspaceFileBookmarkLocationProvider(), new ExternalFileBookmarkLocationProvider(pathPlaceholderResolver)));
+        this.gotoBookmark = new GotoBookmark(Arrays.asList(new GotoUrlBookmark(), new GotoWorkspaceFileBookmark(), new GotoExternalFileBookmark()));
         this.bookmarkPropertiesProvider = new BookmarkPropertiesProvider(List.of(new TextEditorBookmarkPropertiesProvider(pathPlaceholderResolver), new UrlBookmarkPropertiesProvider()));
         this.newBookmarkPositionProvider = new NewBookmarkPositionProvider(project, bookmarkDatabase);
         this.bookmarksMarkers = new BookmarksMarkers(project, bookmarkDatabase, new BookmarkMarkerAttributesProvider(Arrays.asList(new WorkspaceFileBookmarkMarkerAttributesProvider())));
