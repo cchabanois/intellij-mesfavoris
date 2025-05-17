@@ -49,10 +49,17 @@ public abstract class AbstractFileBookmarkLocationProvider implements IBookmarkL
 		if (lastLine >= document.getLineCount()) {
 			lastLine = document.getLineCount() - 1;
 		}
-		int offset = document.getLineStartOffset(firstLine);
-		int length = document.getLineEndOffset(lastLine) - offset;
-		TextRange region = new TextRange(offset, length);
-		return region;
-	}	
+		int startOffset = document.getLineStartOffset(firstLine);
+		int endOffset = document.getLineEndOffset(lastLine);
+        return new TextRange(startOffset, endOffset);
+	}
+
+	protected Integer getLineOffset(Document document, int lineNumber) {
+		try {
+			return document.getLineStartOffset(lineNumber);
+		} catch (IndexOutOfBoundsException e) {
+			return null;
+		}
+	}
 	
 }

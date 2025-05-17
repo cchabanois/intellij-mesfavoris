@@ -50,14 +50,6 @@ public class WorkspaceFileBookmarkLocationProvider extends AbstractFileBookmarkL
         });
     }
 
-    private Integer getLineOffset(Document document, int lineNumber) {
-        try {
-            return document.getLineStartOffset(lineNumber);
-        } catch (IndexOutOfBoundsException e) {
-            return null;
-        }
-    }
-
     private Optional<VirtualFile> getWorkspaceFile(Project project, Bookmark bookmark, ProgressIndicator progress) {
         String workspacePath = bookmark.getPropertyValue(PROP_WORKSPACE_PATH);
         if (workspacePath == null) {
