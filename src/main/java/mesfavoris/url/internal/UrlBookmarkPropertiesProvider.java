@@ -48,7 +48,9 @@ public class UrlBookmarkPropertiesProvider extends AbstractBookmarkPropertiesPro
 			return;
 		}
         URL url = getURL(transferable);
-
+		if (url == null) {
+			return;
+		}
 		putIfAbsent(bookmarkProperties, PROP_URL, url.toString());
 		if (!isPresent(bookmarkProperties, PROPERTY_NAME) || !isPresent(bookmarkProperties, PROP_ICON)) {
 			Optional<Document> document;

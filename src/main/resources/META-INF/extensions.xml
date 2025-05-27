@@ -8,6 +8,11 @@
                 displayType="STICKY_BALLOON"
                 isLogByDefault="true"
         />
+        <notificationGroup
+                id="com.cchabanois.mesfavoris.info"
+                displayType="BALLOON"
+                isLogByDefault="false"
+        />
         <projectService serviceImplementation="mesfavoris.internal.toolwindow.BookmarksTreeComponentStateService"/>
     </extensions>
 </idea-plugin>
