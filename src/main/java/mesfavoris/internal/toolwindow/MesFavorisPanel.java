@@ -8,6 +8,8 @@ import com.intellij.ui.*;
 import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.JBUI;
 import mesfavoris.internal.bookmarktypes.BookmarkLabelProvider;
+import mesfavoris.internal.snippets.SnippetBookmarkDetailPart;
+import mesfavoris.internal.snippets.SnippetBookmarkLabelProvider;
 import mesfavoris.internal.ui.details.BookmarkDetailsPart;
 import mesfavoris.internal.ui.details.BookmarkPropertiesDetailPart;
 import mesfavoris.internal.ui.details.CommentBookmarkDetailPart;
@@ -42,14 +44,22 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         this.bookmarksService = project.getService(BookmarksService.class);
         BookmarkDatabase bookmarkDatabase = bookmarksService.getBookmarkDatabase();
         tree = new BookmarksTreeComponent(bookmarkDatabase);
-        bookmarksTreeCellRenderer = new BookmarksTreeCellRenderer(project, bookmarkDatabase, bookmarksService.getBookmarksDirtyStateTracker(), new BookmarkLabelProvider(Arrays.asList(new UrlBookmarkLabelProvider(), new BookmarkFolderLabelProvider(), new TextEditorBookmarkLabelProvider())));
+        bookmarksTreeCellRenderer = new BookmarksTreeCellRenderer(project, bookmarkDatabase, bookmarksService.getBookmarksDirtyStateTracker(),
+                new BookmarkLabelProvider(Arrays.asList(
+                        new UrlBookmarkLabelProvider(),
+                        new BookmarkFolderLabelProvider(),
+                        new TextEditorBookmarkLabelProvider(),
+                        new SnippetBookmarkLabelProvider())));
         tree.setCellRenderer(bookmarksTreeCellRenderer);
         tree.setEditable(true);
         installTreeSpeedSearch();
         installDoubleClickListener();
         installPopupMenu();
 
-        bookmarkDetailsPart = new BookmarkDetailsPart(project, Arrays.asList(new CommentBookmarkDetailPart(project, bookmarkDatabase), new BookmarkPropertiesDetailPart(project)));
+        bookmarkDetailsPart = new BookmarkDetailsPart(project, Arrays.asList(
+                new CommentBookmarkDetailPart(project, bookmarkDatabase),
+                new BookmarkPropertiesDetailPart(project),
+                new SnippetBookmarkDetailPart(project, bookmarkDatabase)));
         bookmarkDetailsPart.init();
         JComponent bookmarksDetailsComponent = bookmarkDetailsPart.createComponent();
 

@@ -24,6 +24,9 @@ import mesfavoris.internal.placeholders.PathPlaceholdersMap;
 import mesfavoris.internal.service.operations.*;
 import mesfavoris.internal.service.operations.utils.INewBookmarkPositionProvider;
 import mesfavoris.internal.service.operations.utils.NewBookmarkPositionProvider;
+import mesfavoris.internal.snippets.GotoSnippetBookmark;
+import mesfavoris.internal.snippets.SnippetBookmarkLocationProvider;
+import mesfavoris.internal.snippets.SnippetBookmarkPropertiesProvider;
 import mesfavoris.internal.validation.AcceptAllBookmarksModificationValidator;
 import mesfavoris.internal.workspace.BookmarksWorkspaceFactory;
 import mesfavoris.model.BookmarkDatabase;
@@ -74,9 +77,17 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
         PathPlaceholdersMap mappings = new PathPlaceholdersMap();
         IPathPlaceholderResolver pathPlaceholderResolver = new PathPlaceholderResolver(mappings);
         this.bookmarkDatabase = loadBookmarkDatabase(bookmarksModificationValidator);
-        this.bookmarkLocationProvider = new BookmarkLocationProvider(Arrays.asList(new UrlBookmarkLocationProvider(), new WorkspaceFileBookmarkLocationProvider(), new ExternalFileBookmarkLocationProvider(pathPlaceholderResolver)));
-        this.gotoBookmark = new GotoBookmark(Arrays.asList(new GotoUrlBookmark(), new GotoWorkspaceFileBookmark(), new GotoExternalFileBookmark()));
-        this.bookmarkPropertiesProvider = new BookmarkPropertiesProvider(List.of(new TextEditorBookmarkPropertiesProvider(pathPlaceholderResolver), new UrlBookmarkPropertiesProvider()));
+        this.bookmarkLocationProvider = new BookmarkLocationProvider(Arrays.asList(
+                new UrlBookmarkLocationProvider(),
+                new WorkspaceFileBookmarkLocationProvider(),
+                new ExternalFileBookmarkLocationProvider(pathPlaceholderResolver),
+                new SnippetBookmarkLocationProvider()));
+        this.gotoBookmark = new GotoBookmark(Arrays.asList(
+                new GotoUrlBookmark(),
+                new GotoWorkspaceFileBookmark(),
+                new GotoExternalFileBookmark(),
+                new GotoSnippetBookmark()));
+        this.bookmarkPropertiesProvider = new BookmarkPropertiesProvider(List.of(new TextEditorBookmarkPropertiesProvider(pathPlaceholderResolver), new UrlBookmarkPropertiesProvider(), new SnippetBookmarkPropertiesProvider()));
         this.newBookmarkPositionProvider = new NewBookmarkPositionProvider(project, bookmarkDatabase);
         this.bookmarksMarkers = new BookmarksMarkers(project, bookmarkDatabase, new BookmarkMarkerAttributesProvider(Arrays.asList(new WorkspaceFileBookmarkMarkerAttributesProvider())));
         this.bookmarksMarkers.init();
