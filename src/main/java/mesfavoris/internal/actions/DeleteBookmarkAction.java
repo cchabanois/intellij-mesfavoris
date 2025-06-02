@@ -30,7 +30,12 @@ public class DeleteBookmarkAction extends AbstractBookmarkAction  {
     @Override
     public void update(@NotNull AnActionEvent event) {
         List<Bookmark> bookmarks = getSelectedBookmarks(event);
-        event.getPresentation().setEnabledAndVisible(!bookmarks.isEmpty());
+        boolean hasBookmarks = !bookmarks.isEmpty();
+
+        // Only enable the action if focus is on the bookmarks tree
+        boolean focusOnTree = isFocusOnBookmarksTree();
+
+        event.getPresentation().setEnabledAndVisible(hasBookmarks && focusOnTree);
     }
 
     @Override
