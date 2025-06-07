@@ -14,5 +14,10 @@
                 isLogByDefault="false"
         />
         <projectService serviceImplementation="mesfavoris.internal.toolwindow.BookmarksTreeComponentStateService"/>
+        <applicationService serviceImplementation="mesfavoris.internal.settings.PathPlaceholdersStore"/>
+        <applicationConfigurable parentId="tools" instance="mesfavoris.internal.settings.MesFavorisConfigurable"
+                                 id="mesfavoris.settings" displayName="Mes Favoris"/>
+        <applicationConfigurable parentId="mesfavoris.settings" instance="mesfavoris.internal.settings.PlaceholdersConfigurable"
+                                 id="mesfavoris.settings.placeholders" displayName="Placeholders"/>
     </extensions>
 </idea-plugin>

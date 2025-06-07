@@ -20,10 +20,10 @@ import mesfavoris.internal.markers.BookmarksMarkers;
 import mesfavoris.internal.persistence.BookmarksAutoSaver;
 import mesfavoris.internal.persistence.LocalBookmarksSaver;
 import mesfavoris.internal.placeholders.PathPlaceholderResolver;
-import mesfavoris.internal.placeholders.PathPlaceholdersMap;
 import mesfavoris.internal.service.operations.*;
 import mesfavoris.internal.service.operations.utils.INewBookmarkPositionProvider;
 import mesfavoris.internal.service.operations.utils.NewBookmarkPositionProvider;
+import mesfavoris.internal.settings.PathPlaceholdersStore;
 import mesfavoris.internal.snippets.GotoSnippetBookmark;
 import mesfavoris.internal.snippets.SnippetBookmarkLocationProvider;
 import mesfavoris.internal.snippets.SnippetBookmarkPropertiesProvider;
@@ -74,8 +74,8 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
     private void init() throws IOException {
         IBookmarksModificationValidator bookmarksModificationValidator = new AcceptAllBookmarksModificationValidator();
 
-        PathPlaceholdersMap mappings = new PathPlaceholdersMap();
-        IPathPlaceholderResolver pathPlaceholderResolver = new PathPlaceholderResolver(mappings);
+        PathPlaceholdersStore placeholdersStore = PathPlaceholdersStore.getInstance();
+        IPathPlaceholderResolver pathPlaceholderResolver = new PathPlaceholderResolver(placeholdersStore);
         this.bookmarkDatabase = loadBookmarkDatabase(bookmarksModificationValidator);
         this.bookmarkLocationProvider = new BookmarkLocationProvider(Arrays.asList(
                 new UrlBookmarkLocationProvider(),
@@ -96,6 +96,8 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
         bookmarksSaver = new BookmarksAutoSaver(bookmarkDatabase, localBookmarksSaver);
         bookmarksSaver.init();
     }
+
+
 
     private Path getBookmarksFilePath(Project project) throws IOException {
         Path productSpecificMesFavorisParentDir = PathManager.getConfigDir().resolve("mesfavoris");
