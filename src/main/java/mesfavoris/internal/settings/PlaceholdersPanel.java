@@ -1,16 +1,17 @@
 package mesfavoris.internal.settings;
 
-import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
-import mesfavoris.internal.settings.PlaceholdersTableModel.EditablePlaceholder;
 import mesfavoris.placeholders.PathPlaceholder;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableColumn;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,23 +33,33 @@ public class PlaceholdersPanel extends JPanel {
         tableModel = new PlaceholdersTableModel();
         table = new JBTable(tableModel);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        
-        // Configure columns
-        TableColumn pathColumn = table.getColumnModel().getColumn(1);
-        pathColumn.setCellEditor(new PathCellEditor());
 
         // Column sizes
         table.getColumnModel().getColumn(0).setPreferredWidth(150);
         table.getColumnModel().getColumn(1).setPreferredWidth(400);
+
+        // Add double-click listener to edit placeholders
+        new DoubleClickListener() {
+            @Override
+            protected boolean onDoubleClick(@NotNull MouseEvent event) {
+                int selectedRow = table.getSelectedRow();
+                if (selectedRow >= 0) {
+                    editPlaceholder(selectedRow);
+                    return true;
+                }
+                return false;
+            }
+        }.installOn(table);
     }
 
     private void layoutComponents() {
         ToolbarDecorator decorator = ToolbarDecorator.createDecorator(table)
-            .setAddAction(button -> {
-                tableModel.addPlaceholder();
-                int newRow = tableModel.getRowCount() - 1;
-                table.getSelectionModel().setSelectionInterval(newRow, newRow);
-                table.editCellAt(newRow, 0);
+            .setAddAction(button -> addPlaceholder())
+            .setEditAction(button -> {
+                int selectedRow = table.getSelectedRow();
+                if (selectedRow >= 0) {
+                    editPlaceholder(selectedRow);
+                }
             })
             .setRemoveAction(button -> {
                 int selectedRow = table.getSelectedRow();
@@ -56,6 +67,7 @@ public class PlaceholdersPanel extends JPanel {
                     tableModel.removePlaceholder(selectedRow);
                 }
             })
+            .setEditActionUpdater(e -> table.getSelectedRow() >= 0)
             .setRemoveActionUpdater(e -> table.getSelectedRow() >= 0);
 
         mainPanel = decorator.createPanel();
@@ -72,22 +84,11 @@ public class PlaceholdersPanel extends JPanel {
     }
 
     public void setPlaceholders(List<PathPlaceholder> placeholders) {
-        List<EditablePlaceholder> editableList = new ArrayList<>();
-        for (PathPlaceholder placeholder : placeholders) {
-            editableList.add(new EditablePlaceholder(placeholder));
-        }
-        tableModel.setItems(editableList);
+        tableModel.setItems(new ArrayList<>(placeholders));
     }
 
     public List<PathPlaceholder> getPlaceholders() {
-        List<PathPlaceholder> result = new ArrayList<>();
-        for (EditablePlaceholder editable : tableModel.getItems()) {
-            PathPlaceholder placeholder = editable.toPathPlaceholder();
-            if (placeholder != null) {
-                result.add(placeholder);
-            }
-        }
-        return result;
+        return new ArrayList<>(tableModel.getItems());
     }
 
     public boolean isModified(List<PathPlaceholder> originalPlaceholders) {
@@ -108,48 +109,35 @@ public class PlaceholdersPanel extends JPanel {
         return false;
     }
 
-    /**
-     * Custom cell editor for paths with browse button
-     */
-    private static class PathCellEditor extends AbstractCellEditor implements TableCellEditor {
-        private final TextFieldWithBrowseButton component;
-        private String currentValue;
+    private void addPlaceholder() {
+        Project project = ProjectManager.getInstance().getDefaultProject();
+        List<PathPlaceholder> existingPlaceholders = getPlaceholders();
+        PlaceholderEditDialog dialog = new PlaceholderEditDialog(project, existingPlaceholders);
 
-        public PathCellEditor() {
-            component = new TextFieldWithBrowseButton();
-
-            // Add action listener for the browse button
-            component.addActionListener(e -> {
-                // Simple file chooser that works in both IDE and tests
-                JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                fileChooser.setDialogTitle("Select Folder");
-
-                String currentPath = component.getText();
-                if (!currentPath.isEmpty()) {
-                    fileChooser.setCurrentDirectory(new java.io.File(currentPath));
-                }
-
-                int result = fileChooser.showOpenDialog(component);
-                if (result == JFileChooser.APPROVE_OPTION) {
-                    component.setText(fileChooser.getSelectedFile().getAbsolutePath());
-                    stopCellEditing();
-                }
-            });
-            
-            component.getTextField().addActionListener(e -> stopCellEditing());
-        }
-
-        @Override
-        public Object getCellEditorValue() {
-            return component.getText();
-        }
-
-        @Override
-        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            currentValue = value != null ? value.toString() : "";
-            component.setText(currentValue);
-            return component;
+        if (dialog.showAndGet()) {
+            PathPlaceholder newPlaceholder = dialog.getPlaceholder();
+            if (newPlaceholder != null) {
+                tableModel.addPlaceholder(newPlaceholder);
+                int newRow = tableModel.getRowCount() - 1;
+                table.getSelectionModel().setSelectionInterval(newRow, newRow);
+            }
         }
     }
+
+    private void editPlaceholder(int selectedRow) {
+        PathPlaceholder currentPlaceholder = tableModel.getPlaceholder(selectedRow);
+        if (currentPlaceholder != null) {
+            Project project = ProjectManager.getInstance().getDefaultProject();
+            List<PathPlaceholder> existingPlaceholders = getPlaceholders();
+            PlaceholderEditDialog dialog = new PlaceholderEditDialog(project, currentPlaceholder, existingPlaceholders);
+
+            if (dialog.showAndGet()) {
+                PathPlaceholder updatedPlaceholder = dialog.getPlaceholder();
+                if (updatedPlaceholder != null) {
+                    tableModel.updatePlaceholder(selectedRow, updatedPlaceholder);
+                }
+            }
+        }
+    }
+
 }

@@ -167,4 +167,51 @@ public class PathPlaceholdersStoreTest {
         assertEquals("Store should contain HOME", "HOME", storedPlaceholders.get(0).getName());
         assertEquals("Store should contain WORK", "WORK", storedPlaceholders.get(1).getName());
     }
+
+    @Test
+    public void testPlaceholderNamesAreAutomaticallyUppercased() {
+        // Given - create placeholders with lowercase names
+        PathPlaceholder homePlaceholder = new PathPlaceholder("home", Paths.get("/home/user"));
+        PathPlaceholder workPlaceholder = new PathPlaceholder("work", Paths.get("/work/projects"));
+
+        // Then - names should be automatically converted to uppercase
+        assertEquals("Placeholder name should be uppercase", "HOME", homePlaceholder.getName());
+        assertEquals("Placeholder name should be uppercase", "WORK", workPlaceholder.getName());
+
+        // When - store placeholders
+        PathPlaceholdersStore store = new PathPlaceholdersStore();
+        store.setPlaceholders(Arrays.asList(homePlaceholder, workPlaceholder));
+
+        // Then - retrieved placeholders should have uppercase names
+        List<PathPlaceholder> storedPlaceholders = store.getPlaceholders();
+        assertEquals("Stored placeholder should have uppercase name", "HOME", storedPlaceholders.get(0).getName());
+        assertEquals("Stored placeholder should have uppercase name", "WORK", storedPlaceholders.get(1).getName());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testPathPlaceholderRejectsNullName() {
+        // When & Then - should throw IllegalArgumentException
+        new PathPlaceholder(null, Paths.get("/home/user"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testPathPlaceholderRejectsNullPath() {
+        // When & Then - should throw IllegalArgumentException
+        new PathPlaceholder("HOME", null);
+    }
+
+    @Test
+    public void testDuplicateNamesAreDetectedCaseInsensitive() {
+        // Given - placeholders with same name in different cases
+        PathPlaceholder home1 = new PathPlaceholder("home", Paths.get("/home/user1"));
+        PathPlaceholder home2 = new PathPlaceholder("HOME", Paths.get("/home/user2"));
+
+        // Then - both should have the same uppercase name
+        assertEquals("Both placeholders should have same uppercase name", home1.getName(), home2.getName());
+        assertEquals("Name should be uppercase", "HOME", home1.getName());
+        assertEquals("Name should be uppercase", "HOME", home2.getName());
+
+        // This demonstrates why duplicate detection is important -
+        // users might think "home" and "HOME" are different, but they're not
+    }
 }
