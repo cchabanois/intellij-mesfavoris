@@ -7,7 +7,13 @@ public class PathPlaceholder {
 	private final Path path;
 	
 	public PathPlaceholder(String name, Path path) {
-		this.name = name;
+		if (name == null) {
+			throw new IllegalArgumentException("Placeholder name cannot be null");
+		}
+		if (path == null) {
+			throw new IllegalArgumentException("Placeholder path cannot be null");
+		}
+		this.name = name.toUpperCase();
 		this.path = path.toAbsolutePath();
 	}
 	
@@ -23,8 +29,8 @@ public class PathPlaceholder {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((path == null) ? 0 : path.hashCode());
+		result = prime * result + name.hashCode();
+		result = prime * result + path.hashCode();
 		return result;
 	}
 
@@ -37,14 +43,7 @@ public class PathPlaceholder {
 		if (getClass() != obj.getClass())
 			return false;
 		PathPlaceholder other = (PathPlaceholder) obj;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		if (path == null) {
-            return other.path == null;
-		} else return path.equals(other.path);
+		return name.equals(other.name) && path.equals(other.path);
     }
 
 	@Override
