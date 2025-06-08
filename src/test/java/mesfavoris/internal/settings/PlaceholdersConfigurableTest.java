@@ -1,5 +1,6 @@
 package mesfavoris.internal.settings;
 
+import mesfavoris.internal.settings.placeholders.PlaceholdersConfigurable;
 import org.junit.Test;
 
 import javax.swing.*;

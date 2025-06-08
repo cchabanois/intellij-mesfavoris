@@ -23,7 +23,7 @@ import mesfavoris.internal.placeholders.PathPlaceholderResolver;
 import mesfavoris.internal.service.operations.*;
 import mesfavoris.internal.service.operations.utils.INewBookmarkPositionProvider;
 import mesfavoris.internal.service.operations.utils.NewBookmarkPositionProvider;
-import mesfavoris.internal.settings.PathPlaceholdersStore;
+import mesfavoris.internal.settings.placeholders.PathPlaceholdersStore;
 import mesfavoris.internal.snippets.GotoSnippetBookmark;
 import mesfavoris.internal.snippets.SnippetBookmarkLocationProvider;
 import mesfavoris.internal.snippets.SnippetBookmarkPropertiesProvider;

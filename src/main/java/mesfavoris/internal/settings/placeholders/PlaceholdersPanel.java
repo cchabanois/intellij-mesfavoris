@@ -1,4 +1,4 @@
-package mesfavoris.internal.settings;
+package mesfavoris.internal.settings.placeholders;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
