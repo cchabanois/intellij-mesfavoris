@@ -1,6 +1,7 @@
 package mesfavoris.internal.settings;
 
 
+import mesfavoris.internal.settings.placeholders.PlaceholdersTableModel;
 import mesfavoris.placeholders.PathPlaceholder;
 import org.junit.Test;
 

@@ -1,4 +1,4 @@
-package mesfavoris.internal.settings;
+package mesfavoris.internal.settings.placeholders;
 
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;

@@ -1,4 +1,4 @@
-package mesfavoris.internal.settings;
+package mesfavoris.internal.settings.placeholders;
 
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
