@@ -17,7 +17,7 @@ import java.util.Set;
  */
 public class PlaceholdersConfigurable implements Configurable {
     
-    private PlaceholdersPanel placeholdersPanel;
+    private PlaceholdersTablePanel placeholdersPanel;
     private List<PathPlaceholder> originalPlaceholders;
 
     @Nls(capitalization = Nls.Capitalization.Title)
@@ -29,7 +29,7 @@ public class PlaceholdersConfigurable implements Configurable {
     @Override
     public @Nullable JComponent createComponent() {
         if (placeholdersPanel == null) {
-            placeholdersPanel = new PlaceholdersPanel();
+            placeholdersPanel = new PlaceholdersTablePanel();
             // Initialize with empty data first
             placeholdersPanel.setPlaceholders(new ArrayList<>());
             reset(); // Load actual data

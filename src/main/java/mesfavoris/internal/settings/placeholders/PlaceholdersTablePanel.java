@@ -1,7 +1,5 @@
 package mesfavoris.internal.settings.placeholders;
 
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.table.JBTable;
@@ -16,14 +14,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Panel to configure placeholders
+ * Panel with table for managing placeholders in settings (no statistics)
  */
-public class PlaceholdersPanel extends JPanel {
+public class PlaceholdersTablePanel extends JPanel {
     private PlaceholdersTableModel tableModel;
     private JBTable table;
     private JPanel mainPanel;
 
-    public PlaceholdersPanel() {
+    public PlaceholdersTablePanel() {
         super(new BorderLayout());
         initComponents();
         layoutComponents();
@@ -93,26 +91,23 @@ public class PlaceholdersPanel extends JPanel {
 
     public boolean isModified(List<PathPlaceholder> originalPlaceholders) {
         List<PathPlaceholder> currentPlaceholders = getPlaceholders();
-        if (currentPlaceholders.size() != originalPlaceholders.size()) {
+        if (originalPlaceholders.size() != currentPlaceholders.size()) {
             return true;
         }
-
-        for (int i = 0; i < currentPlaceholders.size(); i++) {
-            PathPlaceholder current = currentPlaceholders.get(i);
+        
+        for (int i = 0; i < originalPlaceholders.size(); i++) {
             PathPlaceholder original = originalPlaceholders.get(i);
-
-            if (!current.equals(original)) {
+            PathPlaceholder current = currentPlaceholders.get(i);
+            if (!original.equals(current)) {
                 return true;
             }
         }
-
         return false;
     }
 
     private void addPlaceholder() {
-        Project project = ProjectManager.getInstance().getDefaultProject();
         List<PathPlaceholder> existingPlaceholders = getPlaceholders();
-        PlaceholderEditDialog dialog = new PlaceholderEditDialog(project, existingPlaceholders);
+        PlaceholderEditDialog dialog = new PlaceholderEditDialog(null, existingPlaceholders);
 
         if (dialog.showAndGet()) {
             PathPlaceholder newPlaceholder = dialog.getPlaceholder();
@@ -127,9 +122,8 @@ public class PlaceholdersPanel extends JPanel {
     private void editPlaceholder(int selectedRow) {
         PathPlaceholder currentPlaceholder = tableModel.getPlaceholder(selectedRow);
         if (currentPlaceholder != null) {
-            Project project = ProjectManager.getInstance().getDefaultProject();
             List<PathPlaceholder> existingPlaceholders = getPlaceholders();
-            PlaceholderEditDialog dialog = new PlaceholderEditDialog(project, currentPlaceholder, existingPlaceholders);
+            PlaceholderEditDialog dialog = new PlaceholderEditDialog(null, currentPlaceholder, existingPlaceholders);
 
             if (dialog.showAndGet()) {
                 PathPlaceholder updatedPlaceholder = dialog.getPlaceholder();
@@ -139,5 +133,4 @@ public class PlaceholdersPanel extends JPanel {
             }
         }
     }
-
 }

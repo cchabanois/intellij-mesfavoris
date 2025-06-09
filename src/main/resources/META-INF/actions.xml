@@ -6,6 +6,8 @@
         </action>
         <action id="mesfavoris.actions.GotoBookmarkAction"
                 class="mesfavoris.internal.actions.GotoBookmarkAction" text="Goto Favori" description="Goto Bookmark"/>
+        <action id="mesfavoris.actions.ManagePlaceholdersAction"
+                class="mesfavoris.internal.actions.ManagePlaceholdersAction" text="Manage Placeholders" description="Manage path placeholders with usage statistics"/>
         <group id="mesfavoris.PopupMenu" text="Tree Popup" popup="true">
             <action id="mesfavoris.actions.DeleteBookmarkAction" class="mesfavoris.internal.actions.DeleteBookmarkAction" text="Delete" description="Delete selected bookmarks">
                 <keyboard-shortcut first-keystroke="DELETE" keymap="$default"/>
