@@ -1,7 +1,6 @@
-package mesfavoris.internal.settings;
+package mesfavoris.internal.settings.placeholders;
 
 
-import mesfavoris.internal.settings.placeholders.PathPlaceholdersStore;
 import mesfavoris.placeholders.IPathPlaceholders;
 import mesfavoris.placeholders.PathPlaceholder;
 import org.jdom.Element;

@@ -6,7 +6,7 @@ import mesfavoris.placeholders.PathPlaceholder;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Table model to manage placeholders
+ * Table model to manage placeholders in settings
  */
 public class PlaceholdersTableModel extends ListTableModel<PathPlaceholder> {
 
@@ -20,6 +20,12 @@ public class PlaceholdersTableModel extends ListTableModel<PathPlaceholder> {
         public void setValue(PathPlaceholder item, String value) {
             // Not used since table is not editable
         }
+
+        @Override
+        public boolean isCellEditable(PathPlaceholder item) {
+            return false;
+        }
+
     };
 
     private static final ColumnInfo<PathPlaceholder, String> PATH_COLUMN = new ColumnInfo<>("Path") {
@@ -32,6 +38,12 @@ public class PlaceholdersTableModel extends ListTableModel<PathPlaceholder> {
         public void setValue(PathPlaceholder item, String value) {
             // Not used since table is not editable
         }
+
+        @Override
+        public boolean isCellEditable(PathPlaceholder item) {
+            return false;
+        }
+
     };
 
     public PlaceholdersTableModel() {

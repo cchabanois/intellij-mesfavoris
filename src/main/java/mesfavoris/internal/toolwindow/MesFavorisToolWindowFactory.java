@@ -10,6 +10,7 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.ui.treeStructure.actions.CollapseAllAction;
 import mesfavoris.icons.MesFavorisIcons;
+import mesfavoris.internal.actions.ManagePlaceholdersAction;
 import org.jetbrains.annotations.NotNull;
 
 public class MesFavorisToolWindowFactory  implements ToolWindowFactory {
@@ -18,9 +19,15 @@ public class MesFavorisToolWindowFactory  implements ToolWindowFactory {
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         final ToolWindowEx toolWindowEx = (ToolWindowEx) toolWindow;
         toolWindowEx.setIcon(MesFavorisIcons.toolWindowMesFavoris);
+
+        // Add actions to the tool window
         final CollapseAllAction collapseAction = new CollapseAllAction(null);
         collapseAction.getTemplatePresentation().setIcon(AllIcons.Actions.Collapseall);
-        toolWindowEx.setTitleActions(collapseAction);
+
+        final ManagePlaceholdersAction managePlaceholdersAction = new ManagePlaceholdersAction();
+        managePlaceholdersAction.getTemplatePresentation().setIcon(AllIcons.Actions.Properties);
+
+        toolWindowEx.setTitleActions(collapseAction, managePlaceholdersAction);
 
         MesFavorisPanel panel = new MesFavorisPanel(project);
 
