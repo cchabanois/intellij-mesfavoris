@@ -36,8 +36,8 @@ public class PlaceholdersDialog extends DialogWrapper {
         List<PathPlaceholder> placeholders = store.getPlaceholders();
         placeholdersPanel.setPlaceholders(placeholders);
         
-        // Set preferred size
-        placeholdersPanel.setPreferredSize(JBUI.size(600, 400));
+        // Set preferred size - increased height to accommodate bookmark management
+        placeholdersPanel.setPreferredSize(JBUI.size(800, 600));
         
         return placeholdersPanel;
     }
