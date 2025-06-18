@@ -9,21 +9,19 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import mesfavoris.BookmarksException;
-import mesfavoris.internal.bookmarktypes.BookmarkLabelProvider;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarksTree;
 import mesfavoris.service.BookmarksService;
-import mesfavoris.texteditor.internal.TextEditorBookmarkLabelProvider;
-import mesfavoris.ui.renderers.BookmarkFolderLabelProvider;
 import mesfavoris.ui.renderers.BookmarksListCellRenderer;
-import mesfavoris.url.internal.UrlBookmarkLabelProvider;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class DeleteBookmarkAction extends AbstractBookmarkAction  {
 
@@ -74,7 +72,7 @@ public class DeleteBookmarkAction extends AbstractBookmarkAction  {
         BookmarksService bookmarksService = project.getService(BookmarksService.class);
         BookmarkDatabase bookmarkDatabase = bookmarksService.getBookmarkDatabase();
         list.setCellRenderer(new BookmarksListCellRenderer(project, bookmarkDatabase, bookmarksService.getBookmarksDirtyStateTracker(),
-                new BookmarkLabelProvider(Arrays.asList(new UrlBookmarkLabelProvider(), new BookmarkFolderLabelProvider(), new TextEditorBookmarkLabelProvider()))));
+                bookmarksService.getBookmarkLabelProvider()));
 
         JBLabel label = new JBLabel("Are you sure you want to delete these bookmarks ?");
         label.setBorder(JBUI.Borders.emptyBottom(10));

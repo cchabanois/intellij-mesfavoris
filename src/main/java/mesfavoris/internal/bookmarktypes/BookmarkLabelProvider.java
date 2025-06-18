@@ -14,12 +14,12 @@ public class BookmarkLabelProvider implements IBookmarkLabelProvider {
 	private final List<IBookmarkLabelProvider> bookmarkLabelProviders;
 
 	public BookmarkLabelProvider() {
-		this.bookmarkLabelProviders = new ArrayList<IBookmarkLabelProvider>();
+		this.bookmarkLabelProviders = new ArrayList<>();
 		this.bookmarkLabelProviders.add(new DefaultBookmarkLabelProvider());
 	}
 	
 	public BookmarkLabelProvider(List<IBookmarkLabelProvider> bookmarkLabelProviders) {
-		this.bookmarkLabelProviders = new ArrayList<IBookmarkLabelProvider>();
+		this.bookmarkLabelProviders = new ArrayList<>();
 		this.bookmarkLabelProviders.addAll(bookmarkLabelProviders);
 		this.bookmarkLabelProviders.add(new DefaultBookmarkLabelProvider());
 	}

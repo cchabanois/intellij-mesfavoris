@@ -6,6 +6,12 @@
 
     <depends>com.intellij.modules.platform</depends>
 
+    <!-- Extension Points for Bookmark Types -->
+    <extensionPoints>
+        <!-- Bookmark Type Extension Point -->
+        <extensionPoint name="bookmarkType" interface="mesfavoris.extensions.BookmarkTypeExtension" dynamic="true"/>
+    </extensionPoints>
+
     <xi:include href="/META-INF/actions.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/extensions.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
