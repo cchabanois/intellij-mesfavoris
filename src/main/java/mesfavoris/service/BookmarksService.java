@@ -8,25 +8,22 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import mesfavoris.BookmarksException;
 import mesfavoris.IBookmarksMarkers;
+import mesfavoris.bookmarktype.IBookmarkLabelProvider;
 import mesfavoris.bookmarktype.IBookmarkLocationProvider;
 import mesfavoris.bookmarktype.IBookmarkPropertiesProvider;
 import mesfavoris.bookmarktype.IGotoBookmark;
 import mesfavoris.internal.MesFavorisProjectIdManager;
-import mesfavoris.internal.bookmarktypes.BookmarkLocationProvider;
 import mesfavoris.internal.bookmarktypes.BookmarkMarkerAttributesProvider;
-import mesfavoris.internal.bookmarktypes.BookmarkPropertiesProvider;
-import mesfavoris.internal.bookmarktypes.GotoBookmark;
+import mesfavoris.internal.bookmarktypes.extension.ExtensionBookmarkLabelProvider;
+import mesfavoris.internal.bookmarktypes.extension.ExtensionBookmarkLocationProvider;
+import mesfavoris.internal.bookmarktypes.extension.ExtensionBookmarkPropertiesProvider;
+import mesfavoris.internal.bookmarktypes.extension.ExtensionGotoBookmark;
 import mesfavoris.internal.markers.BookmarksMarkers;
 import mesfavoris.internal.persistence.BookmarksAutoSaver;
 import mesfavoris.internal.persistence.LocalBookmarksSaver;
-import mesfavoris.internal.placeholders.PathPlaceholderResolver;
 import mesfavoris.internal.service.operations.*;
 import mesfavoris.internal.service.operations.utils.INewBookmarkPositionProvider;
 import mesfavoris.internal.service.operations.utils.NewBookmarkPositionProvider;
-import mesfavoris.internal.settings.placeholders.PathPlaceholdersStore;
-import mesfavoris.internal.snippets.GotoSnippetBookmark;
-import mesfavoris.internal.snippets.SnippetBookmarkLocationProvider;
-import mesfavoris.internal.snippets.SnippetBookmarkPropertiesProvider;
 import mesfavoris.internal.validation.AcceptAllBookmarksModificationValidator;
 import mesfavoris.internal.workspace.BookmarksWorkspaceFactory;
 import mesfavoris.model.BookmarkDatabase;
@@ -36,11 +33,7 @@ import mesfavoris.model.modification.IBookmarksModificationValidator;
 import mesfavoris.persistence.IBookmarksDirtyStateTracker;
 import mesfavoris.persistence.json.BookmarksTreeJsonDeserializer;
 import mesfavoris.persistence.json.BookmarksTreeJsonSerializer;
-import mesfavoris.placeholders.IPathPlaceholderResolver;
-import mesfavoris.texteditor.internal.*;
-import mesfavoris.url.internal.GotoUrlBookmark;
-import mesfavoris.url.internal.UrlBookmarkLocationProvider;
-import mesfavoris.url.internal.UrlBookmarkPropertiesProvider;
+import mesfavoris.texteditor.internal.WorkspaceFileBookmarkMarkerAttributesProvider;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,6 +58,7 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
     private IBookmarkPropertiesProvider bookmarkPropertiesProvider;
     private INewBookmarkPositionProvider newBookmarkPositionProvider;
     private BookmarksAutoSaver bookmarksSaver;
+    private IBookmarkLabelProvider bookmarkLabelProvider;
 
     public BookmarksService(Project project) throws IOException {
         this.project = project;
@@ -74,20 +68,11 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
     private void init() throws IOException {
         IBookmarksModificationValidator bookmarksModificationValidator = new AcceptAllBookmarksModificationValidator();
 
-        PathPlaceholdersStore placeholdersStore = PathPlaceholdersStore.getInstance();
-        IPathPlaceholderResolver pathPlaceholderResolver = new PathPlaceholderResolver(placeholdersStore);
         this.bookmarkDatabase = loadBookmarkDatabase(bookmarksModificationValidator);
-        this.bookmarkLocationProvider = new BookmarkLocationProvider(Arrays.asList(
-                new UrlBookmarkLocationProvider(),
-                new WorkspaceFileBookmarkLocationProvider(),
-                new ExternalFileBookmarkLocationProvider(pathPlaceholderResolver),
-                new SnippetBookmarkLocationProvider()));
-        this.gotoBookmark = new GotoBookmark(Arrays.asList(
-                new GotoUrlBookmark(),
-                new GotoWorkspaceFileBookmark(),
-                new GotoExternalFileBookmark(),
-                new GotoSnippetBookmark()));
-        this.bookmarkPropertiesProvider = new BookmarkPropertiesProvider(List.of(new TextEditorBookmarkPropertiesProvider(pathPlaceholderResolver), new UrlBookmarkPropertiesProvider(), new SnippetBookmarkPropertiesProvider()));
+        this.bookmarkLabelProvider = new ExtensionBookmarkLabelProvider();
+        this.bookmarkLocationProvider = new ExtensionBookmarkLocationProvider();
+        this.gotoBookmark = new ExtensionGotoBookmark();
+        this.bookmarkPropertiesProvider = new ExtensionBookmarkPropertiesProvider();
         this.newBookmarkPositionProvider = new NewBookmarkPositionProvider(project, bookmarkDatabase);
         this.bookmarksMarkers = new BookmarksMarkers(project, bookmarkDatabase, new BookmarkMarkerAttributesProvider(Arrays.asList(new WorkspaceFileBookmarkMarkerAttributesProvider())));
         this.bookmarksMarkers.init();
@@ -136,6 +121,10 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
     }
 
     public IBookmarksDirtyStateTracker getBookmarksDirtyStateTracker() { return bookmarksSaver; }
+
+    public IBookmarkLabelProvider getBookmarkLabelProvider() {
+        return bookmarkLabelProvider;
+    }
 
     private GotoBookmarkOperation getGotoBookmarkOperation() {
         return new GotoBookmarkOperation(project, bookmarkDatabase, bookmarkLocationProvider, gotoBookmark, bookmarksMarkers);

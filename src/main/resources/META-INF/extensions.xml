@@ -20,4 +20,19 @@
         <applicationConfigurable parentId="mesfavoris.settings" instance="mesfavoris.internal.settings.placeholders.PlaceholdersConfigurable"
                                  id="mesfavoris.settings.placeholders" displayName="Placeholders"/>
     </extensions>
+
+    <!-- Built-in Bookmark Types -->
+    <extensions defaultExtensionNs="com.cchabanois.mesfavoris">
+        <!-- default -->
+        <bookmarkType implementation="mesfavoris.internal.extensions.DefaultBookmarkTypeExtension"/>
+
+        <!-- Text Editor Bookmark Type -->
+        <bookmarkType implementation="mesfavoris.internal.extensions.TextEditorBookmarkTypeExtension"/>
+
+        <!-- URL Bookmark Type -->
+        <bookmarkType implementation="mesfavoris.internal.extensions.UrlBookmarkTypeExtension"/>
+
+        <!-- Snippet Bookmark Type -->
+        <bookmarkType implementation="mesfavoris.internal.extensions.SnippetBookmarkTypeExtension"/>
+    </extensions>
 </idea-plugin>
