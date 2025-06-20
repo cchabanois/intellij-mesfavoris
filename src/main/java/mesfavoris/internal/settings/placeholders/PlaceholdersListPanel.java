@@ -1,15 +1,21 @@
 package mesfavoris.internal.settings.placeholders;
 
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
+import mesfavoris.BookmarksException;
 import mesfavoris.bookmarktype.BookmarkDatabaseLabelProviderContext;
 import mesfavoris.bookmarktype.IBookmarkLabelProvider;
 import mesfavoris.internal.placeholders.PathPlaceholderResolver;
+import mesfavoris.internal.service.operations.CollapseBookmarksOperation;
+import mesfavoris.internal.service.operations.ExpandBookmarksOperation;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkFolder;
+import mesfavoris.model.BookmarkId;
 import mesfavoris.model.BookmarksTree;
 import mesfavoris.path.PathBookmarkProperties;
 import mesfavoris.placeholders.IPathPlaceholderResolver;
@@ -23,6 +29,7 @@ import java.awt.event.MouseEvent;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static mesfavoris.placeholders.IPathPlaceholders.PLACEHOLDER_HOME_NAME;
 
@@ -33,7 +40,7 @@ public class PlaceholdersListPanel extends JPanel {
     private CollectionListModel<PathPlaceholder> listModel;
     private JBList<PathPlaceholder> list;
     private JPanel mainPanel;
-    private PathPlaceholderStats stats;
+    private PathPlaceholderStats pathPlaceholderStats;
     private final Project project;
     private final BookmarksService bookmarksService;
 
@@ -57,7 +64,7 @@ public class PlaceholdersListPanel extends JPanel {
     private void initComponents() {
         List<String> pathPropertyNames = Arrays.asList(PathBookmarkProperties.PROP_FILE_PATH);
 
-        stats = new PathPlaceholderStats(bookmarksService::getBookmarksTree, pathPropertyNames);
+        pathPlaceholderStats = new PathPlaceholderStats(bookmarksService::getBookmarksTree, pathPropertyNames);
 
         PathPlaceholdersStore placeholdersStore = PathPlaceholdersStore.getInstance();
         pathPlaceholderResolver = new PathPlaceholderResolver(placeholdersStore);
@@ -69,7 +76,7 @@ public class PlaceholdersListPanel extends JPanel {
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         // Custom cell renderer to show placeholder name, usage count, and path
-        list.setCellRenderer(new PathPlaceholderListCellRenderer());
+        list.setCellRenderer(new PathPlaceholderListCellRenderer(project));
 
         // Add selection listener to update bookmark lists
         list.addListSelectionListener(e -> {
@@ -325,22 +332,22 @@ public class PlaceholdersListPanel extends JPanel {
         buttonGbc.fill = GridBagConstraints.HORIZONTAL;
 
         JButton addButton = new JButton("Add ▶");
-        addButton.setEnabled(false); // Disabled for now
+        addButton.addActionListener(e -> collapseSelectedBookmarks());
         buttonPanel.add(addButton, buttonGbc);
 
         buttonGbc.gridy++;
         JButton addAllButton = new JButton("Add All ▶▶");
-        addAllButton.setEnabled(false); // Disabled for now
+        addAllButton.addActionListener(e -> collapseAllBookmarks());
         buttonPanel.add(addAllButton, buttonGbc);
 
         buttonGbc.gridy++;
         JButton removeButton = new JButton("◀ Remove");
-        removeButton.setEnabled(false); // Disabled for now
+        removeButton.addActionListener(e -> expandSelectedBookmarks());
         buttonPanel.add(removeButton, buttonGbc);
 
         buttonGbc.gridy++;
         JButton removeAllButton = new JButton("◀◀ Remove All");
-        removeAllButton.setEnabled(false); // Disabled for now
+        removeAllButton.addActionListener(e -> expandAllBookmarks());
         buttonPanel.add(removeAllButton, buttonGbc);
 
         gbc.gridx = 1;
@@ -419,64 +426,119 @@ public class PlaceholdersListPanel extends JPanel {
         }
     }
 
-    /**
-     * Custom cell renderer for placeholder list items
-     */
-    private class PathPlaceholderListCellRenderer extends ColoredListCellRenderer<PathPlaceholder> {
-        @Override
-        protected void customizeCellRenderer(@NotNull JList<? extends PathPlaceholder> list, PathPlaceholder placeholder,
-                                           int index, boolean selected, boolean hasFocus) {
-            boolean unmodifiable = isUnmodifiable(placeholder);
-
-            // Set background color for unmodifiable placeholders
-            if (unmodifiable && !selected) {
-                // Use a slightly darker background for unmodifiable items
-                Color normalBackground = list.getBackground();
-                JBColor unmodifiableBackground = new JBColor(
-                    new Color(
-                        Math.max(0, normalBackground.getRed() - 10),
-                        Math.max(0, normalBackground.getGreen() - 10),
-                        Math.max(0, normalBackground.getBlue() - 10)
-                    ),
-                    new Color(
-                        Math.min(255, normalBackground.getRed() + 10),
-                        Math.min(255, normalBackground.getGreen() + 10),
-                        Math.min(255, normalBackground.getBlue() + 10)
-                    )
-                );
-                setBackground(unmodifiableBackground);
-            }
-
-            // Choose text attributes based on modifiability
-            SimpleTextAttributes nameAttributes = unmodifiable ?
-                SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES :
-                SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES;
-
-            SimpleTextAttributes pathAttributes = unmodifiable ?
-                SimpleTextAttributes.GRAYED_ATTRIBUTES :
-                SimpleTextAttributes.REGULAR_ATTRIBUTES;
-
-            // Placeholder name
-            append(placeholder.getName(), nameAttributes);
-
-            // Show usage statistics for the current project
-            int usageCount = stats.getUsageCount(placeholder.getName());
-
-            // Usage count in different color
-            if (usageCount > 0) {
-                append(" (" + usageCount + " matches)", SimpleTextAttributes.GRAYED_ATTRIBUTES);
-            } else {
-                append(" (unused)", SimpleTextAttributes.GRAYED_ATTRIBUTES);
-            }
-
-            // Path
-            append(" - " + placeholder.getPath().toString(), pathAttributes);
+    private void collapseSelectedBookmarks() {
+        PathPlaceholder selectedPlaceholder = list.getSelectedValue();
+        if (selectedPlaceholder == null) {
+            return;
         }
 
-        private boolean isUnmodifiable(PathPlaceholder pathPlaceholder) {
-            return PlaceholdersListPanel.this.isUnmodifiable(pathPlaceholder);
+        List<Bookmark> selectedBookmarks = collapsableBookmarksList.getSelectedValuesList();
+        if (selectedBookmarks.isEmpty()) {
+            return;
         }
 
+        List<BookmarkId> bookmarkIds = selectedBookmarks.stream()
+                .map(Bookmark::getId)
+                .collect(Collectors.toList());
+
+        collapseBookmarks(bookmarkIds, selectedPlaceholder.getName());
+    }
+
+    private void collapseAllBookmarks() {
+        PathPlaceholder selectedPlaceholder = list.getSelectedValue();
+        if (selectedPlaceholder == null) {
+            return;
+        }
+
+        List<Bookmark> allBookmarks = collapsableBookmarksModel.getItems();
+        if (allBookmarks.isEmpty()) {
+            return;
+        }
+
+        List<BookmarkId> bookmarkIds = allBookmarks.stream()
+                .map(Bookmark::getId)
+                .collect(Collectors.toList());
+
+        collapseBookmarks(bookmarkIds, selectedPlaceholder.getName());
+    }
+
+    private void collapseBookmarks(List<BookmarkId> bookmarkIds, String placeholderName) {
+        try {
+            CollapseBookmarksOperation operation = new CollapseBookmarksOperation(
+                    bookmarksService.getBookmarkDatabase(),
+                    PathPlaceholdersStore.getInstance(),
+                    Arrays.asList(PathBookmarkProperties.PROP_FILE_PATH)
+            );
+
+            operation.collapse(bookmarkIds, placeholderName);
+
+            // Update the bookmark lists to reflect the changes
+            updateBookmarkLists();
+        } catch (BookmarksException e) {
+            // Show error notification
+            String message = String.format("Failed to collapse bookmarks: %s", e.getMessage());
+            showErrorNotification("Error", message);
+        }
+    }
+
+    private void expandSelectedBookmarks() {
+        PathPlaceholder selectedPlaceholder = list.getSelectedValue();
+        if (selectedPlaceholder == null) {
+            return;
+        }
+
+        List<Bookmark> selectedBookmarks = collapsedBookmarksList.getSelectedValuesList();
+        if (selectedBookmarks.isEmpty()) {
+            return;
+        }
+
+        List<BookmarkId> bookmarkIds = selectedBookmarks.stream()
+                .map(Bookmark::getId)
+                .collect(Collectors.toList());
+
+        expandBookmarks(bookmarkIds);
+    }
+
+    private void expandAllBookmarks() {
+        PathPlaceholder selectedPlaceholder = list.getSelectedValue();
+        if (selectedPlaceholder == null) {
+            return;
+        }
+
+        List<Bookmark> allBookmarks = collapsedBookmarksModel.getItems();
+        if (allBookmarks.isEmpty()) {
+            return;
+        }
+
+        List<BookmarkId> bookmarkIds = allBookmarks.stream()
+                .map(Bookmark::getId)
+                .collect(Collectors.toList());
+
+        expandBookmarks(bookmarkIds);
+    }
+
+    private void expandBookmarks(List<BookmarkId> bookmarkIds) {
+        try {
+            ExpandBookmarksOperation operation = new ExpandBookmarksOperation(
+                    bookmarksService.getBookmarkDatabase(),
+                    PathPlaceholdersStore.getInstance(),
+                    Arrays.asList(PathBookmarkProperties.PROP_FILE_PATH)
+            );
+
+            operation.expand(bookmarkIds);
+
+            // Update the bookmark lists to reflect the changes
+            updateBookmarkLists();
+        } catch (BookmarksException e) {
+            // Show error notification
+            String message = String.format("Failed to expand bookmarks: %s", e.getMessage());
+            showErrorNotification("Error", message);
+        }
+    }
+
+    private void showErrorNotification(String title, String content) {
+        Notification notification = new Notification("com.cchabanois.mesfavoris.errors", title, content, NotificationType.ERROR);
+        notification.notify(project);
     }
 
     /**
