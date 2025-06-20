@@ -7,7 +7,6 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import mesfavoris.bookmarktype.BookmarkDatabaseLabelProviderContext;
 import mesfavoris.bookmarktype.IBookmarkLabelProvider;
-import mesfavoris.internal.bookmarktypes.BookmarkLabelProvider;
 import mesfavoris.internal.placeholders.PathPlaceholderResolver;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkFolder;
@@ -24,6 +23,8 @@ import java.awt.event.MouseEvent;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+
+import static mesfavoris.placeholders.IPathPlaceholders.PLACEHOLDER_HOME_NAME;
 
 /**
  * Panel with list to configure placeholders with statistics (for tool window)
@@ -61,14 +62,14 @@ public class PlaceholdersListPanel extends JPanel {
         PathPlaceholdersStore placeholdersStore = PathPlaceholdersStore.getInstance();
         pathPlaceholderResolver = new PathPlaceholderResolver(placeholdersStore);
 
-        bookmarkLabelProvider = new BookmarkLabelProvider();
+        bookmarkLabelProvider = bookmarksService.getBookmarkLabelProvider();
 
         listModel = new CollectionListModel<>();
         list = new JBList<>(listModel);
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         // Custom cell renderer to show placeholder name, usage count, and path
-        list.setCellRenderer(new PlaceholderListCellRenderer());
+        list.setCellRenderer(new PathPlaceholderListCellRenderer());
 
         // Add selection listener to update bookmark lists
         list.addListSelectionListener(e -> {
@@ -109,8 +110,46 @@ public class PlaceholdersListPanel extends JPanel {
                     removePlaceholder(selectedIndex);
                 }
             })
-            .setEditActionUpdater(e -> list.getSelectedIndex() >= 0)
-            .setRemoveActionUpdater(e -> list.getSelectedIndex() >= 0);
+            .setEditActionUpdater(e -> {
+                int selectedIndex = list.getSelectedIndex();
+                if (selectedIndex < 0) {
+                    return false;
+                }
+                PathPlaceholder selectedPlaceholder = listModel.getElementAt(selectedIndex);
+                return !isUnmodifiable(selectedPlaceholder);
+            })
+            .setRemoveActionUpdater(e -> {
+                int selectedIndex = list.getSelectedIndex();
+                if (selectedIndex < 0) {
+                    return false;
+                }
+                PathPlaceholder selectedPlaceholder = listModel.getElementAt(selectedIndex);
+                return !isUnmodifiable(selectedPlaceholder);
+            })
+            .setMoveUpActionUpdater(e -> {
+                int selectedIndex = list.getSelectedIndex();
+                if (selectedIndex <= 0) {
+                    return false;
+                }
+                PathPlaceholder selectedPlaceholder = listModel.getElementAt(selectedIndex);
+                if (isUnmodifiable(selectedPlaceholder)) {
+                    return false;
+                }
+                // Don't allow moving above HOME placeholder (which should be at index 0)
+                if (selectedIndex == 1 && listModel.getSize() > 0) {
+                    PathPlaceholder firstPlaceholder = listModel.getElementAt(0);
+                    return !isUnmodifiable(firstPlaceholder);
+                }
+                return true;
+            })
+            .setMoveDownActionUpdater(e -> {
+                int selectedIndex = list.getSelectedIndex();
+                if (selectedIndex < 0 || selectedIndex >= listModel.getSize() - 1) {
+                    return false;
+                }
+                PathPlaceholder selectedPlaceholder = listModel.getElementAt(selectedIndex);
+                return !isUnmodifiable(selectedPlaceholder);
+            });
 
         mainPanel = decorator.createPanel();
 
@@ -160,15 +199,36 @@ public class PlaceholdersListPanel extends JPanel {
         if (dialog.showAndGet()) {
             PathPlaceholder newPlaceholder = dialog.getPlaceholder();
             if (newPlaceholder != null) {
-                listModel.add(newPlaceholder);
-                int newIndex = listModel.getSize() - 1;
-                list.setSelectedIndex(newIndex);
+                // Add new placeholder after HOME placeholder if it exists
+                int insertIndex = listModel.getSize();
+                if (listModel.getSize() > 0) {
+                    PathPlaceholder firstPlaceholder = listModel.getElementAt(0);
+                    if (isUnmodifiable(firstPlaceholder)) {
+                        // HOME is at index 0, insert new placeholder at index 1 or later
+                        insertIndex = Math.min(1, listModel.getSize());
+                    }
+                }
+
+                if (insertIndex >= listModel.getSize()) {
+                    listModel.add(newPlaceholder);
+                    insertIndex = listModel.getSize() - 1;
+                } else {
+                    listModel.add(insertIndex, newPlaceholder);
+                }
+
+                list.setSelectedIndex(insertIndex);
             }
         }
     }
 
     private void editPlaceholder(int selectedIndex) {
         PathPlaceholder currentPlaceholder = listModel.getElementAt(selectedIndex);
+
+        // Prevent editing of unmodifiable placeholders
+        if (isUnmodifiable(currentPlaceholder)) {
+            return;
+        }
+
         List<PathPlaceholder> existingPlaceholders = getPlaceholders();
         PlaceholderEditDialog dialog = new PlaceholderEditDialog(project, currentPlaceholder, existingPlaceholders);
 
@@ -183,7 +243,21 @@ public class PlaceholdersListPanel extends JPanel {
 
 
     private void removePlaceholder(int selectedIndex) {
+        PathPlaceholder currentPlaceholder = listModel.getElementAt(selectedIndex);
+
+        // Prevent removal of unmodifiable placeholders
+        if (isUnmodifiable(currentPlaceholder)) {
+            return;
+        }
+
         listModel.removeRow(selectedIndex);
+    }
+
+    /**
+     * Check if a placeholder is unmodifiable (cannot be edited or removed)
+     */
+    private boolean isUnmodifiable(PathPlaceholder pathPlaceholder) {
+        return PLACEHOLDER_HOME_NAME.equals(pathPlaceholder.getName());
     }
 
 
@@ -348,12 +422,42 @@ public class PlaceholdersListPanel extends JPanel {
     /**
      * Custom cell renderer for placeholder list items
      */
-    private class PlaceholderListCellRenderer extends ColoredListCellRenderer<PathPlaceholder> {
+    private class PathPlaceholderListCellRenderer extends ColoredListCellRenderer<PathPlaceholder> {
         @Override
         protected void customizeCellRenderer(@NotNull JList<? extends PathPlaceholder> list, PathPlaceholder placeholder,
                                            int index, boolean selected, boolean hasFocus) {
+            boolean unmodifiable = isUnmodifiable(placeholder);
+
+            // Set background color for unmodifiable placeholders
+            if (unmodifiable && !selected) {
+                // Use a slightly darker background for unmodifiable items
+                Color normalBackground = list.getBackground();
+                JBColor unmodifiableBackground = new JBColor(
+                    new Color(
+                        Math.max(0, normalBackground.getRed() - 10),
+                        Math.max(0, normalBackground.getGreen() - 10),
+                        Math.max(0, normalBackground.getBlue() - 10)
+                    ),
+                    new Color(
+                        Math.min(255, normalBackground.getRed() + 10),
+                        Math.min(255, normalBackground.getGreen() + 10),
+                        Math.min(255, normalBackground.getBlue() + 10)
+                    )
+                );
+                setBackground(unmodifiableBackground);
+            }
+
+            // Choose text attributes based on modifiability
+            SimpleTextAttributes nameAttributes = unmodifiable ?
+                SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES :
+                SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES;
+
+            SimpleTextAttributes pathAttributes = unmodifiable ?
+                SimpleTextAttributes.GRAYED_ATTRIBUTES :
+                SimpleTextAttributes.REGULAR_ATTRIBUTES;
+
             // Placeholder name
-            append(placeholder.getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+            append(placeholder.getName(), nameAttributes);
 
             // Show usage statistics for the current project
             int usageCount = stats.getUsageCount(placeholder.getName());
@@ -366,8 +470,13 @@ public class PlaceholdersListPanel extends JPanel {
             }
 
             // Path
-            append(" - " + placeholder.getPath().toString(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+            append(" - " + placeholder.getPath().toString(), pathAttributes);
         }
+
+        private boolean isUnmodifiable(PathPlaceholder pathPlaceholder) {
+            return PlaceholdersListPanel.this.isUnmodifiable(pathPlaceholder);
+        }
+
     }
 
     /**

@@ -10,6 +10,7 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -23,7 +24,6 @@ import java.util.List;
     storages = @Storage("path-placeholders.xml")
 )
 public class PathPlaceholdersStore implements PersistentStateComponent<Element>, IPathPlaceholders {
-
     private final List<PathPlaceholder> placeholders = new ArrayList<>();
 
     public static PathPlaceholdersStore getInstance() {
@@ -58,13 +58,59 @@ public class PathPlaceholdersStore implements PersistentStateComponent<Element>,
         }
     }
 
+    @Override
+    public void initializeComponent() {
+        if (get(PLACEHOLDER_HOME_NAME) == null) {
+            Path userHome = getUserHome();
+            if (userHome != null) {
+                this.placeholders.add(0, new PathPlaceholder(PLACEHOLDER_HOME_NAME, userHome));
+            }
+        }
+    }
+
     public List<PathPlaceholder> getPlaceholders() {
-        return new ArrayList<>(placeholders);
+        // Ensure HOME placeholder is always first in the returned list
+        List<PathPlaceholder> result = new ArrayList<>();
+        PathPlaceholder homePlaceholder = null;
+
+        for (PathPlaceholder placeholder : placeholders) {
+            if (PLACEHOLDER_HOME_NAME.equals(placeholder.getName())) {
+                homePlaceholder = placeholder;
+            } else {
+                result.add(placeholder);
+            }
+        }
+
+        // Insert HOME placeholder at the beginning if it exists
+        if (homePlaceholder != null) {
+            result.add(0, homePlaceholder);
+        }
+
+        return result;
     }
 
     public void setPlaceholders(List<PathPlaceholder> placeholders) {
         this.placeholders.clear();
-        this.placeholders.addAll(placeholders);
+
+        // Ensure HOME placeholder is always first
+        PathPlaceholder homePlaceholder = null;
+        List<PathPlaceholder> otherPlaceholders = new ArrayList<>();
+
+        for (PathPlaceholder placeholder : placeholders) {
+            if (PLACEHOLDER_HOME_NAME.equals(placeholder.getName())) {
+                homePlaceholder = placeholder;
+            } else {
+                otherPlaceholders.add(placeholder);
+            }
+        }
+
+        // Add HOME placeholder first if it exists
+        if (homePlaceholder != null) {
+            this.placeholders.add(homePlaceholder);
+        }
+
+        // Add all other placeholders
+        this.placeholders.addAll(otherPlaceholders);
     }
 
     @Override
@@ -80,6 +126,19 @@ public class PathPlaceholdersStore implements PersistentStateComponent<Element>,
         for (PathPlaceholder placeholder : placeholders) {
             if (name.equals(placeholder.getName())) {
                 return placeholder;
+            }
+        }
+        return null;
+    }
+
+    private Path getUserHome() {
+        String userHome = System.getProperty("user.home");
+        if (userHome != null && !userHome.trim().isEmpty()) {
+            try {
+                return Paths.get(userHome);
+            } catch (Exception e) {
+                // Return null if path is invalid
+                return null;
             }
         }
         return null;
