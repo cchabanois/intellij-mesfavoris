@@ -2,7 +2,8 @@
     <actions>
         <action id="mesfavoris.actions.AddBookmarkAction" class="mesfavoris.internal.actions.AddBookmarkAction"
                 text="Add Favori" description="Add a Bookmark">
-            <keyboard-shortcut keymap="$default" first-keystroke="alt shift B" second-keystroke="B"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="alt B"/>
+            <add-to-group group-id="EditorGutterPopupMenu" anchor="first"/>
         </action>
         <action id="mesfavoris.actions.GotoBookmarkAction"
                 class="mesfavoris.internal.actions.GotoBookmarkAction" text="Goto Favori" description="Goto Bookmark"/>
