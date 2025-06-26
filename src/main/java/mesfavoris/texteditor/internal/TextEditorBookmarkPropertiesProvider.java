@@ -1,14 +1,5 @@
 package mesfavoris.texteditor.internal;
 
-import static mesfavoris.texteditor.TextEditorBookmarkProperties.PROPERTY_NAME;
-import static mesfavoris.texteditor.TextEditorBookmarkProperties.PROP_FILE_PATH;
-import static mesfavoris.texteditor.TextEditorBookmarkProperties.PROP_LINE_CONTENT;
-import static mesfavoris.texteditor.TextEditorBookmarkProperties.PROP_LINE_NUMBER;
-import static mesfavoris.texteditor.TextEditorBookmarkProperties.PROP_PROJECT_NAME;
-import static mesfavoris.texteditor.TextEditorBookmarkProperties.PROP_WORKSPACE_PATH;
-
-import java.util.Map;
-
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ReadAction;
@@ -24,6 +15,11 @@ import mesfavoris.placeholders.IPathPlaceholderResolver;
 import mesfavoris.texteditor.TextEditorUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.nio.file.Path;
+import java.util.Map;
+
+import static mesfavoris.texteditor.TextEditorBookmarkProperties.*;
 
 public class TextEditorBookmarkPropertiesProvider extends AbstractBookmarkPropertiesProvider {
 	private final IPathPlaceholderResolver pathPlaceholderResolver;
@@ -84,7 +80,15 @@ public class TextEditorBookmarkPropertiesProvider extends AbstractBookmarkProper
 	}
 
 	private void addFilePath(Map<String, String> properties, VirtualFile virtualFile) {
-		putIfAbsent(properties, PROP_FILE_PATH, () -> pathPlaceholderResolver.collapse(virtualFile.toNioPath()));
+
+		putIfAbsent(properties, PROP_FILE_PATH, () -> {
+			try {
+				Path path = virtualFile.toNioPath();
+				return pathPlaceholderResolver.collapse(path);
+			} catch (UnsupportedOperationException e) {
+				return null;
+			}
+		});
 	}
 
 	@Nullable
