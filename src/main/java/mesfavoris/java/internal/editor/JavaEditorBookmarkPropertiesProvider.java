@@ -1,4 +1,4 @@
-package mesfavoris.java.internal;
+package mesfavoris.java.internal.editor;
 
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -9,6 +9,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import mesfavoris.bookmarktype.AbstractBookmarkPropertiesProvider;
+import mesfavoris.java.internal.javadoc.JavadocCommentProvider;
 import mesfavoris.texteditor.TextEditorUtils;
 
 import java.util.Map;
@@ -71,7 +72,7 @@ public class JavaEditorBookmarkPropertiesProvider extends AbstractBookmarkProper
 		if (JavaEditorUtils.getLineNumber(member) != lineNumber) {
 			return;
 		}
-		String javadoc = JavaEditorUtils.getJavadocComment(member);
+		String javadoc = JavadocCommentProvider.getJavadocComment(member);
 		if (javadoc != null) {
 			putIfAbsent(bookmarkProperties, PROPERTY_COMMENT, javadoc);
 		}

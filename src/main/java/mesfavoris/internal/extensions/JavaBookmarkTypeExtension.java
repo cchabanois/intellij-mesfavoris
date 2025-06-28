@@ -2,7 +2,7 @@ package mesfavoris.internal.extensions;
 
 import com.intellij.icons.AllIcons;
 import mesfavoris.extensions.AbstractBookmarkTypeExtension;
-import mesfavoris.java.internal.JavaEditorBookmarkPropertiesProvider;
+import mesfavoris.java.internal.editor.JavaEditorBookmarkPropertiesProvider;
 
 import static mesfavoris.bookmarktype.BookmarkPropertyDescriptor.BookmarkPropertyType.INT;
 import static mesfavoris.bookmarktype.BookmarkPropertyDescriptor.BookmarkPropertyType.STRING;
