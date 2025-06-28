@@ -5,6 +5,7 @@
     <vendor>cchabanois</vendor>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.java</depends>
 
     <!-- Extension Points for Bookmark Types -->
     <extensionPoints>

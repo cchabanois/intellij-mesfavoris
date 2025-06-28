@@ -29,6 +29,9 @@
         <!-- Text Editor Bookmark Type -->
         <bookmarkType implementation="mesfavoris.internal.extensions.TextEditorBookmarkTypeExtension"/>
 
+        <!-- Java Bookmark Type -->
+        <bookmarkType implementation="mesfavoris.internal.extensions.JavaBookmarkTypeExtension"/>
+
         <!-- URL Bookmark Type -->
         <bookmarkType implementation="mesfavoris.internal.extensions.UrlBookmarkTypeExtension"/>
 

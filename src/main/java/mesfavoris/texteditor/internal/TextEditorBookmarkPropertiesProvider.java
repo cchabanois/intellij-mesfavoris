@@ -34,7 +34,6 @@ public class TextEditorBookmarkPropertiesProvider extends AbstractBookmarkProper
 		ReadAction.run(() -> {
 			Editor editor = dataContext.getData(CommonDataKeys.EDITOR);
 			VirtualFile virtualFile = dataContext.getData(CommonDataKeys.VIRTUAL_FILE);
-			Project project = dataContext.getData(CommonDataKeys.PROJECT);
 			if (editor == null || virtualFile == null) {
 				return;
 			}
