@@ -71,7 +71,7 @@ public class JavaEditorBookmarkPropertiesProvider extends AbstractBookmarkProper
 		if (JavaEditorUtils.getLineNumber(member) != lineNumber) {
 			return;
 		}
-		String javadoc = JavaEditorUtils.getJavadocComment(member);
+		String javadoc = JavadocCommentProvider.getJavadocCommentAsText(member);
 		if (javadoc != null) {
 			putIfAbsent(bookmarkProperties, PROPERTY_COMMENT, javadoc);
 		}
