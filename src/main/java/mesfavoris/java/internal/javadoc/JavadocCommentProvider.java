@@ -14,6 +14,22 @@ import org.jetbrains.annotations.Nullable;
  */
 public class JavadocCommentProvider {
 
+    public String getJavadocCommentShortDescription(PsiMember member) {
+        String javadocComment = getJavadocCommentAsText(member);
+        if (javadocComment == null) {
+            return null;
+        }
+        return getJavadocCommentShortDescription(javadocComment);
+    }
+
+    public String getJavadocCommentShortDescription(String javadoc) {
+        int index = javadoc.indexOf("\n\n");
+        if (index != -1) {
+            javadoc = javadoc.substring(0, index);
+        }
+        return javadoc;
+    }
+
     /**
      * Get the Javadoc comment for a PSI member
      *
@@ -21,7 +37,7 @@ public class JavadocCommentProvider {
      * @return the Javadoc comment or null if not available
      */
     @Nullable
-    public static String getJavadocComment(PsiMember member) {
+    public String getJavadocCommentAsText(PsiMember member) {
         if (member instanceof PsiJavaDocumentedElement javaDocumentedElement) {
             PsiDocComment docComment = javaDocumentedElement.getDocComment();
             if (docComment != null) {
@@ -38,7 +54,7 @@ public class JavadocCommentProvider {
      * @return the description text or null if not available
      */
     @Nullable
-    private static String extractJavadocDescription(PsiDocComment docComment) {
+    private String extractJavadocDescription(PsiDocComment docComment) {
         StringBuilder description = new StringBuilder();
 
         // Get all children of the doc comment
@@ -56,17 +72,19 @@ public class JavadocCommentProvider {
                 String tokenText = token.getText();
 
                 // Skip comment markers and leading asterisks
-                if (tokenText.equals("/**") || tokenText.equals("*/") || tokenText.trim().equals("*")) {
+                if (tokenText.equals("/**") || tokenText.equals("*/")) {
                     continue;
-                }
-
-                // Clean up the text by removing leading asterisks and whitespace
-                String cleanText = cleanJavadocLine(tokenText);
-                if (!cleanText.isEmpty()) {
-                    if (!description.isEmpty() && !description.toString().endsWith(" ")) {
-                        description.append(" ");
+                } else if (tokenText.trim().equals("*")) {
+                    description.append('\n');
+                } else {
+                    // Clean up the text by removing leading asterisks and whitespace
+                    String cleanText = cleanJavadocLine(tokenText);
+                    if (!cleanText.isEmpty()) {
+                        if (!description.isEmpty() && !description.toString().endsWith(" ")) {
+                            description.append(" ");
+                        }
+                        description.append(cleanText);
                     }
-                    description.append(cleanText);
                 }
             }
 
@@ -92,7 +110,7 @@ public class JavadocCommentProvider {
      * @param line the raw line from Javadoc (must not be null)
      * @return the cleaned line
      */
-    private static String cleanJavadocLine(String line) {
+    private String cleanJavadocLine(String line) {
         // Remove leading whitespace and asterisks
         String cleaned = line.replaceFirst("^\\s*\\*\\s?", "");
         
@@ -109,7 +127,7 @@ public class JavadocCommentProvider {
      * @return the extracted text or null
      */
     @Nullable
-    private static String extractInlineTagText(PsiInlineDocTag inlineTag) {
+    private String extractInlineTagText(PsiInlineDocTag inlineTag) {
         String tagName = inlineTag.getName();
 
         // Get the content of the tag (everything after the tag name)
