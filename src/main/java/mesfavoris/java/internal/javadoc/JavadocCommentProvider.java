@@ -14,6 +14,22 @@ import org.jetbrains.annotations.Nullable;
  */
 public class JavadocCommentProvider {
 
+    public String getJavadocCommentShortDescription(PsiMember member) {
+        String javadocComment = getJavadocCommentAsText(member);
+        if (javadocComment == null) {
+            return null;
+        }
+        return getJavadocCommentShortDescription(javadocComment);
+    }
+
+    public String getJavadocCommentShortDescription(String javadoc) {
+        int index = javadoc.indexOf("\n\n");
+        if (index != -1) {
+            javadoc = javadoc.substring(0, index);
+        }
+        return javadoc;
+    }
+
     /**
      * Get the Javadoc comment for a PSI member
      *
@@ -21,7 +37,7 @@ public class JavadocCommentProvider {
      * @return the Javadoc comment or null if not available
      */
     @Nullable
-    public static String getJavadocComment(PsiMember member) {
+    public String getJavadocCommentAsText(PsiMember member) {
         if (member instanceof PsiJavaDocumentedElement javaDocumentedElement) {
             PsiDocComment docComment = javaDocumentedElement.getDocComment();
             if (docComment != null) {
@@ -38,7 +54,7 @@ public class JavadocCommentProvider {
      * @return the description text or null if not available
      */
     @Nullable
-    private static String extractJavadocDescription(PsiDocComment docComment) {
+    private String extractJavadocDescription(PsiDocComment docComment) {
         StringBuilder description = new StringBuilder();
 
         // Get all children of the doc comment
@@ -56,17 +72,23 @@ public class JavadocCommentProvider {
                 String tokenText = token.getText();
 
                 // Skip comment markers and leading asterisks
-                if (tokenText.equals("/**") || tokenText.equals("*/") || tokenText.trim().equals("*")) {
+                if (tokenText.equals("/**") || tokenText.equals("*/")) {
                     continue;
-                }
-
-                // Clean up the text by removing leading asterisks and whitespace
-                String cleanText = cleanJavadocLine(tokenText);
-                if (!cleanText.isEmpty()) {
-                    if (!description.isEmpty() && !description.toString().endsWith(" ")) {
-                        description.append(" ");
+                } else if (tokenText.trim().equals("*")) {
+                    description.append('\n');
+                } else {
+                    // Clean up the text by removing leading asterisks and whitespace
+                    String cleanText = cleanJavadocLine(tokenText);
+                    if (!cleanText.isEmpty()) {
+                        // Don't add space before punctuation
+                        boolean needsSpace = !description.isEmpty() &&
+                                           !description.toString().endsWith(" ") &&
+                                           !cleanText.matches("^[.,:;!?].*");
+                        if (needsSpace) {
+                            description.append(" ");
+                        }
+                        description.append(cleanText);
                     }
-                    description.append(cleanText);
                 }
             }
 
@@ -74,7 +96,11 @@ public class JavadocCommentProvider {
             if (child instanceof PsiInlineDocTag inlineTag) {
                 String tagText = extractInlineTagText(inlineTag);
                 if (tagText != null && !tagText.isEmpty()) {
-                    if (!description.isEmpty() && !description.toString().endsWith(" ")) {
+                    // Don't add space before punctuation
+                    boolean needsSpace = !description.isEmpty() &&
+                                       !description.toString().endsWith(" ") &&
+                                       !tagText.matches("^[.,:;!?].*");
+                    if (needsSpace) {
                         description.append(" ");
                     }
                     description.append(tagText);
@@ -83,6 +109,21 @@ public class JavadocCommentProvider {
         }
 
         String result = description.toString().trim();
+
+        // Remove HTML tags from the final result
+        result = removeHtmlTags(result);
+
+        // Preserve paragraph breaks: replace \n\n (with optional whitespace) with a placeholder
+        String paragraphSeparator = "§§PARAGRAPH_BREAK§§";
+        result = result.replaceAll("\\n\\s*\\n", paragraphSeparator);
+
+        // Normalize all other whitespace to single spaces
+        result = result.replaceAll("\\s+", " ");
+
+        // Restore paragraph breaks
+        result = result.replace(paragraphSeparator, "\n\n");
+
+        result = result.trim();
         return result.isEmpty() ? null : result;
     }
 
@@ -92,14 +133,33 @@ public class JavadocCommentProvider {
      * @param line the raw line from Javadoc (must not be null)
      * @return the cleaned line
      */
-    private static String cleanJavadocLine(String line) {
+    private String cleanJavadocLine(String line) {
         // Remove leading whitespace and asterisks
         String cleaned = line.replaceFirst("^\\s*\\*\\s?", "");
-        
+
         // Remove trailing whitespace
         cleaned = cleaned.trim();
-        
+
         return cleaned;
+    }
+
+    /**
+     * Remove HTML tags from text and normalize whitespace only if HTML tags were actually removed
+     *
+     * @param text the text that may contain HTML tags (must not be null)
+     * @return the text with HTML tags removed and whitespace normalized if needed
+     */
+    private String removeHtmlTags(String text) {
+        // Remove HTML tags using regex
+        String result = text.replaceAll("<[^>]+>", "");
+
+        // Only normalize whitespace if HTML tags were actually removed from this specific text
+        if (!text.equals(result)) {
+            // HTML tags were found and removed, so normalize whitespace to clean up any gaps
+            result = result.replaceAll("\\s+", " ").trim();
+        }
+
+        return result;
     }
 
     /**
@@ -109,7 +169,7 @@ public class JavadocCommentProvider {
      * @return the extracted text or null
      */
     @Nullable
-    private static String extractInlineTagText(PsiInlineDocTag inlineTag) {
+    private String extractInlineTagText(PsiInlineDocTag inlineTag) {
         String tagName = inlineTag.getName();
 
         // Get the content of the tag (everything after the tag name)

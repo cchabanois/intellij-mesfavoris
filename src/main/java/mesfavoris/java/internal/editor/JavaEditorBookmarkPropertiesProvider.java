@@ -18,6 +18,7 @@ import static mesfavoris.java.JavaBookmarkProperties.*;
 import static mesfavoris.texteditor.TextEditorBookmarkProperties.PROP_LINE_CONTENT;
 
 public class JavaEditorBookmarkPropertiesProvider extends AbstractBookmarkPropertiesProvider {
+	private final JavadocCommentProvider javadocCommentProvider = new JavadocCommentProvider();
 
 	@Override
 	public void addBookmarkProperties(Map<String, String> bookmarkProperties, DataContext dataContext, ProgressIndicator progress) {
@@ -72,7 +73,7 @@ public class JavaEditorBookmarkPropertiesProvider extends AbstractBookmarkProper
 		if (JavaEditorUtils.getLineNumber(member) != lineNumber) {
 			return;
 		}
-		String javadoc = JavadocCommentProvider.getJavadocComment(member);
+		String javadoc = javadocCommentProvider.getJavadocCommentShortDescription(member);
 		if (javadoc != null) {
 			putIfAbsent(bookmarkProperties, PROPERTY_COMMENT, javadoc);
 		}
