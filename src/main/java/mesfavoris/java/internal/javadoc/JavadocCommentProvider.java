@@ -109,10 +109,21 @@ public class JavadocCommentProvider {
         }
 
         String result = description.toString().trim();
+
         // Remove HTML tags from the final result
         result = removeHtmlTags(result);
-        // Normalize whitespace (convert multiple whitespace including newlines to single spaces)
-        result = result.replaceAll("\\s+", " ").trim();
+
+        // Preserve paragraph breaks: replace \n\n (with optional whitespace) with a placeholder
+        String paragraphSeparator = "§§PARAGRAPH_BREAK§§";
+        result = result.replaceAll("\\n\\s*\\n", paragraphSeparator);
+
+        // Normalize all other whitespace to single spaces
+        result = result.replaceAll("\\s+", " ");
+
+        // Restore paragraph breaks
+        result = result.replace(paragraphSeparator, "\n\n");
+
+        result = result.trim();
         return result.isEmpty() ? null : result;
     }
 
