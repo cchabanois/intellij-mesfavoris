@@ -80,7 +80,11 @@ public class JavadocCommentProvider {
                     // Clean up the text by removing leading asterisks and whitespace
                     String cleanText = cleanJavadocLine(tokenText);
                     if (!cleanText.isEmpty()) {
-                        if (!description.isEmpty() && !description.toString().endsWith(" ")) {
+                        // Don't add space before punctuation
+                        boolean needsSpace = !description.isEmpty() &&
+                                           !description.toString().endsWith(" ") &&
+                                           !cleanText.matches("^[.,:;!?].*");
+                        if (needsSpace) {
                             description.append(" ");
                         }
                         description.append(cleanText);
@@ -92,7 +96,11 @@ public class JavadocCommentProvider {
             if (child instanceof PsiInlineDocTag inlineTag) {
                 String tagText = extractInlineTagText(inlineTag);
                 if (tagText != null && !tagText.isEmpty()) {
-                    if (!description.isEmpty() && !description.toString().endsWith(" ")) {
+                    // Don't add space before punctuation
+                    boolean needsSpace = !description.isEmpty() &&
+                                       !description.toString().endsWith(" ") &&
+                                       !tagText.matches("^[.,:;!?].*");
+                    if (needsSpace) {
                         description.append(" ");
                     }
                     description.append(tagText);
@@ -101,6 +109,10 @@ public class JavadocCommentProvider {
         }
 
         String result = description.toString().trim();
+        // Remove HTML tags from the final result
+        result = removeHtmlTags(result);
+        // Normalize whitespace (convert multiple whitespace including newlines to single spaces)
+        result = result.replaceAll("\\s+", " ").trim();
         return result.isEmpty() ? null : result;
     }
 
@@ -113,11 +125,30 @@ public class JavadocCommentProvider {
     private String cleanJavadocLine(String line) {
         // Remove leading whitespace and asterisks
         String cleaned = line.replaceFirst("^\\s*\\*\\s?", "");
-        
+
         // Remove trailing whitespace
         cleaned = cleaned.trim();
-        
+
         return cleaned;
+    }
+
+    /**
+     * Remove HTML tags from text and normalize whitespace only if HTML tags were actually removed
+     *
+     * @param text the text that may contain HTML tags (must not be null)
+     * @return the text with HTML tags removed and whitespace normalized if needed
+     */
+    private String removeHtmlTags(String text) {
+        // Remove HTML tags using regex
+        String result = text.replaceAll("<[^>]+>", "");
+
+        // Only normalize whitespace if HTML tags were actually removed from this specific text
+        if (!text.equals(result)) {
+            // HTML tags were found and removed, so normalize whitespace to clean up any gaps
+            result = result.replaceAll("\\s+", " ").trim();
+        }
+
+        return result;
     }
 
     /**

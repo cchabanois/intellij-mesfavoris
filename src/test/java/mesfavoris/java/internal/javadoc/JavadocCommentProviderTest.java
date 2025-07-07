@@ -58,7 +58,7 @@ public class JavadocCommentProviderTest extends BasePlatformTestCase {
         String shortDescription = javadocCommentProvider.getJavadocCommentShortDescription(method);
 
         // Then
-        assertThat(shortDescription).isEqualTo("Returns the specified value of this Option or <code>null</code> if there is no value.");
+        assertThat(shortDescription).isEqualTo("Returns the specified value of this Option or null if there is no value.");
     }
 
     @Test
@@ -84,7 +84,7 @@ public class JavadocCommentProviderTest extends BasePlatformTestCase {
         String shortDescription = javadocCommentProvider.getJavadocCommentShortDescription(method);
 
         // Then
-        assertThat(shortDescription).isEqualTo("Returns the specified value of this Option or\nnull if there is no value.");
+        assertThat(shortDescription).isEqualTo("Returns the specified value of this Option or null if there is no value.");
     }
 
     @Test
@@ -109,7 +109,7 @@ public class JavadocCommentProviderTest extends BasePlatformTestCase {
         String shortDescription = javadocCommentProvider.getJavadocCommentShortDescription(method);
 
         // Then
-        assertThat(shortDescription).isEqualTo("See String for more details or the List interface .");
+        assertThat(shortDescription).isEqualTo("See String for more details or the List interface.");
     }
 
     @Test
@@ -135,16 +135,10 @@ public class JavadocCommentProviderTest extends BasePlatformTestCase {
         String shortDescription = javadocCommentProvider.getJavadocCommentShortDescription(method);
 
         // Then
-        // Note: The current implementation extracts all description text before @tags
-        // The paragraph separation logic works on the final string, not during PSI parsing
         String fullDescription = javadocCommentProvider.getJavadocCommentAsText(method);
         assertThat(fullDescription).contains("This is the first paragraph.");
         assertThat(fullDescription).contains("This is the second paragraph and should not be included.");
-
-        // Test the short description logic with proper paragraph separation
-        String testText = "This is the first paragraph.\n\nThis is the second paragraph.";
-        String shortFromText = javadocCommentProvider.getJavadocCommentShortDescription(testText);
-        assertThat(shortFromText).isEqualTo("This is the first paragraph.");
+        assertThat(shortDescription).isEqualTo("This is the first paragraph.");
     }
 
     @Test
