@@ -18,11 +18,10 @@ public class GotoInsideJavaElementBookmark implements IGotoBookmark {
 
 	@Override
 	public boolean gotoBookmark(Project project, Bookmark bookmark, IBookmarkLocation bookmarkLocation) {
-		if (!(bookmarkLocation instanceof JavaTypeMemberBookmarkLocation)) {
+		if (!(bookmarkLocation instanceof JavaTypeMemberBookmarkLocation location)) {
 			return false;
 		}
-		JavaTypeMemberBookmarkLocation location = (JavaTypeMemberBookmarkLocation) bookmarkLocation;
-		Editor editor = openInEditor(project, location.getMember());
+        Editor editor = openInEditor(project, location.getMember());
 		if (editor == null) {
 			return false;
 		}

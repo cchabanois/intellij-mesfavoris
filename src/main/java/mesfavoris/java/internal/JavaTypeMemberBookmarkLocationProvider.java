@@ -7,7 +7,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.PsiTreeUtil;
 import mesfavoris.bookmarktype.IBookmarkLocationProvider;
 import mesfavoris.java.internal.editor.JavaEditorUtils;
 import mesfavoris.model.Bookmark;
@@ -44,7 +43,7 @@ public class JavaTypeMemberBookmarkLocationProvider implements IBookmarkLocation
 	private LinePosition getLineNumber(PsiMember member, Bookmark bookmark, ProgressIndicator progress) {
 		Integer estimatedLineNumber = getEstimatedLineNumber(member, bookmark);
 		Integer lineNumber = estimatedLineNumber;
-		Integer lineOffset = null;
+		Integer lineOffset;
 		String lineContent = bookmark.getPropertyValue(TextEditorBookmarkProperties.PROP_LINE_CONTENT);
 
 		PsiFile containingFile = member.getContainingFile();
