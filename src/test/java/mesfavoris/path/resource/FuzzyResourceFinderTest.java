@@ -1,58 +1,89 @@
 package mesfavoris.path.resource;
 
-import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
-//import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
-import com.intellij.testFramework.fixtures.TempDirTestFixture;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFileSystemItem;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.testFramework.fixtures.BasePlatformTestCase;
+import mesfavoris.path.internal.resource.PathDistanceComputer;
 
-public class FuzzyResourceFinderTest /* extends LightJavaCodeInsightFixtureTestCase */ {
-    private static final TempDirTestFixture tempDirTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture();
-//    private final FuzzyResourceFinder fuzzyResourceFinder = new FuzzyResourceFinder();
-/*
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class FuzzyResourceFinderTest extends BasePlatformTestCase {
+
+    private FuzzyResourceFinder fuzzyResourceFinder;
+
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        tempDirTestFixture.setUp();
-        tempDirTestFixture.copyAll("src/test/testData/commons-cli", "fuzzyResourceFinderTest");
+
+        // Copy test data to project
+        myFixture.copyDirectoryToProject("commons-cli", "commons-cli");
+
+        // Create the FileSystemItemPathProvider
+        FuzzyResourceFinder.FileSystemItemPathProvider fileSystemItemPathProvider =
+            fileSystemItem -> {
+                VirtualFile virtualFile = fileSystemItem.getVirtualFile();
+                if (virtualFile == null) {
+                    return Optional.empty();
+                }
+                return Optional.of(Paths.get(virtualFile.getPath()));
+            };
+
+        // Create the FuzzyResourceFinder with required dependencies
+        fuzzyResourceFinder = new FuzzyResourceFinder(
+            getProject(),
+            GlobalSearchScope.projectScope(getProject()),
+            fileSystemItemPathProvider,
+            new PathDistanceComputer()
+        );
     }
 
-    @Override
-    protected void tearDown() throws Exception {
-        tempDirTestFixture.tearDown();
-        super.tearDown();
-    }
-*/
-/*
     @Override
     protected String getTestDataPath() {
         return "src/test/testData";
     }
-*/
-    /*
-//    @Test
+
     public void testExactPath() {
-        myFixture.copyDirectoryToProject("commons-cli", "commons-cli");
+        // Given
+        Path expectedPath = Paths.get("commons-cli/NOTICE.txt");
+
         // When
-        Optional<VirtualFile> resource = fuzzyResourceFinder.find(getProject(), Paths.get("/fuzzyResourceFinderTest/NOTICE.txt"), false, new EmptyProgressIndicator());
+        Optional<PsiFileSystemItem> result = fuzzyResourceFinder.find(expectedPath, false, new EmptyProgressIndicator());
 
         // Then
-        assertTrue(resource.isPresent());
-        assertEquals("/fuzzyResourceFinderTest/NOTICE.txt", resource.get().getPath());
+        assertThat(result).isPresent();
+        VirtualFile virtualFile = result.get().getVirtualFile();
+        assertThat(virtualFile).isNotNull();
+        assertThat(virtualFile.getPath()).endsWith("commons-cli/NOTICE.txt");
     }
 
-    @Test
     public void testFuzzyPath() {
+        // Given - looking for CommandLine.java with a partial path
+        Path expectedPath = Paths.get("org/apache/commons/cli/CommandLine.java");
+
         // When
-        Optional<VirtualFile> resource = fuzzyResourceFinder.find(getProject(), Paths.get("/fuzzyResourceFinderTest/org/apache/commons/cli/CommandLine.java"), false, new EmptyProgressIndicator());
+        Optional<PsiFileSystemItem> result = fuzzyResourceFinder.find(expectedPath, false, new EmptyProgressIndicator());
 
         // Then
-        assertTrue(resource.isPresent());
-        assertEquals("/fuzzyResourceFinderTest/src/main/java/org/apache/commons/cli/CommandLine.java", resource.get().getPath());
+        assertThat(result).isPresent();
+        VirtualFile virtualFile = result.get().getVirtualFile();
+        assertThat(virtualFile).isNotNull();
+        assertThat(virtualFile.getPath()).endsWith("src/main/java/org/apache/commons/cli/CommandLine.java");
     }
-*/
-  /*  private static void importProjectFromTemplate(String projectName, String templateName)
-            throws InvocationTargetException, InterruptedException {
-        Bundle bundle = Platform.getBundle("mesfavoris.path.tests");
-        new BundleProjectImportOperation(bundle, projectName, "/projects/" + templateName + "/").run(null);
-    } */
 
+    public void testFileNotFound() {
+        // Given
+        Path expectedPath = Paths.get("nonexistent/file.txt");
+
+        // When
+        Optional<PsiFileSystemItem> result = fuzzyResourceFinder.find(expectedPath, false, new EmptyProgressIndicator());
+
+        // Then
+        assertThat(result).isEmpty();
+    }
 }
