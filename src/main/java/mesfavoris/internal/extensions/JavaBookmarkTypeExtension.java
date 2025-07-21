@@ -2,6 +2,8 @@ package mesfavoris.internal.extensions;
 
 import com.intellij.icons.AllIcons;
 import mesfavoris.extensions.AbstractBookmarkTypeExtension;
+import mesfavoris.java.internal.GotoInsideJavaElementBookmark;
+import mesfavoris.java.internal.JavaTypeMemberBookmarkLocationProvider;
 import mesfavoris.java.internal.editor.JavaEditorBookmarkPropertiesProvider;
 
 import static mesfavoris.bookmarktype.BookmarkPropertyDescriptor.BookmarkPropertyType.INT;
@@ -58,5 +60,7 @@ public class JavaBookmarkTypeExtension extends AbstractBookmarkTypeExtension {
 
         // Add providers
         addPropertiesProvider(new JavaEditorBookmarkPropertiesProvider(), 20);
+        addLocationProvider(new JavaTypeMemberBookmarkLocationProvider(), 20);
+        addGotoBookmarkHandler(new GotoInsideJavaElementBookmark(), 20);
     }
 }
