@@ -54,22 +54,31 @@ public class JavaEditorUtils {
      * Get a simple method signature for a PSI method
      *
      * @param method the PSI method (must not be null)
-     * @return the method signature
+     * @return the method signature in format "ReturnType methodName(ParamType1, ParamType2)"
      */
     public static String getMethodSimpleSignature(PsiMethod method) {
-        
+
         StringBuilder signature = new StringBuilder();
+
+        // Add return type
+        PsiType returnType = method.getReturnType();
+        if (returnType != null) {
+            signature.append(returnType.getPresentableText()).append(" ");
+        }
+
+        // Add method name
         signature.append(method.getName()).append("(");
-        
+
+        // Add parameters
         PsiParameter[] parameters = method.getParameterList().getParameters();
         for (int i = 0; i < parameters.length; i++) {
             if (i > 0) {
-                signature.append(", ");
+                signature.append(",");
             }
             PsiType type = parameters[i].getType();
             signature.append(type.getPresentableText());
         }
-        
+
         signature.append(")");
         return signature.toString();
     }
