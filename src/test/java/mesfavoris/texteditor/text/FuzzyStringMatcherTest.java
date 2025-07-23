@@ -7,6 +7,7 @@ import mesfavoris.texteditor.text.matching.DistanceMatchScoreComputer;
 import mesfavoris.texteditor.text.matching.FuzzyStringMatcher;
 
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -19,7 +20,7 @@ public class FuzzyStringMatcherTest extends BasePlatformTestCase {
 		super.setUp();
 
 		text = CharStreams.toString(
-				new InputStreamReader(this.getClass().getResourceAsStream("AbstractDocument.java.txt"), "UTF-8"));
+				new InputStreamReader(this.getClass().getResourceAsStream("AbstractDocument.java.txt"), StandardCharsets.UTF_8));
 
 		matcher = new FuzzyStringMatcher(0.5f, new DistanceMatchScoreComputer(10000));
 	}

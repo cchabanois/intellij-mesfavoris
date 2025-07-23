@@ -3,12 +3,12 @@ package mesfavoris.texteditor.text;
 import com.google.common.io.CharStreams;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
-import mesfavoris.texteditor.text.RemoveExtraWhitespacesSequenceFilter;
 import mesfavoris.texteditor.text.matching.DistanceMatchScoreComputer;
 import mesfavoris.texteditor.text.matching.FuzzyFilteredStringMatcher;
 import mesfavoris.texteditor.text.matching.FuzzyStringMatcher;
 
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,7 +21,7 @@ public class FuzzyFilteredStringMatcherTest extends BasePlatformTestCase {
 		super.setUp();
 
 		text = CharStreams.toString(
-				new InputStreamReader(this.getClass().getResourceAsStream("AbstractDocument.java.txt"), "UTF-8"));
+				new InputStreamReader(this.getClass().getResourceAsStream("AbstractDocument.java.txt"), StandardCharsets.UTF_8));
 
 		matcher = new FuzzyFilteredStringMatcher(new FuzzyStringMatcher(0.5f, new DistanceMatchScoreComputer(10000)),
 				new RemoveExtraWhitespacesSequenceFilter());

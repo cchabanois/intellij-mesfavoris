@@ -7,6 +7,7 @@ import mesfavoris.texteditor.text.matching.BitapStringMatcher;
 import mesfavoris.texteditor.text.matching.DistanceMatchScoreComputer;
 
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -19,7 +20,7 @@ public class BitapStringMatcherTest extends BasePlatformTestCase {
 		super.setUp();
 
 		text = CharStreams.toString(
-				new InputStreamReader(this.getClass().getResourceAsStream("AbstractDocument.java.txt"), "UTF-8"));
+				new InputStreamReader(this.getClass().getResourceAsStream("AbstractDocument.java.txt"), StandardCharsets.UTF_8));
 
 		matcher = new BitapStringMatcher(new DistanceMatchScoreComputer(10000));
 	}
