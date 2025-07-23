@@ -1,18 +1,16 @@
-package mesfavoris.texteditor.text;
+package mesfavoris.texteditor.text.matching;
 
 import com.google.common.io.CharStreams;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
-import mesfavoris.texteditor.text.matching.BitapBigIntegerStringMatcher;
-import mesfavoris.texteditor.text.matching.DistanceMatchScoreComputer;
 
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class BitapBigIntegerStringMatcherTest extends BasePlatformTestCase {
-	private BitapBigIntegerStringMatcher matcher;
+public class BitapStringMatcherTest extends BasePlatformTestCase {
+	private BitapStringMatcher matcher;
 	private String text;
 
 	@Override
@@ -22,12 +20,12 @@ public class BitapBigIntegerStringMatcherTest extends BasePlatformTestCase {
 		text = CharStreams.toString(
 				new InputStreamReader(this.getClass().getResourceAsStream("AbstractDocument.java.txt"), StandardCharsets.UTF_8));
 
-		matcher = new BitapBigIntegerStringMatcher(new DistanceMatchScoreComputer(10000));
+		matcher = new BitapStringMatcher(new DistanceMatchScoreComputer(10000));
 	}
 
 	public void testFind() {
 		// Given
-		String searchPattern = "RegisteredReplace(IDocumentListener docListener, IDocumentExtension.IReplace replace) {";
+		String searchPattern = "RegisteredReplace(IDocumentListener docListener";
 
 		// When
 		int match = matcher.find(text, searchPattern, 30, new EmptyProgressIndicator());
@@ -36,4 +34,5 @@ public class BitapBigIntegerStringMatcherTest extends BasePlatformTestCase {
 		assertThat(text.substring(match))
 				.startsWith("RegisteredReplace(IDocumentListener owner, IDocumentExtension.IReplace replace) {");
 	}
+
 }

@@ -1,10 +1,8 @@
-package mesfavoris.texteditor.text;
+package mesfavoris.texteditor.text.matching;
 
 import com.google.common.io.CharStreams;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
-import mesfavoris.texteditor.text.matching.DistanceMatchScoreComputer;
-import mesfavoris.texteditor.text.matching.FuzzyStringMatcher;
 
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
