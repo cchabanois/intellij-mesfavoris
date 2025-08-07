@@ -2,7 +2,7 @@
 # libraries
 junit = "4.13.2"
 javimmutable-collections = "2.4.1"
-assertj = "3.27.3"
+assertj = "3.27.4"
 mockito = "5.18.0"
 
 # plugins
