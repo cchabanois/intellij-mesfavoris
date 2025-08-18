@@ -6,7 +6,6 @@ import com.intellij.openapi.editor.ex.RangeHighlighterEx;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDocumentListener;
 import com.intellij.util.messages.Topic;
 import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.BookmarkMarker;
@@ -43,7 +42,7 @@ public class BookmarksMarkers implements IBookmarksMarkers, PersistentStateCompo
 
     public void init() {
         backgroundBookmarksModificationsHandler.init();
-        project.getMessageBus().connect().subscribe(BookmarksHighlighters.BookmarksHighlightersListener.TOPIC, new BookmarksHighlightersListenerImpl());
+        project.getMessageBus().connect().subscribe(BookmarksHighlightersListener.TOPIC, new BookmarksHighlightersListenerImpl());
     }
 
     public void close() {
@@ -128,11 +127,11 @@ public class BookmarksMarkers implements IBookmarksMarkers, PersistentStateCompo
 
     }
 
-    private class BookmarksHighlightersListenerImpl implements BookmarksHighlighters.BookmarksHighlightersListener {
+    private class BookmarksHighlightersListenerImpl implements BookmarksHighlightersListener {
 
         @Override
         public void bookmarkHighlighterDeleted(RangeHighlighterEx bookmarkHighlighter) {
-            deleteMarker(getBookmarkId(bookmarkHighlighter));
+            deleteMarker(this.getBookmarkId(bookmarkHighlighter));
         }
 
         @Override
@@ -142,7 +141,7 @@ public class BookmarksMarkers implements IBookmarksMarkers, PersistentStateCompo
         @Override
         public void bookmarkHighlighterUpdated(RangeHighlighterEx bookmarkHighlighter) {
             int newLineNumber = bookmarkHighlighter.getDocument().getLineNumber(bookmarkHighlighter.getStartOffset());
-            BookmarkMarker previousBookmarkMarker = bookmarkMarkersMap.get(getBookmarkId(bookmarkHighlighter));
+            BookmarkMarker previousBookmarkMarker = bookmarkMarkersMap.get(this.getBookmarkId(bookmarkHighlighter));
             if (Integer.parseInt(previousBookmarkMarker.getAttributes().get(BookmarkMarker.LINE_NUMBER)) != newLineNumber) {
                 Map<String, String> newAttributes = new HashMap<>(previousBookmarkMarker.getAttributes());
                 newAttributes.put(BookmarkMarker.LINE_NUMBER, Integer.toString(newLineNumber));
@@ -153,7 +152,7 @@ public class BookmarksMarkers implements IBookmarksMarkers, PersistentStateCompo
         }
     }
 
-    public static interface BookmarksMarkersListener {
+    public interface BookmarksMarkersListener {
         Topic<BookmarksMarkersListener> TOPIC = Topic.create("BookmarksMarkersListener", BookmarksMarkersListener.class);
 
         void bookmarkMarkerDeleted(BookmarkMarker bookmarkMarker);

@@ -1,13 +1,10 @@
 package mesfavoris.internal.markers;
 
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.colors.CodeInsightColors;
-import com.intellij.openapi.editor.event.BulkAwareDocumentListener;
-import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.EditorEventMulticaster;
 import com.intellij.openapi.editor.ex.MarkupModelEx;
 import com.intellij.openapi.editor.ex.RangeHighlighterEx;
@@ -25,8 +22,6 @@ import com.intellij.psi.PsiDocumentListener;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.AppUIUtil;
 import com.intellij.util.concurrency.NonUrgentExecutor;
-import com.intellij.util.messages.MessageBus;
-import com.intellij.util.messages.Topic;
 import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.BookmarkMarker;
 import mesfavoris.model.BookmarkId;
@@ -34,17 +29,20 @@ import mesfavoris.service.BookmarksService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static mesfavoris.internal.markers.BookmarksMarkers.BookmarksMarkersListener;
 
 public class BookmarksHighlighters implements Disposable {
     public static final Key<BookmarkId> BOOKMARK_ID_KEY = new Key<>("bookmarkId");
     private final Project project;
+    private final BookmarksHighlightersDocumentListener documentListener;
 
     public BookmarksHighlighters(Project project) {
         this.project = project;
+        this.documentListener = new BookmarksHighlightersDocumentListener(project);
     }
 
     public void init() {
@@ -52,12 +50,31 @@ public class BookmarksHighlighters implements Disposable {
         project.getMessageBus().connect().subscribe(PsiDocumentListener.TOPIC, this::documentCreated);
         project.getMessageBus().connect().subscribe(BookmarksMarkers.BookmarksMarkersListener.TOPIC, getBookmarksMarkersListener());
         EditorEventMulticaster multicaster = EditorFactory.getInstance().getEventMulticaster();
-        multicaster.addDocumentListener(new HighlightersDocumentListener(), this);
+        multicaster.addDocumentListener(documentListener, this);
         createHighlightersForOpenFiles();
     }
 
     @Override
     public void dispose() {
+        // Remove document listener
+        EditorEventMulticaster multicaster = EditorFactory.getInstance().getEventMulticaster();
+        multicaster.removeDocumentListener(documentListener);
+    }
+
+    public static List<RangeHighlighterEx> getBookmarksHighlighters(Project project, Document document) {
+        MarkupModelEx markupModel = (MarkupModelEx) DocumentMarkupModel.forDocument(document, project, false);
+        if (markupModel == null) {
+            return Collections.emptyList();
+        }
+        List<RangeHighlighterEx> highlighters = new ArrayList<>();
+        markupModel.processRangeHighlightersOverlappingWith(0, document.getTextLength(), highlighter -> {
+            BookmarkId bookmarkId = highlighter.getUserData(BOOKMARK_ID_KEY);
+            if (bookmarkId != null) {
+                highlighters.add(highlighter);
+            }
+            return true;
+        });
+        return highlighters;
     }
 
     private BookmarksMarkersListener getBookmarksMarkersListener() {
@@ -75,29 +92,12 @@ public class BookmarksHighlighters implements Disposable {
 
             @Override
             public void bookmarkMarkerAdded(BookmarkMarker bookmarkMarker) {
-                AppUIUtil.invokeLaterIfProjectAlive(project, () -> {
-                    createOrUpdateHighlighter(bookmarkMarker);
-                });
-
-                /*
-                ReadAction.nonBlocking(() -> {
-                    VirtualFile file = bookmarkMarker.getResource();
-                    FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
-                    Document document = fileDocumentManager.getDocument(file);
-                    if (document != null) {
-                        MarkupModelEx markupModel = (MarkupModelEx) DocumentMarkupModel.forDocument(document, project, true);
-                        AppUIUtil.invokeLaterIfProjectAlive(project, () -> {
-                            createHighlighter(markupModel, bookmarkMarker);
-                        });
-                    }
-                }).expireWith(project).submit(NonUrgentExecutor.getInstance()); */
+                AppUIUtil.invokeLaterIfProjectAlive(project, () -> createOrUpdateHighlighter(bookmarkMarker));
             }
 
             @Override
             public void bookmarkMarkerUpdated(BookmarkMarker previous, BookmarkMarker bookmarkMarker) {
-                AppUIUtil.invokeLaterIfProjectAlive(project, () -> {
-                    createOrUpdateHighlighter(bookmarkMarker);
-                });
+                AppUIUtil.invokeLaterIfProjectAlive(project, () -> createOrUpdateHighlighter(bookmarkMarker));
             }
         };
     }
@@ -224,117 +224,6 @@ public class BookmarksHighlighters implements Disposable {
             return true;
         });
         return found.get();
-    }
-
-    private List<RangeHighlighterEx> getHighlighters(Document document) {
-        MarkupModelEx markupModel = (MarkupModelEx) DocumentMarkupModel.forDocument(document, project, false);
-        if (markupModel == null) {
-            return Collections.emptyList();
-        }
-        List<RangeHighlighterEx> highlighters = new ArrayList<>();
-        markupModel.processRangeHighlightersOverlappingWith(0, document.getTextLength(), highlighter -> {
-            BookmarkId bookmarkId = highlighter.getUserData(BOOKMARK_ID_KEY);
-            if (bookmarkId != null) {
-                highlighters.add(highlighter);
-            }
-            return true;
-        });
-        return highlighters;
-    }
-
-    private static class BookmarkHighlighterRangeSnapshot {
-        private final RangeHighlighterEx highlighter;
-        private final BookmarkId bookmarkId;
-        private final int startOffset;
-        private final int endOffset;
-
-        public BookmarkHighlighterRangeSnapshot(RangeHighlighterEx highlighter) {
-            this.highlighter = highlighter;
-            this.bookmarkId = highlighter.getUserData(BOOKMARK_ID_KEY);
-            this.startOffset = highlighter.getStartOffset();
-            this.endOffset = highlighter.getEndOffset();
-        }
-
-    }
-
-    private class HighlightersDocumentListener implements BulkAwareDocumentListener.Simple {
-        private final Map<Document, List<BookmarkHighlighterRangeSnapshot>> beforeChangeHighlighters = new HashMap<>();
-
-        @Override
-        public void beforeDocumentChange(@NotNull DocumentEvent e) {
-            Document document = e.getDocument();
-            beforeChangeHighlighters.put(document, takeHighlightersSnapshot(document));
-        }
-
-        private List<BookmarkHighlighterRangeSnapshot> takeHighlightersSnapshot(Document document) {
-            return getHighlighters(document).stream().map(highlighter -> new BookmarkHighlighterRangeSnapshot(highlighter)).collect(Collectors.toList());
-        }
-
-        private Map<BookmarkId, BookmarkHighlighterRangeSnapshot> asMap(List<BookmarkHighlighterRangeSnapshot> highlighters) {
-            return highlighters.stream().collect(Collectors.toMap(highlighter -> highlighter.bookmarkId, highlighter -> highlighter));
-        }
-
-        private void diff(List<BookmarkHighlighterRangeSnapshot> beforeChangeHighlighters, List<BookmarkHighlighterRangeSnapshot> afterChangeHighlighters, Set<RangeHighlighterEx> addedHighlighters, Set<RangeHighlighterEx> removedHighlighters, Set<RangeHighlighterEx> updatedHighlighters) {
-            Map<BookmarkId, BookmarkHighlighterRangeSnapshot> beforeChangeHighlightersMap = asMap(beforeChangeHighlighters);
-            Map<BookmarkId, BookmarkHighlighterRangeSnapshot> afterChangeHighlightersMap = asMap(afterChangeHighlighters);
-            for (BookmarkHighlighterRangeSnapshot beforeChangeHighlighter : beforeChangeHighlighters) {
-                BookmarkId bookmarkId = beforeChangeHighlighter.bookmarkId;
-                BookmarkHighlighterRangeSnapshot afterChangeHighlighter = afterChangeHighlightersMap.get(bookmarkId);
-                if (afterChangeHighlighter == null) {
-                    removedHighlighters.add(beforeChangeHighlighter.highlighter);
-                } else {
-                    if (beforeChangeHighlighter.startOffset != afterChangeHighlighter.startOffset) {
-                        updatedHighlighters.add(afterChangeHighlighter.highlighter);
-                    }
-                }
-            }
-            for (BookmarkHighlighterRangeSnapshot afterChangeHighlighter : afterChangeHighlighters) {
-                BookmarkId bookmarkId = afterChangeHighlighter.bookmarkId;
-                BookmarkHighlighterRangeSnapshot beforeChangeHighlighter = beforeChangeHighlightersMap.get(bookmarkId);
-                if (beforeChangeHighlighter == null) {
-                    addedHighlighters.add(afterChangeHighlighter.highlighter);
-                }
-            }
-        }
-
-        @Override
-        public void documentChanged(@NotNull DocumentEvent e) {
-            if (!ApplicationManager.getApplication().isDispatchThread()) {
-                return;// Changes in lightweight documents are irrelevant to bookmarks and have to be ignored
-            }
-            Document document = e.getDocument();
-            List<BookmarkHighlighterRangeSnapshot> beforeChangeHighlighters = this.beforeChangeHighlighters.remove(document);
-            if (beforeChangeHighlighters == null || beforeChangeHighlighters.isEmpty()) {
-                return;
-            }
-            List<BookmarkHighlighterRangeSnapshot> afterChangeHighlighters = takeHighlightersSnapshot(document);
-
-            Set<RangeHighlighterEx> addedHighlighters = new HashSet<>();
-            Set<RangeHighlighterEx> removedHighlighters = new HashSet<>();
-            Set<RangeHighlighterEx> updatedHighlighters = new HashSet<>();
-            diff(beforeChangeHighlighters, afterChangeHighlighters, addedHighlighters, removedHighlighters, updatedHighlighters);
-
-            MessageBus messageBus = project.getMessageBus();
-            addedHighlighters.forEach(highlighter -> messageBus.syncPublisher(BookmarksHighlightersListener.TOPIC).bookmarkHighlighterAdded(highlighter));
-            removedHighlighters.forEach(highlighter -> messageBus.syncPublisher(BookmarksHighlightersListener.TOPIC).bookmarkHighlighterDeleted(highlighter));
-            updatedHighlighters.forEach(highlighter -> messageBus.syncPublisher(BookmarksHighlightersListener.TOPIC).bookmarkHighlighterUpdated(highlighter));
-        }
-
-    }
-
-    public interface BookmarksHighlightersListener {
-        Topic<BookmarksHighlightersListener> TOPIC = Topic.create("BookmarksHighlightersListener", BookmarksHighlightersListener.class);
-
-        default BookmarkId getBookmarkId(RangeHighlighterEx highlighter) {
-            return highlighter.getUserData(BookmarksHighlighters.BOOKMARK_ID_KEY);
-        }
-
-        void bookmarkHighlighterDeleted(RangeHighlighterEx bookmarkHighlighter);
-
-        void bookmarkHighlighterAdded(RangeHighlighterEx bookmarkHighlighter);
-
-        void bookmarkHighlighterUpdated(RangeHighlighterEx bookmarkHighlighter);
-
     }
 
     public static class BookmarksHighlightersStartupActivity implements StartupActivity.DumbAware {
