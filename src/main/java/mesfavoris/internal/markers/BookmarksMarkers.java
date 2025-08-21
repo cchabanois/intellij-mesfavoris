@@ -130,8 +130,8 @@ public class BookmarksMarkers implements IBookmarksMarkers, PersistentStateCompo
     private class BookmarksHighlightersListenerImpl implements BookmarksHighlightersListener {
 
         @Override
-        public void bookmarkHighlighterDeleted(RangeHighlighterEx bookmarkHighlighter) {
-            deleteMarker(this.getBookmarkId(bookmarkHighlighter));
+        public void bookmarkHighlighterDeleted(BookmarkId bookmarkId) {
+            deleteMarker(bookmarkId);
         }
 
         @Override

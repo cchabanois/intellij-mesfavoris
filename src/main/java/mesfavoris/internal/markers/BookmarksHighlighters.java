@@ -5,6 +5,8 @@ import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.colors.CodeInsightColors;
+import com.intellij.openapi.editor.event.BulkAwareDocumentListener;
+import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.EditorEventMulticaster;
 import com.intellij.openapi.editor.ex.MarkupModelEx;
 import com.intellij.openapi.editor.ex.RangeHighlighterEx;
@@ -13,6 +15,7 @@ import com.intellij.openapi.editor.markup.HighlighterLayer;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
@@ -22,6 +25,7 @@ import com.intellij.psi.PsiDocumentListener;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.AppUIUtil;
 import com.intellij.util.concurrency.NonUrgentExecutor;
+import com.intellij.util.messages.MessageBus;
 import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.BookmarkMarker;
 import mesfavoris.model.BookmarkId;
@@ -29,20 +33,19 @@ import mesfavoris.service.BookmarksService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import javax.swing.Timer;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static mesfavoris.internal.markers.BookmarksMarkers.BookmarksMarkersListener;
 
 public class BookmarksHighlighters implements Disposable {
     public static final Key<BookmarkId> BOOKMARK_ID_KEY = new Key<>("bookmarkId");
     private final Project project;
-    private final BookmarksHighlightersDocumentListener documentListener;
+    private BookmarksHighlightersDocumentListener documentListener;
 
     public BookmarksHighlighters(Project project) {
         this.project = project;
-        this.documentListener = new BookmarksHighlightersDocumentListener(project);
     }
 
     public void init() {
@@ -50,6 +53,8 @@ public class BookmarksHighlighters implements Disposable {
         project.getMessageBus().connect().subscribe(PsiDocumentListener.TOPIC, this::documentCreated);
         project.getMessageBus().connect().subscribe(BookmarksMarkers.BookmarksMarkersListener.TOPIC, getBookmarksMarkersListener());
         EditorEventMulticaster multicaster = EditorFactory.getInstance().getEventMulticaster();
+        IBookmarksMarkers bookmarksMarkers = project.getService(BookmarksService.class).getBookmarksMarkers();
+        this.documentListener = new BookmarksHighlightersDocumentListener(project, bookmarksMarkers);
         multicaster.addDocumentListener(documentListener, this);
         createHighlightersForOpenFiles();
     }
@@ -59,6 +64,9 @@ public class BookmarksHighlighters implements Disposable {
         // Remove document listener
         EditorEventMulticaster multicaster = EditorFactory.getInstance().getEventMulticaster();
         multicaster.removeDocumentListener(documentListener);
+
+        // Dispose the document listener to stop pending timers
+        documentListener.dispose();
     }
 
     public static List<RangeHighlighterEx> getBookmarksHighlighters(Project project, Document document) {
@@ -85,7 +93,7 @@ public class BookmarksHighlighters implements Disposable {
                     RangeHighlighterEx highlighter = getHighlighter(project, bookmarkMarker);
                     if (highlighter != null) {
                         highlighter.dispose();
-                        project.getMessageBus().syncPublisher(BookmarksHighlightersListener.TOPIC).bookmarkHighlighterDeleted(highlighter);
+                        project.getMessageBus().syncPublisher(BookmarksHighlightersListener.TOPIC).bookmarkHighlighterDeleted(bookmarkMarker.getBookmarkId());
                     }
                 });
             }
@@ -108,7 +116,7 @@ public class BookmarksHighlighters implements Disposable {
         if (highlighter == null) {
             if (previous != null) {
                 previous.dispose();
-                project.getMessageBus().syncPublisher(BookmarksHighlightersListener.TOPIC).bookmarkHighlighterDeleted(previous);
+                project.getMessageBus().syncPublisher(BookmarksHighlightersListener.TOPIC).bookmarkHighlighterDeleted(bookmarkMarker.getBookmarkId());
             }
         } else {
             if (previous != null) {
@@ -146,33 +154,12 @@ public class BookmarksHighlighters implements Disposable {
         List<BookmarkMarker> markers = getMarkers(project, file);
         AppUIUtil.invokeLaterIfProjectAlive(project, () -> {
             MarkupModelEx markupModel = (MarkupModelEx) DocumentMarkupModel.forDocument(document, project, true);
-//            markupModel.addMarkupModelListener(project, markupModelListener);
             for (BookmarkMarker marker : markers) {
                 createHighlighter(markupModel, marker);
             }
         });
     }
 
-    /*
-        private final MarkupModelListener markupModelListener = new MarkupModelListener() {
-
-                @Override
-                public void afterAdded(@NotNull RangeHighlighterEx highlighter) {
-
-                }
-
-                @Override
-                public void beforeRemoved(@NotNull RangeHighlighterEx highlighter) {
-                    project
-                }
-
-                @Override
-                public void attributesChanged(@NotNull RangeHighlighterEx highlighter, boolean renderersChanged, boolean fontStyleOrColorChanged) {
-                    int lineNumber = highlighter.getDocument().getLineNumber(highlighter.getStartOffset());
-
-                }
-        };
-    */
     private RangeHighlighterEx createHighlighter(Project project, BookmarkMarker bookmarkMarker) {
         VirtualFile file = bookmarkMarker.getResource();
         FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
@@ -225,6 +212,133 @@ public class BookmarksHighlighters implements Disposable {
         });
         return found.get();
     }
+
+    private static class BookmarksHighlightersDocumentListener implements BulkAwareDocumentListener.Simple {
+        private static final int DEBOUNCE_DELAY_MS = 1000;
+
+        private final Map<Document, Timer> pendingProcessing = new ConcurrentHashMap<>();
+        private final Project project;
+        private final IBookmarksMarkers bookmarksMarkers;
+
+        public BookmarksHighlightersDocumentListener(Project project, IBookmarksMarkers bookmarksMarkers) {
+            this.project = project;
+            this.bookmarksMarkers = bookmarksMarkers;
+        }
+
+        /**
+         * Cleanup method to stop all pending timers. Should be called when disposing the listener.
+         */
+        public void dispose() {
+            pendingProcessing.values().forEach(Timer::stop);
+            pendingProcessing.clear();
+        }
+
+        @Override
+        public void beforeDocumentChange(@NotNull DocumentEvent e) {
+        }
+
+        private boolean isDocumentInProject(Document document) {
+            VirtualFile file = FileDocumentManager.getInstance().getFile(document);
+            if (file == null) {
+                return false;
+            }
+            ProjectFileIndex projectFileIndex = ProjectFileIndex.getInstance(project);
+            return projectFileIndex.isInProject(file);
+        }
+
+
+        @Override
+        public void documentChanged(@NotNull DocumentEvent e) {
+            Document document = e.getDocument();
+
+            // Only check if document belongs to project - let processDocumentChange handle bookmark check
+            if (!isDocumentInProject(document)) {
+                return;
+            }
+
+            // Cancel any pending processing for this document
+            Timer existingTimer = pendingProcessing.get(document);
+            if (existingTimer != null) {
+                existingTimer.stop();
+            }
+
+            // Schedule debounced processing
+            Timer debounceTimer = new Timer(DEBOUNCE_DELAY_MS, actionEvent -> {
+                try {
+                    processDocumentChange(document);
+                } finally {
+                    pendingProcessing.remove(document);
+                }
+            });
+            debounceTimer.setRepeats(false);
+            pendingProcessing.put(document, debounceTimer);
+            debounceTimer.start();
+        }
+
+        private void processDocumentChange(Document document) {
+            // Get current highlighters and markers for this document
+            List<RangeHighlighterEx> currentHighlighters = BookmarksHighlighters.getBookmarksHighlighters(project, document);
+
+            VirtualFile file = FileDocumentManager.getInstance().getFile(document);
+            if (file == null) {
+                return;
+            }
+            List<BookmarkMarker> documentMarkers = bookmarksMarkers.getMarkers(file);
+
+            // Early exit if no bookmarks in either direction
+            if (currentHighlighters.isEmpty() && documentMarkers.isEmpty()) {
+                return;
+            }
+
+            MessageBus messageBus = project.getMessageBus();
+
+            // 1. Check existing highlighters for position changes
+            Set<BookmarkId> processedMarkerIds = new HashSet<>();
+            for (RangeHighlighterEx highlighter : currentHighlighters) {
+                BookmarkMarker bookmarkMarker = getBookmarkMarker(highlighter);
+                if (bookmarkMarker != null) {
+                    processedMarkerIds.add(bookmarkMarker.getBookmarkId());
+                    if (hasPositionChanged(highlighter, bookmarkMarker)) {
+                        messageBus.syncPublisher(BookmarksHighlightersListener.TOPIC).bookmarkHighlighterUpdated(highlighter);
+                    }
+                }
+            }
+
+            // 2. Check for markers without corresponding highlighters (deleted highlighters)
+            for (BookmarkMarker marker : documentMarkers) {
+                if (!processedMarkerIds.contains(marker.getBookmarkId())) {
+                    messageBus.syncPublisher(BookmarksHighlightersListener.TOPIC).bookmarkHighlighterDeleted(marker.getBookmarkId());
+                }
+            }
+        }
+
+        private BookmarkMarker getBookmarkMarker(RangeHighlighterEx highlighter) {
+            BookmarkId bookmarkId = highlighter.getUserData(BOOKMARK_ID_KEY);
+            if (bookmarkId == null) {
+                return null;
+            }
+            return bookmarksMarkers.getMarker(bookmarkId);
+        }
+
+        private boolean hasPositionChanged(RangeHighlighterEx highlighter, BookmarkMarker marker) {
+            // Compare current highlighter position with stored bookmark position
+            String lineAsString = marker.getAttributes().get(BookmarkMarker.LINE_NUMBER);
+            if (lineAsString == null) {
+                return false; // No line number stored, assume no change
+            }
+
+            try {
+                int expectedLine = Integer.parseInt(lineAsString);
+                int actualLine = highlighter.getDocument().getLineNumber(highlighter.getStartOffset());
+
+                return expectedLine != actualLine;
+            } catch (NumberFormatException e) {
+                return false; // Invalid line number, assume no change
+            }
+        }
+
+    }
+
 
     public static class BookmarksHighlightersStartupActivity implements StartupActivity.DumbAware {
         @Override
