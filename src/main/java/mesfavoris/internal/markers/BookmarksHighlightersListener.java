@@ -11,7 +11,7 @@ public interface BookmarksHighlightersListener {
         return highlighter.getUserData(BookmarksHighlighters.BOOKMARK_ID_KEY);
     }
 
-    void bookmarkHighlighterDeleted(RangeHighlighterEx bookmarkHighlighter);
+    void bookmarkHighlighterDeleted(BookmarkId bookmarkId);
 
     void bookmarkHighlighterAdded(RangeHighlighterEx bookmarkHighlighter);
 
