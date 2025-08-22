@@ -24,7 +24,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentListener;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.AppUIUtil;
-import com.intellij.util.concurrency.NonUrgentExecutor;
 import com.intellij.util.messages.MessageBus;
 import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.BookmarkMarker;
@@ -49,24 +48,25 @@ public class BookmarksHighlighters implements Disposable {
     }
 
     public void init() {
-        Disposer.register(project, this);
-        project.getMessageBus().connect().subscribe(PsiDocumentListener.TOPIC, this::documentCreated);
-        project.getMessageBus().connect().subscribe(BookmarksMarkers.BookmarksMarkersListener.TOPIC, getBookmarksMarkersListener());
+        project.getMessageBus().connect(this).subscribe(PsiDocumentListener.TOPIC, this::documentCreated);
+        project.getMessageBus().connect(this).subscribe(BookmarksMarkers.BookmarksMarkersListener.TOPIC, getBookmarksMarkersListener());
+
         EditorEventMulticaster multicaster = EditorFactory.getInstance().getEventMulticaster();
         IBookmarksMarkers bookmarksMarkers = project.getService(BookmarksService.class).getBookmarksMarkers();
+
         this.documentListener = new BookmarksHighlightersDocumentListener(project, bookmarksMarkers);
         multicaster.addDocumentListener(documentListener, this);
+
         createHighlightersForOpenFiles();
     }
 
     @Override
     public void dispose() {
-        // Remove document listener
-        EditorEventMulticaster multicaster = EditorFactory.getInstance().getEventMulticaster();
-        multicaster.removeDocumentListener(documentListener);
-
-        // Dispose the document listener to stop pending timers
-        documentListener.dispose();
+        // MessageBus connections and document listener will be automatically removed
+        // But we still need to dispose the document listener to stop pending timers
+        if (documentListener != null) {
+            documentListener.dispose();
+        }
     }
 
     public static List<RangeHighlighterEx> getBookmarksHighlighters(Project project, Document document) {
@@ -129,7 +129,7 @@ public class BookmarksHighlighters implements Disposable {
     }
 
     private void createHighlightersForOpenFiles() {
-        ReadAction.nonBlocking(() -> {
+        ReadAction.run(() -> {
             FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
             FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
 
@@ -139,7 +139,7 @@ public class BookmarksHighlighters implements Disposable {
                     createHighlightersForFile(file, document);
                 }
             }
-        }).expireWith(project).submit(NonUrgentExecutor.getInstance());
+        });
     }
 
     private void documentCreated(@NotNull Document document, @Nullable PsiFile psiFile, @NotNull Project project) {
@@ -345,6 +345,10 @@ public class BookmarksHighlighters implements Disposable {
         public void runActivity(@NotNull Project project) {
             BookmarksHighlighters bookmarksHighlighters = new BookmarksHighlighters(project);
             bookmarksHighlighters.init();
+
+            // Register with BookmarksService as disposable parent to avoid Project warning
+            BookmarksService bookmarksService = project.getService(BookmarksService.class);
+            Disposer.register(bookmarksService, bookmarksHighlighters);
         }
     }
 
