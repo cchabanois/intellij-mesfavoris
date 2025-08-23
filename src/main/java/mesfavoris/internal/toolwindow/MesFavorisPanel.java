@@ -11,6 +11,7 @@ import mesfavoris.internal.snippets.SnippetBookmarkDetailPart;
 import mesfavoris.internal.ui.details.BookmarkDetailsPart;
 import mesfavoris.internal.ui.details.BookmarkPropertiesDetailPart;
 import mesfavoris.internal.ui.details.CommentBookmarkDetailPart;
+import mesfavoris.internal.ui.details.MarkerBookmarkDetailPart;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkFolder;
@@ -50,7 +51,8 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         bookmarkDetailsPart = new BookmarkDetailsPart(project, Arrays.asList(
                 new CommentBookmarkDetailPart(project, bookmarkDatabase),
                 new BookmarkPropertiesDetailPart(project),
-                new SnippetBookmarkDetailPart(project, bookmarkDatabase)));
+                new SnippetBookmarkDetailPart(project, bookmarkDatabase),
+                new MarkerBookmarkDetailPart(project)));
         bookmarkDetailsPart.init();
         JComponent bookmarksDetailsComponent = bookmarkDetailsPart.createComponent();
 
