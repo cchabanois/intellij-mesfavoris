@@ -14,6 +14,8 @@
                 <keyboard-shortcut first-keystroke="DELETE" keymap="$default"/>
                 <keyboard-shortcut first-keystroke="BACK_SPACE" keymap="$default"/>
             </action>
+            <action id="mesfavoris.actions.DeleteBookmarkMarkerAction" class="mesfavoris.internal.actions.DeleteBookmarkMarkerAction" text="Delete Markers" description="Delete markers for selected bookmarks">
+            </action>
             <action id="mesfavoris.actions.NewBookmarkFolderAction" class="mesfavoris.internal.actions.NewBookmarkFolderAction" text="New Bookmark Folder" description="Create a new Bookmark Folder">
             </action>
             <action id="mesfavoris.actions.RenameBookmarkAction"  class="mesfavoris.internal.actions.RenameBookmarkAction" text="Rename" description="Rename Bookmark">

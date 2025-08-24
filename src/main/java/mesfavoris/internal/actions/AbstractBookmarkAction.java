@@ -5,14 +5,21 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
+import mesfavoris.internal.model.merge.BookmarksTreeIterable;
+import mesfavoris.internal.model.merge.BookmarksTreeIterator;
 import mesfavoris.internal.toolwindow.BookmarksTreeComponent;
 import mesfavoris.model.Bookmark;
+import mesfavoris.model.BookmarkFolder;
+import mesfavoris.model.BookmarkId;
+import mesfavoris.model.BookmarksTree;
 import mesfavoris.service.BookmarksService;
 
 import java.awt.*;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public abstract class AbstractBookmarkAction extends AnAction  {
 
@@ -52,4 +59,24 @@ public abstract class AbstractBookmarkAction extends AnAction  {
         }
         return false;
     }
+
+    protected Set<Bookmark> getSelectedBookmarksRecursively(AnActionEvent event, Predicate<Bookmark> filter) {
+        BookmarksTree bookmarksTree = getBookmarksService(event).getBookmarksTree();
+        Set<Bookmark> bookmarkIds = new LinkedHashSet<>();
+        for (Bookmark bookmark : getSelectedBookmarks(event)) {
+            if (bookmark instanceof BookmarkFolder) {
+                bookmarkIds.addAll(getBookmarksRecursively(bookmarksTree, bookmark.getId(), filter));
+            } else if (bookmark != null && filter.test(bookmark)) {
+                bookmarkIds.add(bookmark);
+            }
+        }
+        return bookmarkIds;
+    }
+
+    private List<Bookmark> getBookmarksRecursively(BookmarksTree bookmarksTree, BookmarkId folderId, Predicate<Bookmark> filter) {
+        BookmarksTreeIterable bookmarksTreeIterable = new BookmarksTreeIterable(bookmarksTree, folderId,
+                BookmarksTreeIterator.Algorithm.PRE_ORDER);
+        return StreamSupport.stream(bookmarksTreeIterable.spliterator(), false).filter(filter).collect(Collectors.toList());
+    }
+
 }
