@@ -1,5 +1,6 @@
 package mesfavoris.extensions;
 
+import com.intellij.openapi.project.Project;
 import mesfavoris.bookmarktype.*;
 import mesfavoris.ui.details.IBookmarkDetailPart;
 import org.jetbrains.annotations.NotNull;
@@ -9,6 +10,7 @@ import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Abstract base class for bookmark type extensions.
@@ -24,7 +26,7 @@ public abstract class AbstractBookmarkTypeExtension implements BookmarkTypeExten
     private final List<PrioritizedElement<IBookmarkLocationProvider>> locationProviders = new ArrayList<>();
     private final List<PrioritizedElement<IGotoBookmark>> gotoBookmarkHandlers = new ArrayList<>();
     private final List<PrioritizedElement<IBookmarkMarkerAttributesProvider>> markerAttributesProviders = new ArrayList<>();
-    private final List<PrioritizedElement<IBookmarkDetailPart>> detailParts = new ArrayList<>();
+    private final List<PrioritizedElement<Function<Project, IBookmarkDetailPart>>> detailPartProviders = new ArrayList<>();
     
     protected AbstractBookmarkTypeExtension(@NotNull String name, @Nullable Icon icon) {
         this.name = name;
@@ -89,9 +91,8 @@ public abstract class AbstractBookmarkTypeExtension implements BookmarkTypeExten
     }
 
     @NotNull
-    @Override
-    public List<PrioritizedElement<IBookmarkDetailPart>> getDetailParts() {
-        return Collections.unmodifiableList(detailParts);
+    public List<PrioritizedElement<Function<Project, IBookmarkDetailPart>>> getDetailPartProviders() {
+        return Collections.unmodifiableList(detailPartProviders);
     }
     
     // Builder-style methods for configuration - protected for use in subclass constructors only
@@ -146,12 +147,12 @@ public abstract class AbstractBookmarkTypeExtension implements BookmarkTypeExten
         return this;
     }
 
-    protected AbstractBookmarkTypeExtension addDetailPart(@NotNull IBookmarkDetailPart detailPart) {
-        return addDetailPart(detailPart, 10);
+    protected AbstractBookmarkTypeExtension addDetailPartProvider(@NotNull Function<Project, IBookmarkDetailPart> provider) {
+        return addDetailPartProvider(provider, 10);
     }
 
-    protected AbstractBookmarkTypeExtension addDetailPart(@NotNull IBookmarkDetailPart detailPart, int priority) {
-        this.detailParts.add(new PrioritizedElement<>(detailPart, priority));
+    protected AbstractBookmarkTypeExtension addDetailPartProvider(@NotNull Function<Project, IBookmarkDetailPart> provider, int priority) {
+        this.detailPartProviders.add(new PrioritizedElement<>(provider, priority));
         return this;
     }
 }

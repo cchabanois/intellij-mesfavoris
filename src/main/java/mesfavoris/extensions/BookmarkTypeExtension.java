@@ -1,6 +1,7 @@
 package mesfavoris.extensions;
 
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.project.Project;
 import mesfavoris.bookmarktype.*;
 import mesfavoris.ui.details.IBookmarkDetailPart;
 import org.jetbrains.annotations.NotNull;
@@ -8,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Extension point for defining bookmark types
@@ -74,8 +76,8 @@ public interface BookmarkTypeExtension {
     List<PrioritizedElement<IBookmarkMarkerAttributesProvider>> getMarkerAttributesProviders();
 
     /**
-     * @return The detail parts for this bookmark type with their priorities
+     * @return The detail part providers for this bookmark type with their priorities
      */
     @NotNull
-    List<PrioritizedElement<IBookmarkDetailPart>> getDetailParts();
+    List<PrioritizedElement<Function<Project, IBookmarkDetailPart>>> getDetailPartProviders();
 }

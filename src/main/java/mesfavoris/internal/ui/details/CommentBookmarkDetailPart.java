@@ -15,6 +15,7 @@ import com.intellij.util.ui.UIUtil;
 import mesfavoris.BookmarksException;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
+import mesfavoris.service.BookmarksService;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -32,17 +33,17 @@ import static mesfavoris.model.Bookmark.PROPERTY_COMMENT;
  *
  */
 public class CommentBookmarkDetailPart extends AbstractBookmarkDetailPart {
-    private EditorTextField editorField;
     private final BookmarkDatabase bookmarkDatabase;
+    private EditorTextField editorField;
 
     private static final @NotNull EditorCustomization COLOR_SCHEME_FOR_CURRENT_UI_THEME_CUSTOMIZATION = editor -> {
         editor.setBackgroundColor(null); // to use background from set color scheme
         editor.setColorsScheme(getBookmarkCommentColorScheme(editor));
     };
 
-    public CommentBookmarkDetailPart(Project project, BookmarkDatabase bookmarkDatabase) {
+    public CommentBookmarkDetailPart(Project project) {
         super(project);
-        this.bookmarkDatabase = bookmarkDatabase;
+        this.bookmarkDatabase = project.getService(BookmarksService.class).getBookmarkDatabase();
     }
 
     @Override

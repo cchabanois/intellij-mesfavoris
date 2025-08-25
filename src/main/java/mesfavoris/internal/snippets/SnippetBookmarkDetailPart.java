@@ -16,6 +16,7 @@ import mesfavoris.BookmarksException;
 import mesfavoris.internal.ui.details.AbstractBookmarkDetailPart;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
+import mesfavoris.service.BookmarksService;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -42,9 +43,9 @@ public class SnippetBookmarkDetailPart extends AbstractBookmarkDetailPart {
         editor.setColorsScheme(getBookmarkCommentColorScheme(editor));
     };
 
-    public SnippetBookmarkDetailPart(Project project, BookmarkDatabase bookmarkDatabase) {
+    public SnippetBookmarkDetailPart(Project project) {
         super(project);
-        this.bookmarkDatabase = bookmarkDatabase;
+        this.bookmarkDatabase = project.getService(BookmarksService.class).getBookmarkDatabase();
     }
 
     @Override
