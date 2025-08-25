@@ -2,13 +2,16 @@ package mesfavoris.extensions;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointListener;
 import com.intellij.openapi.extensions.PluginDescriptor;
+import com.intellij.openapi.project.Project;
 import mesfavoris.bookmarktype.*;
 import mesfavoris.ui.details.IBookmarkDetailPart;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -23,7 +26,7 @@ public final class BookmarkTypeExtensionManager {
     private final List<PrioritizedElement<IBookmarkLocationProvider>> allLocationProviders = new ArrayList<>();
     private final List<PrioritizedElement<IGotoBookmark>> allGotoBookmarkHandlers = new ArrayList<>();
     private final List<PrioritizedElement<IBookmarkMarkerAttributesProvider>> allMarkerAttributesProviders = new ArrayList<>();
-    private final List<PrioritizedElement<IBookmarkDetailPart>> allDetailParts = new ArrayList<>();
+    private final List<PrioritizedElement<Function<Project, IBookmarkDetailPart>>> allDetailPartProviders = new ArrayList<>();
     
     public BookmarkTypeExtensionManager() {
         loadExtensions();
@@ -106,11 +109,37 @@ public final class BookmarkTypeExtensionManager {
     }
 
     /**
-     * Get all detail parts from all bookmark types, sorted by priority
+     * Get all detail part providers from all bookmark types, sorted by priority
      */
     @NotNull
-    public List<IBookmarkDetailPart> getAllDetailParts() {
-        return allDetailParts.stream()
+    public List<Function<Project, IBookmarkDetailPart>> getAllDetailPartProviders() {
+        return allDetailPartProviders.stream()
+                .sorted()
+                .map(PrioritizedElement::getElement)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Create all detail parts for a given project, sorted by priority
+     */
+    @NotNull
+    public List<IBookmarkDetailPart> createDetailParts(@NotNull Project project) {
+        List<PrioritizedElement<IBookmarkDetailPart>> allParts = new ArrayList<>();
+
+        // Create instances from providers (functions)
+        for (PrioritizedElement<Function<Project, IBookmarkDetailPart>> providerElement : allDetailPartProviders) {
+            try {
+                Function<Project, IBookmarkDetailPart> provider = providerElement.getElement();
+                IBookmarkDetailPart instance = provider.apply(project);
+                allParts.add(new PrioritizedElement<>(instance, providerElement.getPriority()));
+            } catch (Exception e) {
+                // Log error but continue with other detail parts
+                Logger.getInstance(BookmarkTypeExtensionManager.class)
+                        .error("Failed to create detail part from provider", e);
+            }
+        }
+
+        return allParts.stream()
                 .sorted()
                 .map(PrioritizedElement::getElement)
                 .collect(Collectors.toList());
@@ -124,7 +153,7 @@ public final class BookmarkTypeExtensionManager {
         allLocationProviders.clear();
         allGotoBookmarkHandlers.clear();
         allMarkerAttributesProviders.clear();
-        allDetailParts.clear();
+        allDetailPartProviders.clear();
         
         // Load bookmark type extensions
         List<BookmarkTypeExtension> extensions = BookmarkTypeExtension.EP_NAME.getExtensionList();
@@ -138,7 +167,7 @@ public final class BookmarkTypeExtensionManager {
             allLocationProviders.addAll(extension.getLocationProviders());
             allGotoBookmarkHandlers.addAll(extension.getGotoBookmarkHandlers());
             allMarkerAttributesProviders.addAll(extension.getMarkerAttributesProviders());
-            allDetailParts.addAll(extension.getDetailParts());
+            allDetailPartProviders.addAll(extension.getDetailPartProviders());
         }
     }
     

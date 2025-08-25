@@ -1,21 +1,20 @@
 package mesfavoris.internal.ui.details;
 
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Objects;
-
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.tabs.JBTabs;
 import com.intellij.ui.tabs.TabInfo;
 import com.intellij.ui.tabs.impl.JBTabsImpl;
-import mesfavoris.service.BookmarksService;
-
+import mesfavoris.extensions.BookmarkTypeExtensionManager;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
+import mesfavoris.service.BookmarksService;
 import mesfavoris.ui.details.IBookmarkDetailPart;
 
 import javax.swing.*;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Tab folder for bookmark details (comments ...)
@@ -35,6 +34,18 @@ public class BookmarkDetailsPart implements IBookmarkDetailPart {
 		this.bookmarkDetailParts = bookmarkDetailParts;
 		BookmarksService bookmarksService = project.getService(BookmarksService.class);
 		this.bookmarkDatabase = bookmarksService.getBookmarkDatabase();
+	}
+
+	/**
+	 * Constructor that creates detail parts from extensions
+	 */
+	public BookmarkDetailsPart(Project project) {
+		this.project = project;
+		BookmarksService bookmarksService = project.getService(BookmarksService.class);
+		this.bookmarkDatabase = bookmarksService.getBookmarkDatabase();
+
+		BookmarkTypeExtensionManager extensionManager = BookmarkTypeExtensionManager.getInstance();
+		this.bookmarkDetailParts = extensionManager.createDetailParts(project);
 	}
 
 	@Override

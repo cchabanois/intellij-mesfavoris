@@ -7,11 +7,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.*;
 import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.JBUI;
-import mesfavoris.internal.snippets.SnippetBookmarkDetailPart;
 import mesfavoris.internal.ui.details.BookmarkDetailsPart;
-import mesfavoris.internal.ui.details.BookmarkPropertiesDetailPart;
-import mesfavoris.internal.ui.details.CommentBookmarkDetailPart;
-import mesfavoris.internal.ui.details.MarkerBookmarkDetailPart;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkFolder;
@@ -26,6 +22,7 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
+
 
 public class MesFavorisPanel extends JPanel implements DataProvider, Disposable {
     private final Project project;
@@ -48,11 +45,7 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         installDoubleClickListener();
         installPopupMenu();
 
-        bookmarkDetailsPart = new BookmarkDetailsPart(project, Arrays.asList(
-                new CommentBookmarkDetailPart(project, bookmarkDatabase),
-                new BookmarkPropertiesDetailPart(project),
-                new SnippetBookmarkDetailPart(project, bookmarkDatabase),
-                new MarkerBookmarkDetailPart(project)));
+        bookmarkDetailsPart = new BookmarkDetailsPart(project);
         bookmarkDetailsPart.init();
         JComponent bookmarksDetailsComponent = bookmarkDetailsPart.createComponent();
 

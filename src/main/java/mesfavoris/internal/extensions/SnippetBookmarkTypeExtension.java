@@ -29,5 +29,8 @@ public class SnippetBookmarkTypeExtension extends AbstractBookmarkTypeExtension 
         addPropertiesProvider(new SnippetBookmarkPropertiesProvider(), 80);
         addLocationProvider(new SnippetBookmarkLocationProvider(), 80);
         addGotoBookmarkHandler(new GotoSnippetBookmark(), 80);
+
+        // Add detail part provider
+        addDetailPartProvider(SnippetBookmarkDetailPart::new, 80);
     }
 }
