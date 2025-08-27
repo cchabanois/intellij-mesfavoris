@@ -1,5 +1,6 @@
 package mesfavoris.ui.details;
 
+import com.intellij.openapi.Disposable;
 import mesfavoris.model.Bookmark;
 
 import javax.swing.*;
@@ -10,7 +11,7 @@ import javax.swing.*;
  * @author cchabanois
  *
  */
-public interface IBookmarkDetailPart {
+public interface IBookmarkDetailPart extends Disposable {
 
 	String getTitle();
 
@@ -43,8 +44,5 @@ public interface IBookmarkDetailPart {
 	 */
 	boolean canHandle(Bookmark bookmark);
 
-	/**
-	 * Called when the bookmark detail part is not needed anymore
-	 */
-	void dispose();
+
 }

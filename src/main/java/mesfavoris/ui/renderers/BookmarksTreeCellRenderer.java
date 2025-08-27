@@ -3,6 +3,7 @@ package mesfavoris.ui.renderers;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
@@ -34,12 +35,14 @@ public class BookmarksTreeCellRenderer extends ColoredTreeCellRenderer implement
         getTree().repaint();
     });
 
-    public BookmarksTreeCellRenderer(Project project, BookmarkDatabase bookmarkDatabase, IBookmarksDirtyStateTracker bookmarksDirtyStateTracker, IBookmarkLabelProvider bookmarkLabelProvider) {
+    public BookmarksTreeCellRenderer(Project project, BookmarkDatabase bookmarkDatabase, IBookmarksDirtyStateTracker bookmarksDirtyStateTracker, IBookmarkLabelProvider bookmarkLabelProvider, Disposable parentDisposable) {
         this.bookmarkDatabase = bookmarkDatabase;
         this.bookmarkLabelProvider = bookmarkLabelProvider;
         this.bookmarksDirtyStateTracker = bookmarksDirtyStateTracker;
         this.context = new BookmarkDatabaseLabelProviderContext(project, bookmarkDatabase);
         bookmarksDirtyStateTracker.addListener(dirtyStateListener);
+
+        Disposer.register(parentDisposable, this);
     }
 
     @Override

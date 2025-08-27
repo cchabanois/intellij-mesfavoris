@@ -36,16 +36,16 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         this.project = project;
         this.bookmarksService = project.getService(BookmarksService.class);
         BookmarkDatabase bookmarkDatabase = bookmarksService.getBookmarkDatabase();
-        tree = new BookmarksTreeComponent(bookmarkDatabase);
+        tree = new BookmarksTreeComponent(bookmarkDatabase, this);
         bookmarksTreeCellRenderer = new BookmarksTreeCellRenderer(project, bookmarkDatabase, bookmarksService.getBookmarksDirtyStateTracker(),
-                bookmarksService.getBookmarkLabelProvider());
+                bookmarksService.getBookmarkLabelProvider(), this);
         tree.setCellRenderer(bookmarksTreeCellRenderer);
         tree.setEditable(true);
         installTreeSpeedSearch();
         installDoubleClickListener();
         installPopupMenu();
 
-        bookmarkDetailsPart = new BookmarkDetailsPart(project);
+        bookmarkDetailsPart = new BookmarkDetailsPart(project, this);
         bookmarkDetailsPart.init();
         JComponent bookmarksDetailsComponent = bookmarkDetailsPart.createComponent();
 
@@ -53,24 +53,13 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
             TreePath path = event.getPath();
             Bookmark bookmark = tree.getBookmark(path);
             bookmarkDetailsPart.setBookmark(bookmark);
-
-/*            SwingUtilities.invokeLater(() -> {
-                if (!isDisposed()) {
-                    updateOnSelectionChanged();
-                    myNeedUpdateButtons = true;
-                }
-            }); */
         });
         BookmarksTreeComponentStateService bookmarksTreeComponentStateService = project.getService(BookmarksTreeComponentStateService.class);
         bookmarksTreeComponentStateService.installTreeExpansionPersistance(tree);
 
-//        AnActionButton deleteActionButton = new DeleteFromFavoritesAction();
-//        deleteActionButton.setShortcut(CustomShortcutSet.fromString("DELETE", "BACK_SPACE"));
-
         ToolbarDecorator decorator = ToolbarDecorator.createDecorator(tree)
                 .initPosition()
                 .disableAddAction().disableRemoveAction().disableDownAction().disableUpAction();
-//                .addExtraAction(deleteActionButton);
         JPanel panel = decorator.createPanel();
 
         panel.setBorder(JBUI.Borders.empty());
@@ -126,9 +115,6 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
     @Override
     public void dispose() {
         DataManager.removeDataProvider(this);
-        bookmarksTreeCellRenderer.dispose();
-        tree.dispose();
-        bookmarkDetailsPart.dispose();
     }
 
     @Override
