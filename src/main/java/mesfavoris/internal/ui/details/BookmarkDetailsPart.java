@@ -1,10 +1,12 @@
 package mesfavoris.internal.ui.details;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.tabs.JBTabs;
+import com.intellij.ui.tabs.JBTabsFactory;
 import com.intellij.ui.tabs.TabInfo;
-import com.intellij.ui.tabs.impl.JBTabsImpl;
 import mesfavoris.extensions.BookmarkTypeExtensionManager;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
@@ -29,16 +31,34 @@ public class BookmarkDetailsPart implements IBookmarkDetailPart {
 	private JBTabs tabs;
 	private final IdentityHashMap<TabInfo, IBookmarkDetailPart> tabItem2BookmarkDetailPart = new IdentityHashMap<>();
 	
-	public BookmarkDetailsPart(Project project, List<IBookmarkDetailPart> bookmarkDetailParts) {
+	public BookmarkDetailsPart(Project project, List<IBookmarkDetailPart> bookmarkDetailParts, Disposable parentDisposable) {
 		this.project = project;
 		this.bookmarkDetailParts = bookmarkDetailParts;
 		BookmarksService bookmarksService = project.getService(BookmarksService.class);
 		this.bookmarkDatabase = bookmarksService.getBookmarkDatabase();
+
+		Disposer.register(parentDisposable, this);
 	}
 
 	/**
 	 * Constructor that creates detail parts from extensions
 	 */
+	public BookmarkDetailsPart(Project project, Disposable parentDisposable) {
+		this.project = project;
+		BookmarksService bookmarksService = project.getService(BookmarksService.class);
+		this.bookmarkDatabase = bookmarksService.getBookmarkDatabase();
+
+		BookmarkTypeExtensionManager extensionManager = BookmarkTypeExtensionManager.getInstance();
+		this.bookmarkDetailParts = extensionManager.createDetailParts(project);
+
+		Disposer.register(parentDisposable, this);
+	}
+
+	/**
+	 * Constructor that creates detail parts from extensions (without parent disposable)
+	 * @deprecated Use {@link #BookmarkDetailsPart(Project, Disposable)} instead to ensure proper resource management
+	 */
+	@Deprecated
 	public BookmarkDetailsPart(Project project) {
 		this.project = project;
 		BookmarksService bookmarksService = project.getService(BookmarksService.class);
@@ -46,6 +66,8 @@ public class BookmarkDetailsPart implements IBookmarkDetailPart {
 
 		BookmarkTypeExtensionManager extensionManager = BookmarkTypeExtensionManager.getInstance();
 		this.bookmarkDetailParts = extensionManager.createDetailParts(project);
+
+		// Warning: This instance won't be automatically disposed!
 	}
 
 	@Override
@@ -53,6 +75,7 @@ public class BookmarkDetailsPart implements IBookmarkDetailPart {
 		for (IBookmarkDetailPart bookmarkDetailPart : bookmarkDetailParts) {
 			try {
 				bookmarkDetailPart.init();
+				Disposer.register(this, bookmarkDetailPart);
 			} catch (Exception e) {
 				LOG.error("Error while initializing bookmarkDetailPart", e);
 			}
@@ -61,7 +84,7 @@ public class BookmarkDetailsPart implements IBookmarkDetailPart {
 
 	@Override
 	public JComponent createComponent() {
-		this.tabs = new JBTabsImpl(project);
+		this.tabs = JBTabsFactory.createTabs(project);
 		return tabs.getComponent();
 	}
 
@@ -101,13 +124,7 @@ public class BookmarkDetailsPart implements IBookmarkDetailPart {
 
 	@Override
 	public void dispose() {
-		for (IBookmarkDetailPart bookmarkDetailPart : bookmarkDetailParts) {
-			try {
-				bookmarkDetailPart.dispose();
-			} catch (Exception e) {
-				LOG.error("Error while disposing bookmarkDetailPart", e);
-			}
-		}
+		// Disposer will automatically dispose all registered child disposables
 	}
 
 	@Override

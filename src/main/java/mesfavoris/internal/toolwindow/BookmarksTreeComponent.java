@@ -2,6 +2,7 @@ package mesfavoris.internal.toolwindow;
 
 import com.intellij.ide.dnd.aware.DnDAwareTree;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import mesfavoris.commons.Adapters;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
@@ -12,11 +13,13 @@ import javax.swing.tree.TreePath;
 public class BookmarksTreeComponent extends DnDAwareTree implements Disposable {
     private final BookmarksTreeModel bookmarksTreeModel;
 
-    public BookmarksTreeComponent(BookmarkDatabase bookmarkDatabase) {
+    public BookmarksTreeComponent(BookmarkDatabase bookmarkDatabase, Disposable parentDisposable) {
         super();
-        this.bookmarksTreeModel = new BookmarksTreeModel(bookmarkDatabase);
+        this.bookmarksTreeModel = new BookmarksTreeModel(bookmarkDatabase, this);
         setModel(this.bookmarksTreeModel);
         setRootVisible(false);
+
+        Disposer.register(parentDisposable, this);
     }
 
     @Override
@@ -43,6 +46,5 @@ public class BookmarksTreeComponent extends DnDAwareTree implements Disposable {
 
     @Override
     public void dispose() {
-        this.bookmarksTreeModel.dispose();
     }
 }

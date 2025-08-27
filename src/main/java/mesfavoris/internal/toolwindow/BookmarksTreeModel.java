@@ -3,8 +3,10 @@ package mesfavoris.internal.toolwindow;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.tree.BaseTreeModel;
 import mesfavoris.BookmarksException;
 import mesfavoris.commons.Adapters;
@@ -40,9 +42,12 @@ public class BookmarksTreeModel extends BaseTreeModel<Bookmark> {
         }
     }, ModalityState.defaultModalityState());
 
-    public BookmarksTreeModel(BookmarkDatabase bookmarkDatabase) {
+    public BookmarksTreeModel(BookmarkDatabase bookmarkDatabase, Disposable parentDisposable) {
         this.bookmarkDatabase = bookmarkDatabase;
         bookmarkDatabase.addListener(bookmarksListener);
+
+        // Register this component with the parent disposable
+        Disposer.register(parentDisposable, this);
     }
 
     @Override
