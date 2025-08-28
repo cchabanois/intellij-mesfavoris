@@ -13,6 +13,7 @@ import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBUI;
 import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.BookmarkMarker;
+import mesfavoris.internal.markers.BookmarksMarkers.BookmarksMarkersListener;
 import mesfavoris.model.Bookmark;
 import mesfavoris.service.BookmarksService;
 
@@ -28,7 +29,7 @@ import java.awt.event.MouseEvent;
  * @author cchabanois
  */
 public class MarkerBookmarkDetailPart extends AbstractBookmarkDetailPart {
-    private FileInfoRenderer fileInfoRenderer;
+    private MarkerInfoRenderer markerInfoRenderer;
     private BookmarkMarker currentMarker;
     private final IBookmarksMarkers bookmarksMarkers;
 
@@ -36,6 +37,27 @@ public class MarkerBookmarkDetailPart extends AbstractBookmarkDetailPart {
         super(project);
         BookmarksService bookmarksService = project.getService(BookmarksService.class);
         this.bookmarksMarkers = bookmarksService.getBookmarksMarkers();
+        project.getMessageBus().connect(this).subscribe(BookmarksMarkersListener.TOPIC, new BookmarksMarkersListener() {
+            @Override
+            public void bookmarkMarkerDeleted(BookmarkMarker bookmarkMarker) {
+                if (currentMarker != null && currentMarker.equals(bookmarkMarker)) {
+                    ApplicationManager.getApplication().invokeLater(() -> updateMarkerInfo());                }
+            }
+
+            @Override
+            public void bookmarkMarkerAdded(BookmarkMarker bookmarkMarker) {
+                if (bookmark != null && bookmarkMarker.getBookmarkId().equals(bookmark.getId())) {
+                    ApplicationManager.getApplication().invokeLater(() -> updateMarkerInfo());
+                }
+            }
+
+            @Override
+            public void bookmarkMarkerUpdated(BookmarkMarker previous, BookmarkMarker bookmarkMarker) {
+                if (currentMarker != null && currentMarker.equals(previous)) {
+                    ApplicationManager.getApplication().invokeLater(() -> updateMarkerInfo());
+                }
+            }
+        });
     }
 
     @Override
@@ -48,9 +70,9 @@ public class MarkerBookmarkDetailPart extends AbstractBookmarkDetailPart {
         JBPanel panel = new JBPanel<>(new BorderLayout());
         panel.setBorder(JBUI.Borders.empty(10));
 
-        fileInfoRenderer = new FileInfoRenderer();
-        fileInfoRenderer.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        fileInfoRenderer.addMouseListener(new MouseAdapter() {
+        markerInfoRenderer = new MarkerInfoRenderer(project);
+        markerInfoRenderer.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        markerInfoRenderer.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (currentMarker != null) {
@@ -59,7 +81,7 @@ public class MarkerBookmarkDetailPart extends AbstractBookmarkDetailPart {
             }
         });
 
-        panel.add(fileInfoRenderer, BorderLayout.NORTH);
+        panel.add(markerInfoRenderer, BorderLayout.NORTH);
         return panel;
     }
 
@@ -70,19 +92,14 @@ public class MarkerBookmarkDetailPart extends AbstractBookmarkDetailPart {
     }
 
     private void updateMarkerInfo() {
-        if (bookmark == null) {
-            currentMarker = null;
-            fileInfoRenderer.clear();
-            return;
-        }
-        currentMarker = bookmarksMarkers.getMarker(bookmark.getId());
-        if (currentMarker != null) {
-            VirtualFile file = currentMarker.getResource();
-            int lineNumber = getLineNumberFromMarker(currentMarker);
-            fileInfoRenderer.setFileInfo(file, lineNumber + 1); // +1 for 1-based display
-        } else {
-            fileInfoRenderer.clear();
-        }
+        // Check if we have a marker for this bookmark
+        BookmarkMarker marker = bookmarksMarkers.getMarker(bookmark.getId());
+
+        // Update the renderer first (while currentMarker still has the old value)
+        markerInfoRenderer.setMarker(marker);
+
+        // Then update currentMarker
+        currentMarker = marker;
     }
 
     private void openFileAtMarker() {
@@ -91,23 +108,11 @@ public class MarkerBookmarkDetailPart extends AbstractBookmarkDetailPart {
         }
 
         VirtualFile file = currentMarker.getResource();
-        int lineNumber = getLineNumberFromMarker(currentMarker);
+        int lineNumber = currentMarker.getLineNumber();
 
         // Use OpenFileDescriptor to open the file at the specific line
         OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file, lineNumber, 0);
         FileEditorManager.getInstance(project).openTextEditor(descriptor, true);
-    }
-
-    private int getLineNumberFromMarker(BookmarkMarker marker) {
-        String lineNumberStr = marker.getAttributes().get(BookmarkMarker.LINE_NUMBER);
-        if (lineNumberStr != null) {
-            try {
-                return Integer.parseInt(lineNumberStr);
-            } catch (NumberFormatException e) {
-                // ignore, use 0
-            }
-        }
-        return 0;
     }
 
     @Override
@@ -126,12 +131,28 @@ public class MarkerBookmarkDetailPart extends AbstractBookmarkDetailPart {
     }
 
     /**
-     * Custom component that displays file information with icon, name, line number and relative path
+     * Custom component that displays marker information with icon, name, line number and relative path
      */
-    private class FileInfoRenderer extends SimpleColoredComponent {
+    private static class MarkerInfoRenderer extends SimpleColoredComponent {
+        private final Project project;
 
-        public void setFileInfo(VirtualFile file, int lineNumber) {
+        public MarkerInfoRenderer(Project project) {
+            super();
+            this.project = project;
+        }
+
+        public void setMarker(BookmarkMarker marker) {
             clear();
+
+            if (marker == null) {
+                setIcon(com.intellij.icons.AllIcons.General.Warning);
+                append("Marker deleted", SimpleTextAttributes.ERROR_ATTRIBUTES);
+                setToolTipText("The marker associated with this bookmark has been deleted");
+                return;
+            }
+
+            VirtualFile file = marker.getResource();
+            int lineNumber = marker.getLineNumber();
 
             // Set file icon
             Icon icon = IconUtil.getIcon(file, 0, project);
@@ -139,7 +160,7 @@ public class MarkerBookmarkDetailPart extends AbstractBookmarkDetailPart {
 
             // File name with line number
             String fileName = file.getName();
-            append(String.format("%s (line %d)", fileName, lineNumber), SimpleTextAttributes.LINK_ATTRIBUTES);
+            append(String.format("%s (line %d)", fileName, lineNumber + 1), SimpleTextAttributes.LINK_ATTRIBUTES);
 
             // Relative path in gray
             String relativePath = getRelativePath(file);

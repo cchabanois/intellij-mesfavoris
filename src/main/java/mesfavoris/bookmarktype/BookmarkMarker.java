@@ -1,7 +1,6 @@
 package mesfavoris.bookmarktype;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.vfs.VirtualFile;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkId;
@@ -38,6 +37,18 @@ public class BookmarkMarker {
 	public VirtualFile getResource() {
 		return resource;
 	}
+
+    public int getLineNumber() {
+        String lineNumberStr = getAttributes().get(BookmarkMarker.LINE_NUMBER);
+        if (lineNumberStr != null) {
+            try {
+                return Integer.parseInt(lineNumberStr);
+            } catch (NumberFormatException e) {
+                // ignore, use 0
+            }
+        }
+        return 0;
+    }
 
 	@Override
 	public boolean equals(Object o) {
