@@ -7,6 +7,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.*;
 import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.JBUI;
+import mesfavoris.internal.markers.BookmarkWithMarkerLabelProvider;
 import mesfavoris.internal.ui.details.BookmarkDetailsPart;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
@@ -38,7 +39,7 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         BookmarkDatabase bookmarkDatabase = bookmarksService.getBookmarkDatabase();
         tree = new BookmarksTreeComponent(bookmarkDatabase, this);
         bookmarksTreeCellRenderer = new BookmarksTreeCellRenderer(project, bookmarkDatabase, bookmarksService.getBookmarksDirtyStateTracker(),
-                bookmarksService.getBookmarkLabelProvider(), this);
+                new BookmarkWithMarkerLabelProvider(project, bookmarksService.getBookmarkLabelProvider()), this);
         tree.setCellRenderer(bookmarksTreeCellRenderer);
         tree.setEditable(true);
         installTreeSpeedSearch();

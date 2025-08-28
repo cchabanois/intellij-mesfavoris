@@ -322,19 +322,10 @@ public class BookmarksHighlighters implements Disposable {
 
         private boolean hasPositionChanged(RangeHighlighterEx highlighter, BookmarkMarker marker) {
             // Compare current highlighter position with stored bookmark position
-            String lineAsString = marker.getAttributes().get(BookmarkMarker.LINE_NUMBER);
-            if (lineAsString == null) {
-                return false; // No line number stored, assume no change
-            }
+            int expectedLine = marker.getLineNumber();
+            int actualLine = highlighter.getDocument().getLineNumber(highlighter.getStartOffset());
 
-            try {
-                int expectedLine = Integer.parseInt(lineAsString);
-                int actualLine = highlighter.getDocument().getLineNumber(highlighter.getStartOffset());
-
-                return expectedLine != actualLine;
-            } catch (NumberFormatException e) {
-                return false; // Invalid line number, assume no change
-            }
+            return expectedLine != actualLine;
         }
 
     }
