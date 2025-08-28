@@ -1,6 +1,7 @@
 package mesfavoris.internal.markers;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.LayeredIcon;
 import com.intellij.util.ui.ImageUtil;
 import mesfavoris.IBookmarksMarkers;
@@ -62,11 +63,11 @@ public class BookmarkWithMarkerLabelProvider implements IBookmarkLabelProvider {
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         // Draw orange circle
-        g2d.setColor(new Color(255, 165, 0)); // Orange color
+        g2d.setColor(new JBColor(new Color(255, 165, 0), new Color(255, 165, 0))); // Orange color
         g2d.fillOval(0, 0, size - 1, size - 1);
 
         // Add a subtle border
-        g2d.setColor(new Color(200, 120, 0)); // Darker orange for border
+        g2d.setColor(new JBColor(new Color(200, 120, 0), new Color(200, 120, 0))); // Darker orange for border
         g2d.drawOval(0, 0, size - 1, size - 1);
 
         g2d.dispose();
