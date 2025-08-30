@@ -59,7 +59,7 @@ public class BookmarksMarkersTest extends BasePlatformTestCase {
 
 		// Then
 		assertThat(marker).isNotNull();
-		assertThat(Integer.parseInt(marker.getAttributes().get(BookmarkMarker.LINE_NUMBER))).isEqualTo(0);
+		assertThat(marker.getLineNumber()).isEqualTo(0);
 	}
 
 	public void testMarkerDeletedWhenBookmarkDeleted() throws Exception {
@@ -130,7 +130,7 @@ public class BookmarksMarkersTest extends BasePlatformTestCase {
 		waitUntil("Marker not modified", () -> {
 			UIUtil.dispatchAllInvocationEvents();
 			BookmarkMarker marker = findBookmarkMarker(bookmark.getId());
-			return marker != null && Integer.parseInt(marker.getAttributes().get(BookmarkMarker.LINE_NUMBER)) == 1;
+			return marker != null && marker.getLineNumber() == 1;
 		});
 	}
 
@@ -210,7 +210,7 @@ public class BookmarksMarkersTest extends BasePlatformTestCase {
          waitUntil("No bookmark marker found or marker not at expected line", () -> {
              UIUtil.dispatchAllInvocationEvents();
              BookmarkMarker marker = findBookmarkMarker(bookmarkId);
-             return marker != null && Integer.parseInt(marker.getAttributes().get(BookmarkMarker.LINE_NUMBER)) == lineNumber;
+             return marker != null && marker.getLineNumber() == lineNumber;
          });
      }
 

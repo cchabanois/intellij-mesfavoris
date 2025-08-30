@@ -142,7 +142,7 @@ public class BookmarksMarkers implements IBookmarksMarkers, PersistentStateCompo
         public void bookmarkHighlighterUpdated(RangeHighlighterEx bookmarkHighlighter) {
             int newLineNumber = bookmarkHighlighter.getDocument().getLineNumber(bookmarkHighlighter.getStartOffset());
             BookmarkMarker previousBookmarkMarker = bookmarkMarkersMap.get(this.getBookmarkId(bookmarkHighlighter));
-            if (Integer.parseInt(previousBookmarkMarker.getAttributes().get(BookmarkMarker.LINE_NUMBER)) != newLineNumber) {
+            if (previousBookmarkMarker.getLineNumber() != newLineNumber) {
                 Map<String, String> newAttributes = new HashMap<>(previousBookmarkMarker.getAttributes());
                 newAttributes.put(BookmarkMarker.LINE_NUMBER, Integer.toString(newLineNumber));
                 BookmarkMarker newBookmarkMarker = new BookmarkMarker(previousBookmarkMarker.getResource(), previousBookmarkMarker.getBookmarkId(), newAttributes);
