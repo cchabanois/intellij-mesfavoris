@@ -2,6 +2,7 @@ package mesfavoris.internal.toolwindow;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
@@ -13,7 +14,7 @@ import mesfavoris.icons.MesFavorisIcons;
 import mesfavoris.internal.actions.ManagePlaceholdersAction;
 import org.jetbrains.annotations.NotNull;
 
-public class MesFavorisToolWindowFactory  implements ToolWindowFactory {
+public class MesFavorisToolWindowFactory implements ToolWindowFactory, DumbAware {
 
     // Create the tool window content.
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
