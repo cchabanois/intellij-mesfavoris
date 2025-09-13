@@ -16,7 +16,7 @@ public class BookmarkTypesTableModel extends AbstractTableModel {
     private static final Class<?>[] COLUMN_CLASSES = {Boolean.class, BookmarkTypeExtension.class};
 
     private final List<BookmarkTypeExtension> extensions;
-    private Set<String> disabledBookmarkTypes;
+    private final Set<String> disabledBookmarkTypes;
 
     public BookmarkTypesTableModel(List<BookmarkTypeExtension> extensions, Set<String> disabledBookmarkTypes) {
         this.extensions = extensions;
@@ -76,7 +76,8 @@ public class BookmarkTypesTableModel extends AbstractTableModel {
     }
 
     public void setDisabledBookmarkTypes(Set<String> disabledBookmarkTypes) {
-        this.disabledBookmarkTypes = disabledBookmarkTypes;
+        this.disabledBookmarkTypes.clear();
+        this.disabledBookmarkTypes.addAll(disabledBookmarkTypes);
         fireTableDataChanged();
     }
 

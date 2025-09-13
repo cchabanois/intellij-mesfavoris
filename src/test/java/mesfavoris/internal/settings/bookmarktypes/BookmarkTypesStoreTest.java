@@ -1,6 +1,7 @@
 package mesfavoris.internal.settings.bookmarktypes;
 
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
+import mesfavoris.bookmarktype.IDisabledBookmarkTypesProvider;
 import org.jdom.Element;
 import org.junit.Test;
 
@@ -14,7 +15,7 @@ public class BookmarkTypesStoreTest extends BasePlatformTestCase {
     @Test
     public void testBookmarkTypeEnabledByDefault() {
         // Given
-        BookmarkTypesStore store = new BookmarkTypesStore();
+        IDisabledBookmarkTypesProvider store = new BookmarkTypesStore();
         
         // When/Then
         assertThat(store.isBookmarkTypeEnabled("default")).isTrue();

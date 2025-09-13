@@ -3,6 +3,7 @@ package mesfavoris.extensions;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import mesfavoris.bookmarktype.*;
+import mesfavoris.internal.settings.bookmarktypes.BookmarkTypesStore;
 import mesfavoris.internal.snippets.SnippetBookmarkDetailPart;
 import mesfavoris.internal.ui.details.BookmarkPropertiesDetailPart;
 import mesfavoris.internal.ui.details.CommentBookmarkDetailPart;
@@ -58,9 +59,9 @@ public class BookmarkTypeExtensionManagerTest extends BasePlatformTestCase {
             .isEmpty();
     }
 
-    public void testGetAllPropertiesProviders() {
+    public void testGetEnabledPropertiesProviders() {
         // When
-        List<IBookmarkPropertiesProvider> providers = manager.getAllPropertiesProviders();
+        List<IBookmarkPropertiesProvider> providers = manager.getEnabledPropertiesProviders();
 
         // Then
         assertThat(providers)
@@ -81,9 +82,9 @@ public class BookmarkTypeExtensionManagerTest extends BasePlatformTestCase {
             );
     }
 
-    public void testGetAllLabelProviders() {
+    public void testGetEnabledLabelProviders() {
         // When
-        List<IBookmarkLabelProvider> providers = manager.getAllLabelProviders();
+        List<IBookmarkLabelProvider> providers = manager.getEnabledLabelProviders();
 
         // Then
         assertThat(providers)
@@ -105,9 +106,9 @@ public class BookmarkTypeExtensionManagerTest extends BasePlatformTestCase {
             );
     }
 
-    public void testGetAllGotoBookmarkHandlers() {
+    public void testGetEnabledGotoBookmarkHandlers() {
         // When
-        List<IGotoBookmark> handlers = manager.getAllGotoBookmarkHandlers();
+        List<IGotoBookmark> handlers = manager.getEnabledGotoBookmarkHandlers();
 
         // Then
         assertThat(handlers)
@@ -129,9 +130,9 @@ public class BookmarkTypeExtensionManagerTest extends BasePlatformTestCase {
             );
     }
 
-    public void testGetAllLocationProviders() {
+    public void testGetEnabledLocationProviders() {
         // When
-        List<IBookmarkLocationProvider> providers = manager.getAllLocationProviders();
+        List<IBookmarkLocationProvider> providers = manager.getEnabledLocationProviders();
 
         // Then
         assertThat(providers)
@@ -153,9 +154,9 @@ public class BookmarkTypeExtensionManagerTest extends BasePlatformTestCase {
             );
     }
 
-    public void testGetAllMarkerAttributesProviders() {
+    public void testGetEnabledMarkerAttributesProviders() {
         // When
-        List<IBookmarkMarkerAttributesProvider> providers = manager.getAllMarkerAttributesProviders();
+        List<IBookmarkMarkerAttributesProvider> providers = manager.getEnabledMarkerAttributesProviders();
 
         // Then
         assertThat(providers).isNotNull();
@@ -188,7 +189,7 @@ public class BookmarkTypeExtensionManagerTest extends BasePlatformTestCase {
 
     public void testDetailPartProvidersAreRegistered() {
         // When
-        List<Function<Project, IBookmarkDetailPart>> detailPartProviders = manager.getAllDetailPartProviders();
+        List<Function<Project, IBookmarkDetailPart>> detailPartProviders = manager.getEnabledDetailPartProviders();
 
         // Then
         assertThat(detailPartProviders).isNotEmpty();
@@ -249,7 +250,46 @@ public class BookmarkTypeExtensionManagerTest extends BasePlatformTestCase {
             });
     }
 
+    public void testGetEnabledPropertiesProvidersFiltersDisabledTypes() {
+        // Given
+        BookmarkTypesStore store = BookmarkTypesStore.getInstance();
 
+        // Get initial count of providers
+        List<IBookmarkPropertiesProvider> initialProviders = manager.getEnabledPropertiesProviders();
+        int initialCount = initialProviders.size();
 
+        // Disable the "url" bookmark type
+        store.setDisabledBookmarkTypes(java.util.Set.of("url"));
+
+        // When
+        List<IBookmarkPropertiesProvider> filteredProviders = manager.getEnabledPropertiesProviders();
+
+        // Then
+        assertThat(filteredProviders)
+            .isNotNull()
+            .hasSizeLessThan(initialCount); // Should have fewer providers now
+
+        // Verify that URL providers are not included
+        List<String> providerClassNames = filteredProviders.stream()
+            .map(provider -> provider.getClass().getSimpleName())
+            .toList();
+
+        assertThat(providerClassNames)
+            .doesNotContain("UrlBookmarkPropertiesProvider");
+
+        // But should still contain other providers
+        assertThat(providerClassNames)
+            .contains(
+                "TextEditorBookmarkPropertiesProvider",
+                "SnippetBookmarkPropertiesProvider"
+            );
+
+        // Clean up - re-enable all types
+        store.setDisabledBookmarkTypes(java.util.Set.of());
+
+        // Verify providers are back
+        List<IBookmarkPropertiesProvider> restoredProviders = manager.getEnabledPropertiesProviders();
+        assertThat(restoredProviders).hasSizeGreaterThanOrEqualTo(initialCount);
+    }
 
 }

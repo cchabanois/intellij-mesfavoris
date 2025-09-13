@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
+import mesfavoris.bookmarktype.IDisabledBookmarkTypesProvider;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,7 +20,7 @@ import java.util.Set;
     name = "BookmarkTypesStore",
     storages = @Storage("bookmark-types.xml")
 )
-public class BookmarkTypesStore implements PersistentStateComponent<Element> {
+public class BookmarkTypesStore implements PersistentStateComponent<Element>, IDisabledBookmarkTypesProvider {
     
     private final Set<String> disabledBookmarkTypes = new HashSet<>();
 
@@ -54,6 +55,7 @@ public class BookmarkTypesStore implements PersistentStateComponent<Element> {
      * @param bookmarkTypeName the name of the bookmark type
      * @return true if enabled, false if disabled
      */
+    @Override
     public boolean isBookmarkTypeEnabled(String bookmarkTypeName) {
         return !disabledBookmarkTypes.contains(bookmarkTypeName);
     }
@@ -64,6 +66,7 @@ public class BookmarkTypesStore implements PersistentStateComponent<Element> {
      * Get all disabled bookmark type names
      * @return set of disabled bookmark type names
      */
+    @Override
     public Set<String> getDisabledBookmarkTypes() {
         return Collections.unmodifiableSet(disabledBookmarkTypes);
     }

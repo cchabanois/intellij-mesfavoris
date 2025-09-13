@@ -23,7 +23,6 @@ public class ExtensionBookmarkLabelProvider implements IBookmarkLabelProvider {
         this.extensionManager = BookmarkTypeExtensionManager.getInstance();
     }
 
-    // Constructor for testing
     public ExtensionBookmarkLabelProvider(@NotNull BookmarkTypeExtensionManager extensionManager) {
         this.extensionManager = extensionManager;
     }
@@ -47,12 +46,12 @@ public class ExtensionBookmarkLabelProvider implements IBookmarkLabelProvider {
     }
 
     /**
-     * Create a BookmarkLabelProvider instance with all label providers from extensions.
+     * Create a BookmarkLabelProvider instance with label providers from enabled bookmark types.
      *
-     * @return a new BookmarkLabelProvider configured with extension providers
+     * @return a new BookmarkLabelProvider configured with enabled extension providers
      */
     private BookmarkLabelProvider createBookmarkLabelProvider() {
-        List<IBookmarkLabelProvider> providers = extensionManager.getAllLabelProviders();
+        List<IBookmarkLabelProvider> providers = extensionManager.getEnabledLabelProviders();
         return new BookmarkLabelProvider(providers);
     }
 }

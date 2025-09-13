@@ -24,7 +24,6 @@ public class ExtensionBookmarkLocationProvider implements IBookmarkLocationProvi
         this.extensionManager = BookmarkTypeExtensionManager.getInstance();
     }
 
-    // Constructor for testing
     public ExtensionBookmarkLocationProvider(@NotNull BookmarkTypeExtensionManager extensionManager) {
         this.extensionManager = extensionManager;
     }
@@ -36,12 +35,12 @@ public class ExtensionBookmarkLocationProvider implements IBookmarkLocationProvi
     }
 
     /**
-     * Create a BookmarkLocationProvider instance with all location providers from extensions.
-     * 
-     * @return a new BookmarkLocationProvider configured with extension providers
+     * Create a BookmarkLocationProvider instance with location providers from enabled bookmark types.
+     *
+     * @return a new BookmarkLocationProvider configured with enabled extension providers
      */
     private BookmarkLocationProvider createBookmarkLocationProvider() {
-        List<IBookmarkLocationProvider> providers = extensionManager.getAllLocationProviders();
+        List<IBookmarkLocationProvider> providers = extensionManager.getEnabledLocationProviders();
         return new BookmarkLocationProvider(providers);
     }
 }
