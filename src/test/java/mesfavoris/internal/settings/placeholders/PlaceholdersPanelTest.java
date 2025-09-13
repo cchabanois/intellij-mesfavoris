@@ -34,6 +34,4 @@ public class PlaceholdersPanelTest {
         assertEquals("Name should be uppercase", "HOME", placeholder.getName());
     }
 
-    // Note: PlaceholdersListPanel tests are disabled due to IntelliJ service dependencies in test environment
-    // The panel functionality is tested through integration tests and manual testing
 }

@@ -30,15 +30,6 @@ public class BookmarkDetailsPart implements IBookmarkDetailPart {
 	private final Project project;
 	private JBTabs tabs;
 	private final IdentityHashMap<TabInfo, IBookmarkDetailPart> tabItem2BookmarkDetailPart = new IdentityHashMap<>();
-	
-	public BookmarkDetailsPart(Project project, List<IBookmarkDetailPart> bookmarkDetailParts, Disposable parentDisposable) {
-		this.project = project;
-		this.bookmarkDetailParts = bookmarkDetailParts;
-		BookmarksService bookmarksService = project.getService(BookmarksService.class);
-		this.bookmarkDatabase = bookmarksService.getBookmarkDatabase();
-
-		Disposer.register(parentDisposable, this);
-	}
 
 	/**
 	 * Constructor that creates detail parts from extensions
@@ -48,26 +39,10 @@ public class BookmarkDetailsPart implements IBookmarkDetailPart {
 		BookmarksService bookmarksService = project.getService(BookmarksService.class);
 		this.bookmarkDatabase = bookmarksService.getBookmarkDatabase();
 
-		BookmarkTypeExtensionManager extensionManager = BookmarkTypeExtensionManager.getInstance();
+        BookmarkTypeExtensionManager extensionManager = BookmarkTypeExtensionManager.getInstance();
 		this.bookmarkDetailParts = extensionManager.createDetailParts(project);
 
 		Disposer.register(parentDisposable, this);
-	}
-
-	/**
-	 * Constructor that creates detail parts from extensions (without parent disposable)
-	 * @deprecated Use {@link #BookmarkDetailsPart(Project, Disposable)} instead to ensure proper resource management
-	 */
-	@Deprecated
-	public BookmarkDetailsPart(Project project) {
-		this.project = project;
-		BookmarksService bookmarksService = project.getService(BookmarksService.class);
-		this.bookmarkDatabase = bookmarksService.getBookmarkDatabase();
-
-		BookmarkTypeExtensionManager extensionManager = BookmarkTypeExtensionManager.getInstance();
-		this.bookmarkDetailParts = extensionManager.createDetailParts(project);
-
-		// Warning: This instance won't be automatically disposed!
 	}
 
 	@Override

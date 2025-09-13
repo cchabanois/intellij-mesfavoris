@@ -23,7 +23,6 @@ public class ExtensionGotoBookmark implements IGotoBookmark {
         this.extensionManager = BookmarkTypeExtensionManager.getInstance();
     }
 
-    // Constructor for testing
     public ExtensionGotoBookmark(@NotNull BookmarkTypeExtensionManager extensionManager) {
         this.extensionManager = extensionManager;
     }
@@ -35,12 +34,12 @@ public class ExtensionGotoBookmark implements IGotoBookmark {
     }
 
     /**
-     * Create a GotoBookmark instance with all goto bookmark handlers from extensions.
-     * 
-     * @return a new GotoBookmark configured with extension handlers
+     * Create a GotoBookmark instance with goto bookmark handlers from enabled bookmark types.
+     *
+     * @return a new GotoBookmark configured with enabled extension handlers
      */
     private GotoBookmark createGotoBookmark() {
-        List<IGotoBookmark> handlers = extensionManager.getAllGotoBookmarkHandlers();
+        List<IGotoBookmark> handlers = extensionManager.getEnabledGotoBookmarkHandlers();
         return new GotoBookmark(handlers);
     }
 }

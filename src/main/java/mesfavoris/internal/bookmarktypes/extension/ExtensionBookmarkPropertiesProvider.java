@@ -23,7 +23,6 @@ public class ExtensionBookmarkPropertiesProvider implements IBookmarkPropertiesP
         this.extensionManager = BookmarkTypeExtensionManager.getInstance();
     }
 
-    // Constructor for testing
     public ExtensionBookmarkPropertiesProvider(@NotNull BookmarkTypeExtensionManager extensionManager) {
         this.extensionManager = extensionManager;
     }
@@ -35,12 +34,12 @@ public class ExtensionBookmarkPropertiesProvider implements IBookmarkPropertiesP
     }
 
     /**
-     * Create a BookmarkPropertiesProvider instance with all properties providers from extensions.
-     * 
-     * @return a new BookmarkPropertiesProvider configured with extension providers
+     * Create a BookmarkPropertiesProvider instance with properties providers from enabled bookmark types.
+     *
+     * @return a new BookmarkPropertiesProvider configured with enabled extension providers
      */
     private BookmarkPropertiesProvider createBookmarkPropertiesProvider() {
-        List<IBookmarkPropertiesProvider> providers = extensionManager.getAllPropertiesProviders();
+        List<IBookmarkPropertiesProvider> providers = extensionManager.getEnabledPropertiesProviders();
         return new BookmarkPropertiesProvider(providers);
     }
 }

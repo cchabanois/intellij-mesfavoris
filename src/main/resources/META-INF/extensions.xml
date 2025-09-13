@@ -15,10 +15,13 @@
         />
         <projectService serviceImplementation="mesfavoris.internal.toolwindow.BookmarksTreeComponentStateService"/>
         <applicationService serviceImplementation="mesfavoris.internal.settings.placeholders.PathPlaceholdersStore"/>
+        <applicationService serviceImplementation="mesfavoris.internal.settings.bookmarktypes.BookmarkTypesStore"/>
         <applicationConfigurable parentId="tools" instance="mesfavoris.internal.settings.MesFavorisConfigurable"
                                  id="mesfavoris.settings" displayName="Mes Favoris"/>
         <applicationConfigurable parentId="mesfavoris.settings" instance="mesfavoris.internal.settings.placeholders.PlaceholdersConfigurable"
                                  id="mesfavoris.settings.placeholders" displayName="Placeholders"/>
+        <applicationConfigurable parentId="mesfavoris.settings" instance="mesfavoris.internal.settings.bookmarktypes.BookmarkTypesConfigurable"
+                                 id="mesfavoris.settings.bookmarktypes" displayName="Bookmark Types"/>
     </extensions>
 
     <!-- Built-in Bookmark Types -->

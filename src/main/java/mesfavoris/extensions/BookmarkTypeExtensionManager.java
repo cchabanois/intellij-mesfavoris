@@ -7,6 +7,8 @@ import com.intellij.openapi.extensions.ExtensionPointListener;
 import com.intellij.openapi.extensions.PluginDescriptor;
 import com.intellij.openapi.project.Project;
 import mesfavoris.bookmarktype.*;
+import mesfavoris.commons.Pair;
+import mesfavoris.internal.settings.bookmarktypes.BookmarkTypesStore;
 import mesfavoris.ui.details.IBookmarkDetailPart;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,16 +23,17 @@ import java.util.stream.Collectors;
 public final class BookmarkTypeExtensionManager {
     
     private final Map<String, BookmarkTypeExtension> bookmarkTypes = new HashMap<>();
-    private final List<PrioritizedElement<IBookmarkPropertiesProvider>> allPropertiesProviders = new ArrayList<>();
-    private final List<PrioritizedElement<IBookmarkLabelProvider>> allLabelProviders = new ArrayList<>();
-    private final List<PrioritizedElement<IBookmarkLocationProvider>> allLocationProviders = new ArrayList<>();
-    private final List<PrioritizedElement<IGotoBookmark>> allGotoBookmarkHandlers = new ArrayList<>();
-    private final List<PrioritizedElement<IBookmarkMarkerAttributesProvider>> allMarkerAttributesProviders = new ArrayList<>();
-    private final List<PrioritizedElement<Function<Project, IBookmarkDetailPart>>> allDetailPartProviders = new ArrayList<>();
-    
+    private final List<PrioritizedElement<Pair<String, IBookmarkPropertiesProvider>>> allPropertiesProviders = new ArrayList<>();
+    private final List<PrioritizedElement<Pair<String, IBookmarkLabelProvider>>> allLabelProviders = new ArrayList<>();
+    private final List<PrioritizedElement<Pair<String, IBookmarkLocationProvider>>> allLocationProviders = new ArrayList<>();
+    private final List<PrioritizedElement<Pair<String, IGotoBookmark>>> allGotoBookmarkHandlers = new ArrayList<>();
+    private final List<PrioritizedElement<Pair<String, IBookmarkMarkerAttributesProvider>>> allMarkerAttributesProviders = new ArrayList<>();
+    private final List<PrioritizedElement<Pair<String, Function<Project, IBookmarkDetailPart>>>> allDetailPartProviders = new ArrayList<>();
+    private final IDisabledBookmarkTypesProvider disabledTypesProvider;
     public BookmarkTypeExtensionManager() {
         loadExtensions();
         setupExtensionPointListener();
+        disabledTypesProvider = BookmarkTypesStore.getInstance();
     }
     
     public static BookmarkTypeExtensionManager getInstance() {
@@ -54,69 +57,51 @@ public final class BookmarkTypeExtensionManager {
     }
     
     /**
-     * Get all properties providers from all bookmark types, sorted by priority
+     * Get properties providers from enabled bookmark types, sorted by priority.
      */
     @NotNull
-    public List<IBookmarkPropertiesProvider> getAllPropertiesProviders() {
-        return allPropertiesProviders.stream()
-                .sorted()
-                .map(PrioritizedElement::getElement)
-                .collect(Collectors.toList());
+    public List<IBookmarkPropertiesProvider> getEnabledPropertiesProviders() {
+        return filterEnabledProviders(allPropertiesProviders);
     }
 
     /**
-     * Get all label providers from all bookmark types, sorted by priority
+     * Get label providers from enabled bookmark types, sorted by priority.
      */
     @NotNull
-    public List<IBookmarkLabelProvider> getAllLabelProviders() {
-        return allLabelProviders.stream()
-                .sorted()
-                .map(PrioritizedElement::getElement)
-                .collect(Collectors.toList());
+    public List<IBookmarkLabelProvider> getEnabledLabelProviders() {
+        return filterEnabledProviders(allLabelProviders);
     }
 
     /**
-     * Get all location providers from all bookmark types, sorted by priority
+     * Get location providers from enabled bookmark types, sorted by priority.
      */
     @NotNull
-    public List<IBookmarkLocationProvider> getAllLocationProviders() {
-        return allLocationProviders.stream()
-                .sorted()
-                .map(PrioritizedElement::getElement)
-                .collect(Collectors.toList());
+    public List<IBookmarkLocationProvider> getEnabledLocationProviders() {
+        return filterEnabledProviders(allLocationProviders);
     }
 
     /**
-     * Get all goto bookmark handlers from all bookmark types, sorted by priority
+     * Get goto bookmark handlers from enabled bookmark types, sorted by priority.
      */
     @NotNull
-    public List<IGotoBookmark> getAllGotoBookmarkHandlers() {
-        return allGotoBookmarkHandlers.stream()
-                .sorted()
-                .map(PrioritizedElement::getElement)
-                .collect(Collectors.toList());
+    public List<IGotoBookmark> getEnabledGotoBookmarkHandlers() {
+        return filterEnabledProviders(allGotoBookmarkHandlers);
     }
 
     /**
-     * Get all marker attributes providers from all bookmark types, sorted by priority
+     * Get marker attributes providers from enabled bookmark types, sorted by priority.
      */
     @NotNull
-    public List<IBookmarkMarkerAttributesProvider> getAllMarkerAttributesProviders() {
-        return allMarkerAttributesProviders.stream()
-                .sorted()
-                .map(PrioritizedElement::getElement)
-                .collect(Collectors.toList());
+    public List<IBookmarkMarkerAttributesProvider> getEnabledMarkerAttributesProviders() {
+        return filterEnabledProviders(allMarkerAttributesProviders);
     }
 
     /**
-     * Get all detail part providers from all bookmark types, sorted by priority
+     * Get detail part providers from enabled bookmark types, sorted by priority.
      */
     @NotNull
-    public List<Function<Project, IBookmarkDetailPart>> getAllDetailPartProviders() {
-        return allDetailPartProviders.stream()
-                .sorted()
-                .map(PrioritizedElement::getElement)
-                .collect(Collectors.toList());
+    public List<Function<Project, IBookmarkDetailPart>> getEnabledDetailPartProviders() {
+        return filterEnabledProviders(allDetailPartProviders);
     }
 
     /**
@@ -124,14 +109,18 @@ public final class BookmarkTypeExtensionManager {
      */
     @NotNull
     public List<IBookmarkDetailPart> createDetailParts(@NotNull Project project) {
-        List<PrioritizedElement<IBookmarkDetailPart>> allParts = new ArrayList<>();
+        List<IBookmarkDetailPart> allParts = new ArrayList<>();
 
-        // Create instances from providers (functions)
-        for (PrioritizedElement<Function<Project, IBookmarkDetailPart>> providerElement : allDetailPartProviders) {
+        // Create instances from enabled providers (functions)
+        for (Pair<String, Function<Project, IBookmarkDetailPart>> pair : allDetailPartProviders.stream()
+                .sorted()
+                .map(PrioritizedElement::getElement)
+                .toList()) {
             try {
-                Function<Project, IBookmarkDetailPart> provider = providerElement.getElement();
+                String bookmarkTypeName = pair.getFirst();
+                Function<Project, IBookmarkDetailPart> provider = pair.getSecond();
                 IBookmarkDetailPart instance = provider.apply(project);
-                allParts.add(new PrioritizedElement<>(instance, providerElement.getPriority()));
+                allParts.add(new DisableableBookmarkDetailPart(bookmarkTypeName, instance, disabledTypesProvider));
             } catch (Exception e) {
                 // Log error but continue with other detail parts
                 Logger.getInstance(BookmarkTypeExtensionManager.class)
@@ -139,12 +128,25 @@ public final class BookmarkTypeExtensionManager {
             }
         }
 
-        return allParts.stream()
+        return allParts;
+    }
+
+    /**
+     * Filter providers by enabled bookmark types and extract the actual providers
+     */
+    private <T> List<T> filterEnabledProviders(List<PrioritizedElement<Pair<String, T>>> providers) {
+        IDisabledBookmarkTypesProvider disabledTypesProvider = BookmarkTypesStore.getInstance();
+
+        return providers.stream()
+                .filter(providerElement -> {
+                    Pair<String, T> typedProvider = providerElement.getElement();
+                    return disabledTypesProvider.isBookmarkTypeEnabled(typedProvider.getFirst());
+                })
                 .sorted()
-                .map(PrioritizedElement::getElement)
+                .map(providerElement -> providerElement.getElement().getSecond())
                 .collect(Collectors.toList());
     }
-    
+
     private void loadExtensions() {
         // Clear existing data
         bookmarkTypes.clear();
@@ -161,13 +163,45 @@ public final class BookmarkTypeExtensionManager {
         for (BookmarkTypeExtension extension : extensions) {
             bookmarkTypes.put(extension.getName(), extension);
 
-            // Collect all elements with their priorities
-            allPropertiesProviders.addAll(extension.getPropertiesProviders());
-            allLabelProviders.addAll(extension.getLabelProviders());
-            allLocationProviders.addAll(extension.getLocationProviders());
-            allGotoBookmarkHandlers.addAll(extension.getGotoBookmarkHandlers());
-            allMarkerAttributesProviders.addAll(extension.getMarkerAttributesProviders());
-            allDetailPartProviders.addAll(extension.getDetailPartProviders());
+            // Collect all elements with their priorities, wrapping providers with bookmark type name
+            String typeName = extension.getName();
+
+            // Wrap all providers with bookmark type name
+            for (PrioritizedElement<IBookmarkPropertiesProvider> providerElement : extension.getPropertiesProviders()) {
+                Pair<String, IBookmarkPropertiesProvider> typedProvider =
+                    Pair.of(typeName, providerElement.getElement());
+                allPropertiesProviders.add(new PrioritizedElement<>(typedProvider, providerElement.getPriority()));
+            }
+
+            for (PrioritizedElement<IBookmarkLabelProvider> providerElement : extension.getLabelProviders()) {
+                Pair<String, IBookmarkLabelProvider> typedProvider =
+                    Pair.of(typeName, providerElement.getElement());
+                allLabelProviders.add(new PrioritizedElement<>(typedProvider, providerElement.getPriority()));
+            }
+
+            for (PrioritizedElement<IBookmarkLocationProvider> providerElement : extension.getLocationProviders()) {
+                Pair<String, IBookmarkLocationProvider> typedProvider =
+                    Pair.of(typeName, providerElement.getElement());
+                allLocationProviders.add(new PrioritizedElement<>(typedProvider, providerElement.getPriority()));
+            }
+
+            for (PrioritizedElement<IGotoBookmark> providerElement : extension.getGotoBookmarkHandlers()) {
+                Pair<String, IGotoBookmark> typedProvider =
+                    Pair.of(typeName, providerElement.getElement());
+                allGotoBookmarkHandlers.add(new PrioritizedElement<>(typedProvider, providerElement.getPriority()));
+            }
+
+            for (PrioritizedElement<IBookmarkMarkerAttributesProvider> providerElement : extension.getMarkerAttributesProviders()) {
+                Pair<String, IBookmarkMarkerAttributesProvider> typedProvider =
+                    Pair.of(typeName, providerElement.getElement());
+                allMarkerAttributesProviders.add(new PrioritizedElement<>(typedProvider, providerElement.getPriority()));
+            }
+
+            for (PrioritizedElement<Function<Project, IBookmarkDetailPart>> providerElement : extension.getDetailPartProviders()) {
+                Pair<String, Function<Project, IBookmarkDetailPart>> typedProvider =
+                    Pair.of(typeName, providerElement.getElement());
+                allDetailPartProviders.add(new PrioritizedElement<>(typedProvider, providerElement.getPriority()));
+            }
         }
     }
     
@@ -177,11 +211,12 @@ public final class BookmarkTypeExtensionManager {
             public void extensionAdded(@NotNull BookmarkTypeExtension extension, @NotNull PluginDescriptor pluginDescriptor) {
                 loadExtensions(); // Reload all extensions
             }
-            
+
             @Override
             public void extensionRemoved(@NotNull BookmarkTypeExtension extension, @NotNull PluginDescriptor pluginDescriptor) {
                 loadExtensions(); // Reload all extensions
             }
         }, null);
     }
+
 }
