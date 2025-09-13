@@ -4,10 +4,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import mesfavoris.bookmarktype.*;
 import mesfavoris.internal.settings.bookmarktypes.BookmarkTypesStore;
-import mesfavoris.internal.snippets.SnippetBookmarkDetailPart;
-import mesfavoris.internal.ui.details.BookmarkPropertiesDetailPart;
-import mesfavoris.internal.ui.details.CommentBookmarkDetailPart;
-import mesfavoris.internal.ui.details.MarkerBookmarkDetailPart;
 import mesfavoris.ui.details.IBookmarkDetailPart;
 
 import java.util.List;
@@ -169,20 +165,18 @@ public class BookmarkTypeExtensionManagerTest extends BasePlatformTestCase {
         // Then
         assertThat(detailParts).isNotEmpty();
 
-        // Verify that we have the expected detail part types
-        boolean hasCommentDetailPart = detailParts.stream()
-                .anyMatch(part -> part instanceof CommentBookmarkDetailPart);
-        boolean hasPropertiesDetailPart = detailParts.stream()
-                .anyMatch(part -> part instanceof BookmarkPropertiesDetailPart);
-        boolean hasMarkerDetailPart = detailParts.stream()
-                .anyMatch(part -> part instanceof MarkerBookmarkDetailPart);
-        boolean hasSnippetDetailPart = detailParts.stream()
-                .anyMatch(part -> part instanceof SnippetBookmarkDetailPart);
+        // Verify that we have the expected detail part types by checking their titles
+        List<String> detailPartTitles = detailParts.stream()
+                .map(IBookmarkDetailPart::getTitle)
+                .toList();
 
-        assertThat(hasCommentDetailPart).isTrue();
-        assertThat(hasPropertiesDetailPart).isTrue();
-        assertThat(hasMarkerDetailPart).isTrue();
-        assertThat(hasSnippetDetailPart).isTrue();
+        assertThat(detailPartTitles)
+                .contains(
+                        "Comments",
+                        "Properties",
+                        "Marker",
+                        "Snippet"
+                );
     }
 
 
