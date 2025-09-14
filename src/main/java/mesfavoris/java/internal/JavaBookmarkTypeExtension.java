@@ -1,9 +1,7 @@
-package mesfavoris.internal.extensions;
+package mesfavoris.java.internal;
 
 import com.intellij.icons.AllIcons;
 import mesfavoris.extensions.AbstractBookmarkTypeExtension;
-import mesfavoris.java.internal.GotoInsideJavaElementBookmark;
-import mesfavoris.java.internal.JavaTypeMemberBookmarkLocationProvider;
 import mesfavoris.java.internal.editor.JavaEditorBookmarkPropertiesProvider;
 
 import static mesfavoris.bookmarktype.BookmarkPropertyDescriptor.BookmarkPropertyType.INT;

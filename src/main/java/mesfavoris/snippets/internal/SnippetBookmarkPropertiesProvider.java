@@ -1,10 +1,11 @@
-package mesfavoris.internal.snippets;
+package mesfavoris.snippets.internal;
 
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.progress.ProgressIndicator;
 import mesfavoris.BookmarksDataKeys;
 import mesfavoris.bookmarktype.AbstractBookmarkPropertiesProvider;
 import mesfavoris.model.Bookmark;
+import mesfavoris.snippets.SnippetBookmarkProperties;
 
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -14,7 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class SnippetBookmarkPropertiesProvider extends AbstractBookmarkPropertiesProvider {
-	private static int NAME_LENGTH_LIMIT = 80;
+	private static final int NAME_LENGTH_LIMIT = 80;
 
 	@Override
 	public void addBookmarkProperties(Map<String, String> bookmarkProperties, DataContext dataContext, ProgressIndicator progress) {

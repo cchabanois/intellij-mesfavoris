@@ -1,10 +1,9 @@
-package mesfavoris.internal.extensions;
+package mesfavoris.texteditor.internal;
 
 import com.intellij.icons.AllIcons;
 import mesfavoris.extensions.AbstractBookmarkTypeExtension;
 import mesfavoris.internal.placeholders.PathPlaceholderResolver;
 import mesfavoris.internal.settings.placeholders.PathPlaceholdersStore;
-import mesfavoris.texteditor.internal.*;
 
 import static mesfavoris.bookmarktype.BookmarkPropertyDescriptor.BookmarkPropertyType.*;
 import static mesfavoris.bookmarktype.BookmarkPropertyDescriptor.bookmarkPropertyDescriptor;

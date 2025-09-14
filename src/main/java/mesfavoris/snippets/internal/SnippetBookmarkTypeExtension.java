@@ -1,8 +1,8 @@
-package mesfavoris.internal.extensions;
+package mesfavoris.snippets.internal;
 
 import com.intellij.icons.AllIcons;
 import mesfavoris.extensions.AbstractBookmarkTypeExtension;
-import mesfavoris.internal.snippets.*;
+import mesfavoris.snippets.SnippetBookmarkProperties;
 
 import static mesfavoris.bookmarktype.BookmarkPropertyDescriptor.BookmarkPropertyType.STRING;
 import static mesfavoris.bookmarktype.BookmarkPropertyDescriptor.bookmarkPropertyDescriptor;

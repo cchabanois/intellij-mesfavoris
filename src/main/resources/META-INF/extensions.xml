@@ -30,15 +30,15 @@
         <bookmarkType implementation="mesfavoris.internal.extensions.DefaultBookmarkTypeExtension"/>
 
         <!-- Text Editor Bookmark Type -->
-        <bookmarkType implementation="mesfavoris.internal.extensions.TextEditorBookmarkTypeExtension"/>
+        <bookmarkType implementation="mesfavoris.texteditor.internal.TextEditorBookmarkTypeExtension"/>
 
         <!-- Java Bookmark Type -->
-        <bookmarkType implementation="mesfavoris.internal.extensions.JavaBookmarkTypeExtension"/>
+        <bookmarkType implementation="mesfavoris.java.internal.JavaBookmarkTypeExtension"/>
 
         <!-- URL Bookmark Type -->
-        <bookmarkType implementation="mesfavoris.internal.extensions.UrlBookmarkTypeExtension"/>
+        <bookmarkType implementation="mesfavoris.url.internal.UrlBookmarkTypeExtension"/>
 
         <!-- Snippet Bookmark Type -->
-        <bookmarkType implementation="mesfavoris.internal.extensions.SnippetBookmarkTypeExtension"/>
+        <bookmarkType implementation="mesfavoris.snippets.internal.SnippetBookmarkTypeExtension"/>
     </extensions>
 </idea-plugin>

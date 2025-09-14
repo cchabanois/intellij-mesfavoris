@@ -1,4 +1,4 @@
-package mesfavoris.internal.snippets;
+package mesfavoris.snippets.internal;
 
 import com.intellij.ide.ui.UISettingsUtils;
 import com.intellij.openapi.application.ApplicationManager;
@@ -26,7 +26,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import static com.intellij.util.containers.ContainerUtil.addIfNotNull;
-import static mesfavoris.internal.snippets.SnippetBookmarkProperties.PROP_SNIPPET_CONTENT;
+import static mesfavoris.snippets.SnippetBookmarkProperties.PROP_SNIPPET_CONTENT;
 
 /**
  * Create component to display bookmark snippet
