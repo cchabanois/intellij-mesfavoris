@@ -1,4 +1,4 @@
-package mesfavoris.internal.snippets;
+package mesfavoris.snippets.internal;
 
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;

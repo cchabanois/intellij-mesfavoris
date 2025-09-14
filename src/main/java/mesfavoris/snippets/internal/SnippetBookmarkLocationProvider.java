@@ -1,10 +1,11 @@
-package mesfavoris.internal.snippets;
+package mesfavoris.snippets.internal;
 
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import mesfavoris.bookmarktype.IBookmarkLocation;
 import mesfavoris.bookmarktype.IBookmarkLocationProvider;
 import mesfavoris.model.Bookmark;
+import mesfavoris.snippets.SnippetBookmarkProperties;
 
 public class SnippetBookmarkLocationProvider implements IBookmarkLocationProvider {
     @Override

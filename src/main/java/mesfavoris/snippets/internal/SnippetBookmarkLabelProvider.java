@@ -1,8 +1,9 @@
-package mesfavoris.internal.snippets;
+package mesfavoris.snippets.internal;
 
 import mesfavoris.bookmarktype.AbstractBookmarkLabelProvider;
 import mesfavoris.icons.MesFavorisIcons;
 import mesfavoris.model.Bookmark;
+import mesfavoris.snippets.SnippetBookmarkProperties;
 
 import javax.swing.*;
 

@@ -1,4 +1,4 @@
-package mesfavoris.internal.snippets;
+package mesfavoris.snippets.internal;
 
 import mesfavoris.bookmarktype.IBookmarkLocation;
 
