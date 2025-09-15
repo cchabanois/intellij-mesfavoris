@@ -16,7 +16,7 @@ public class SnippetBookmarkTypeExtension extends AbstractBookmarkTypeExtension 
     public static final String BOOKMARK_TYPE_NAME = "snippet";
 
     public SnippetBookmarkTypeExtension() {
-        super(BOOKMARK_TYPE_NAME, AllIcons.FileTypes.Text);
+        super(BOOKMARK_TYPE_NAME, "Bookmarks that store code snippets or text content", AllIcons.FileTypes.Text);
 
         // Define properties for snippet bookmarks
         addProperty(bookmarkPropertyDescriptor(SnippetBookmarkProperties.PROP_SNIPPET_CONTENT)

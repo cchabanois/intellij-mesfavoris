@@ -17,7 +17,7 @@ public class JavaBookmarkTypeExtension extends AbstractBookmarkTypeExtension {
     public static final String BOOKMARK_TYPE_NAME = "java";
 
     public JavaBookmarkTypeExtension() {
-        super(BOOKMARK_TYPE_NAME, AllIcons.FileTypes.Java);
+        super(BOOKMARK_TYPE_NAME, "Bookmarks for Java code elements like classes, methods, and fields", AllIcons.FileTypes.Java);
 
         // Define properties for Java bookmarks
         addProperty(bookmarkPropertyDescriptor(PROP_JAVA_ELEMENT_NAME)

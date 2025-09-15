@@ -26,6 +26,12 @@ public interface BookmarkTypeExtension {
     String getName();
 
     /**
+     * @return The description of this bookmark type
+     */
+    @NotNull
+    String getDescription();
+
+    /**
      * @return The icon for this bookmark type, or null for default
      */
     @Nullable

@@ -16,7 +16,7 @@ public class DefaultBookmarkTypeExtension extends AbstractBookmarkTypeExtension 
     public static final String BOOKMARK_TYPE_NAME = "default";
 
     public DefaultBookmarkTypeExtension() {
-        super(BOOKMARK_TYPE_NAME, null);
+        super(BOOKMARK_TYPE_NAME, "Default bookmark type with basic properties and functionality", null);
 
         // Define properties for snippet bookmarks
         addProperty(bookmarkPropertyDescriptor(Bookmark.PROPERTY_NAME)

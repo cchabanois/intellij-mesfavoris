@@ -16,7 +16,7 @@ public class UrlBookmarkTypeExtension extends AbstractBookmarkTypeExtension {
     public static final String BOOKMARK_TYPE_NAME = "url";
 
     public UrlBookmarkTypeExtension() {
-        super(BOOKMARK_TYPE_NAME, AllIcons.Nodes.PpWeb);
+        super(BOOKMARK_TYPE_NAME, "Bookmarks for web URLs and online resources", AllIcons.Nodes.PpWeb);
 
         // Define properties for URL bookmarks
         addProperty(bookmarkPropertyDescriptor(UrlBookmarkProperties.PROP_URL)

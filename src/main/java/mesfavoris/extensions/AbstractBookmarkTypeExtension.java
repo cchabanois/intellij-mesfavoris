@@ -19,6 +19,7 @@ import java.util.function.Function;
 public abstract class AbstractBookmarkTypeExtension implements BookmarkTypeExtension {
     
     private final String name;
+    private final String description;
     private final Icon icon;
     private final List<BookmarkPropertyDescriptor> properties = new ArrayList<>();
     private final List<PrioritizedElement<IBookmarkPropertiesProvider>> propertiesProviders = new ArrayList<>();
@@ -28,8 +29,9 @@ public abstract class AbstractBookmarkTypeExtension implements BookmarkTypeExten
     private final List<PrioritizedElement<IBookmarkMarkerAttributesProvider>> markerAttributesProviders = new ArrayList<>();
     private final List<PrioritizedElement<Function<Project, IBookmarkDetailPart>>> detailPartProviders = new ArrayList<>();
     
-    protected AbstractBookmarkTypeExtension(@NotNull String name, @Nullable Icon icon) {
+    protected AbstractBookmarkTypeExtension(@NotNull String name, @NotNull String description, @Nullable Icon icon) {
         this.name = name;
+        this.description = description;
         this.icon = icon;
     }
     
@@ -38,7 +40,13 @@ public abstract class AbstractBookmarkTypeExtension implements BookmarkTypeExten
     public String getName() {
         return name;
     }
-    
+
+    @NotNull
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
     @Nullable
     @Override
     public Icon getIcon() {

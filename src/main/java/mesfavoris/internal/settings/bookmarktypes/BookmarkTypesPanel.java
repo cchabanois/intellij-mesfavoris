@@ -122,7 +122,7 @@ public class BookmarkTypesPanel extends JPanel {
                 // Set icon and text for the name label
                 nameLabel.setIcon(extension.getIcon());
                 nameLabel.setText(extension.getName());
-                descriptionLabel.setText("Description du bookmark type"); // placeholder description
+                descriptionLabel.setText(extension.getDescription());
             }
 
             if (isSelected) {

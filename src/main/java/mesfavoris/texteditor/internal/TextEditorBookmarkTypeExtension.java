@@ -18,7 +18,7 @@ public class TextEditorBookmarkTypeExtension extends AbstractBookmarkTypeExtensi
     public static final String BOOKMARK_TYPE_NAME = "textEditor";
 
     public TextEditorBookmarkTypeExtension() {
-        super(BOOKMARK_TYPE_NAME, AllIcons.FileTypes.Text);
+        super(BOOKMARK_TYPE_NAME, "Bookmarks for text files with line and content information", AllIcons.FileTypes.Text);
 
         // Define properties for text editor bookmarks
         addProperty(bookmarkPropertyDescriptor(PROP_FILE_PATH)
