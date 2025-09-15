@@ -286,4 +286,49 @@ public class BookmarkTypeExtensionManagerTest extends BasePlatformTestCase {
         assertThat(restoredProviders).hasSizeGreaterThanOrEqualTo(initialCount);
     }
 
+    public void testAllBookmarkTypesHaveDescriptions() {
+        // When
+        var bookmarkTypes = manager.getAllBookmarkTypes();
+
+        // Then - all bookmark types should have non-empty descriptions
+        assertThat(bookmarkTypes).isNotEmpty();
+
+        for (BookmarkTypeExtension bookmarkType : bookmarkTypes) {
+            assertThat(bookmarkType.getDescription())
+                    .as("Bookmark type '%s' should have a description", bookmarkType.getName())
+                    .isNotNull()
+                    .isNotEmpty();
+        }
+    }
+
+    public void testSpecificBookmarkTypeDescriptions() {
+        // When
+        var defaultType = manager.getBookmarkType("default");
+        var textEditorType = manager.getBookmarkType("textEditor");
+        var urlType = manager.getBookmarkType("url");
+        var snippetType = manager.getBookmarkType("snippet");
+        var javaType = manager.getBookmarkType("java");
+
+        // Then - verify specific descriptions
+        assertThat(defaultType).isPresent();
+        assertThat(defaultType.get().getDescription())
+                .isEqualTo("Default bookmark type with basic properties and functionality");
+
+        assertThat(textEditorType).isPresent();
+        assertThat(textEditorType.get().getDescription())
+                .isEqualTo("Bookmarks for text files with line and content information");
+
+        assertThat(urlType).isPresent();
+        assertThat(urlType.get().getDescription())
+                .isEqualTo("Bookmarks for web URLs and online resources");
+
+        assertThat(snippetType).isPresent();
+        assertThat(snippetType.get().getDescription())
+                .isEqualTo("Bookmarks that store code snippets or text content");
+
+        assertThat(javaType).isPresent();
+        assertThat(javaType.get().getDescription())
+                .isEqualTo("Bookmarks for Java code elements like classes, methods, and fields");
+    }
+
 }
