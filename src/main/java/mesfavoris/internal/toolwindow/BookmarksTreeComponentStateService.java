@@ -12,6 +12,7 @@ import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.TreePath;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -63,7 +64,11 @@ public class BookmarksTreeComponentStateService implements PersistentStateCompon
 
     private void restoreExpansionState(BookmarksTreeComponent tree) {
         Set<BookmarkId> bookmarkIds = this.state.expandedPaths.stream().map(BookmarkId::new).collect(Collectors.toSet());
-        Set<TreePath> treePaths = bookmarkIds.stream().map(tree::getTreePathForBookmark).collect(Collectors.toSet());
+        Set<TreePath> treePaths = bookmarkIds.stream()
+            .map(tree::getTreePathForBookmark)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.toSet());
         for (TreePath treePath : treePaths) {
             tree.expandPath(treePath);
         }

@@ -9,6 +9,7 @@ import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
 
 import javax.swing.tree.TreePath;
+import java.util.Optional;
 
 public class BookmarksTreeComponent extends DnDAwareTree implements Disposable {
     private final BookmarksTreeModel bookmarksTreeModel;
@@ -35,7 +36,7 @@ public class BookmarksTreeComponent extends DnDAwareTree implements Disposable {
         }
     }
 
-    public TreePath getTreePathForBookmark(BookmarkId bookmarkId) {
+    public Optional<TreePath> getTreePathForBookmark(BookmarkId bookmarkId) {
         return bookmarksTreeModel.getTreePathForBookmark(bookmarkId);
     }
 
