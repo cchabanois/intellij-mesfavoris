@@ -17,7 +17,4 @@
     <xi:include href="/META-INF/extensions.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <resource-bundle>messages.MyBundle</resource-bundle>
-    <applicationListeners>
-        <listener class="mesfavoris.listeners.MyApplicationActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
-    </applicationListeners>
 </idea-plugin>
