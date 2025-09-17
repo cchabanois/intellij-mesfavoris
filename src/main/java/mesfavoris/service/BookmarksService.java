@@ -191,11 +191,9 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
 
     @Override
     public void noStateLoaded() {
-        return;
     }
 
     @Override
     public void initializeComponent() {
-        return;
     }
 }
