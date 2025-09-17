@@ -2,7 +2,6 @@ package mesfavoris.service;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -12,7 +11,6 @@ import mesfavoris.bookmarktype.IBookmarkLabelProvider;
 import mesfavoris.bookmarktype.IBookmarkLocationProvider;
 import mesfavoris.bookmarktype.IBookmarkPropertiesProvider;
 import mesfavoris.bookmarktype.IGotoBookmark;
-import mesfavoris.internal.MesFavorisProjectIdManager;
 import mesfavoris.internal.bookmarktypes.BookmarkMarkerAttributesProvider;
 import mesfavoris.internal.bookmarktypes.extension.ExtensionBookmarkLabelProvider;
 import mesfavoris.internal.bookmarktypes.extension.ExtensionBookmarkLocationProvider;
@@ -43,6 +41,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -85,12 +84,25 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
 
 
     private Path getBookmarksFilePath(Project project) throws IOException {
-        Path productSpecificMesFavorisParentDir = PathManager.getConfigDir().resolve("mesfavoris");
-        if (!Files.exists(productSpecificMesFavorisParentDir)) {
-            Files.createDirectory(productSpecificMesFavorisParentDir);
+        if (project.isDefault()) {
+            throw new IOException("Bookmarks are not supported for default project");
         }
-        String projectId = MesFavorisProjectIdManager.Companion.getProjectId(project);
-        return productSpecificMesFavorisParentDir.resolve("bookmarks-" + projectId + ".json");
+        String projectFilePath = project.getProjectFilePath();
+        Path projectFile = Paths.get(projectFilePath);
+        Path projectConfigDir;
+
+        if (projectFilePath.endsWith(".ipr")) {
+            // File-based project: .ipr file is in project root, so get parent and add .idea
+            projectConfigDir = projectFile.getParent().resolve(".idea").resolve("mesfavoris");
+        } else {
+            // Directory-based project: projectFilePath points to a file in .idea directory
+            // Get the parent directory (.idea) and add mesfavoris
+            projectConfigDir = projectFile.getParent().resolve("mesfavoris");
+        }
+        if (!Files.exists(projectConfigDir)) {
+            Files.createDirectories(projectConfigDir);
+        }
+        return projectConfigDir.resolve("bookmarks.json");
     }
 
     private BookmarkDatabase loadBookmarkDatabase(IBookmarksModificationValidator bookmarksModificationValidator) throws IOException {
