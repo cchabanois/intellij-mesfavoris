@@ -37,11 +37,12 @@ public class BookmarksTreeModel extends BaseTreeModel<Bookmark> {
                     .ifPresent(treePath -> treeStructureChanged(treePath, new int[0], new Object[0]));
             }
             if (modification instanceof BookmarkPropertiesModification bookmarksPropertiesModification) {
-                Bookmark bookmark = bookmarksPropertiesModification.getTargetTree().getBookmark(bookmarksPropertiesModification.getBookmarkId());
-                BookmarkId parentBookmarkId = bookmarksPropertiesModification.getTargetTree().getParentBookmark(bookmarksPropertiesModification.getBookmarkId()).getId();
-                int index = bookmarksPropertiesModification.getTargetTree().getChildren(parentBookmarkId).indexOf(bookmark);
+                BookmarkId parentBookmarkId = bookmarksPropertiesModification.getTargetTree()
+                    .getParentBookmark(bookmarksPropertiesModification.getBookmarkId()).getId();
+                // we cannot use treeNodesChanged because we use immutable objects and a new Bookmark is created each time bookmark is modified
+                // treeNodesChanged is for changes on a given (mutable) object
                 getTreePathForBookmark(parentBookmarkId)
-                    .ifPresent(treePath -> treeNodesChanged(treePath, new int[] { index }, new Object[] { bookmark }));
+                    .ifPresent(treePath -> treeStructureChanged(treePath, new int[0], new Object[0]));
             }
         }
     }, ModalityState.defaultModalityState());
@@ -118,6 +119,10 @@ public class BookmarksTreeModel extends BaseTreeModel<Bookmark> {
     private Bookmark getBookmark(TreePath path) {
         Object object = path.getLastPathComponent();
         return Adapters.adapt(object, Bookmark.class);
+    }
+
+    public BookmarkDatabase getBookmarkDatabase() {
+        return bookmarkDatabase;
     }
 
 
