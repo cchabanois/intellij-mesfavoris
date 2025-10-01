@@ -15,13 +15,13 @@ import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.BookmarksTree;
 import mesfavoris.snippets.internal.SnippetBookmarkDetailPart;
+import mesfavoris.tests.commons.ui.ComponentFinder;
 import mesfavoris.tests.commons.waits.Waiter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
@@ -125,22 +125,7 @@ public class BookmarkDetailsPartTest extends BasePlatformTestCase {
     }
 
 
-    @SuppressWarnings("unchecked")
-    private <T> T findChildComponent(JComponent parent, Class<T> componentClass) {
-        if (componentClass.isInstance(parent)) {
-            return (T) parent;
-        }
 
-        for (Component child : parent.getComponents()) {
-            if (child instanceof JComponent) {
-                T found = findChildComponent((JComponent) child, componentClass);
-                if (found != null) {
-                    return found;
-                }
-            }
-        }
-        return null;
-    }
 
     private TabInfo getTabInfo(JBTabs tabs, String title) {
         for (TabInfo tabInfo : tabs.getTabs()) {
@@ -152,16 +137,16 @@ public class BookmarkDetailsPartTest extends BasePlatformTestCase {
     }
 
     private int getTabCount() {
-        JBTabs tabs = findChildComponent(component, JBTabs.class);
+        JBTabs tabs = ComponentFinder.findChildComponent(component, JBTabs.class);
         return tabs != null ? tabs.getTabCount() : 0;
     }
 
     private void waitUntilPropertiesTabIsEmpty() throws TimeoutException {
-        JBTabs tabs = findChildComponent(component, JBTabs.class);
+        JBTabs tabs = ComponentFinder.findChildComponent(component, JBTabs.class);
         TabInfo propertiesTab = getTabInfo(tabs, "Properties");
 
         JComponent tabComponent = propertiesTab.getComponent();
-        JBTable table = findChildComponent(tabComponent, JBTable.class);
+        JBTable table = ComponentFinder.findChildComponent(tabComponent, JBTable.class);
 
         Waiter.waitUntil("Properties tab should be empty", () -> {
             PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
@@ -170,35 +155,28 @@ public class BookmarkDetailsPartTest extends BasePlatformTestCase {
     }
 
     private void waitUntilEditorTextTabHasContent(String tabTitle, String expectedContent) throws TimeoutException {
-        JBTabs tabs = findChildComponent(component, JBTabs.class);
+        JBTabs tabs = ComponentFinder.findChildComponent(component, JBTabs.class);
         TabInfo tabInfo = getTabInfo(tabs, tabTitle);
         assertThat(tabInfo).isNotNull();
 
-        EditorTextField editorField = findChildComponent(tabInfo.getComponent(), EditorTextField.class);
+        EditorTextField editorField = ComponentFinder.findChildComponent(tabInfo.getComponent(), EditorTextField.class);
         assertThat(editorField).isNotNull();
 
         // Wait for the content to be updated (async operation)
         Waiter.waitUntil("EditorTextField should contain expected content: '" + expectedContent + "'", () -> {
             PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-
             String currentText = editorField.getText();
-            if (currentText == null || currentText.isEmpty()) {
-                if (editorField.getDocument() != null) {
-                    currentText = editorField.getDocument().getText();
-                }
-            }
-
             return expectedContent.equals(currentText);
         });
     }
 
     private void verifyPropertiesTabHasBookmarkProperties(Bookmark bookmark) {
-        JBTabs tabs = findChildComponent(component, JBTabs.class);
+        JBTabs tabs = ComponentFinder.findChildComponent(component, JBTabs.class);
         TabInfo propertiesTab = getTabInfo(tabs, "Properties");
         assertThat(propertiesTab).isNotNull();
 
         JComponent tabComponent = propertiesTab.getComponent();
-        JBTable table = findChildComponent(tabComponent, JBTable.class);
+        JBTable table = ComponentFinder.findChildComponent(tabComponent, JBTable.class);
         assertThat(table).isNotNull();
 
         // Verify that the table contains all bookmark properties
