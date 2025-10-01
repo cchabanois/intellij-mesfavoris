@@ -1,7 +1,6 @@
 package mesfavoris.snippets.internal;
 
 import com.intellij.ide.ui.UISettingsUtils;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.SpellCheckingEditorCustomizationProvider;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
@@ -36,7 +35,7 @@ import static mesfavoris.snippets.SnippetBookmarkProperties.PROP_SNIPPET_CONTENT
  */
 public class SnippetBookmarkDetailPart extends AbstractBookmarkDetailPart {
     private EditorTextField editorField;
-    private final BookmarkDatabase bookmarkDatabase;
+    private boolean updatingText = false;
 
     private static final @NotNull EditorCustomization COLOR_SCHEME_FOR_CURRENT_UI_THEME_CUSTOMIZATION = editor -> {
         editor.setBackgroundColor(null); // to use background from set color scheme
@@ -44,8 +43,11 @@ public class SnippetBookmarkDetailPart extends AbstractBookmarkDetailPart {
     };
 
     public SnippetBookmarkDetailPart(Project project) {
-        super(project);
-        this.bookmarkDatabase = project.getService(BookmarksService.class).getBookmarkDatabase();
+        this(project, project.getService(BookmarksService.class).getBookmarkDatabase());
+    }
+
+    public SnippetBookmarkDetailPart(Project project, BookmarkDatabase bookmarkDatabase) {
+        super(project, bookmarkDatabase);
     }
 
     @Override
@@ -64,6 +66,9 @@ public class SnippetBookmarkDetailPart extends AbstractBookmarkDetailPart {
         editorField.addDocumentListener(new DocumentListener() {
             @Override
             public void documentChanged(@NotNull DocumentEvent event) {
+                if (updatingText) {
+                    return;
+                }
                 final String newSnippet = event.getDocument().getText();
                 try {
                     bookmarkDatabase.modify(bookmarksTreeModifier ->
@@ -99,12 +104,12 @@ public class SnippetBookmarkDetailPart extends AbstractBookmarkDetailPart {
 	public void setBookmark(Bookmark bookmark) {
         super.setBookmark(bookmark);
         String newComment = this.bookmark != null ? this.bookmark.getPropertyValue(PROP_SNIPPET_CONTENT) : null;
-        editorField.setText(newComment);
+        setText(newComment);
 	}
 
 	@Override
 	public boolean canHandle(Bookmark bookmark) {
-		return bookmark.getPropertyValue(PROP_SNIPPET_CONTENT) != null;
+		return bookmark != null && bookmark.getPropertyValue(PROP_SNIPPET_CONTENT) != null;
 	}
 
 	@Override
@@ -112,12 +117,21 @@ public class SnippetBookmarkDetailPart extends AbstractBookmarkDetailPart {
 		return "Snippet";
 	}
 
+    private void setText(String text) {
+        updatingText = true;
+        try {
+            editorField.setText(text);
+        } finally {
+            updatingText = false;
+        }
+    }
+
 	@Override
 	protected void bookmarkModified(Bookmark oldBookmark, Bookmark newBookmark) {
-        String oldSnippet = oldBookmark.getPropertyValue(PROP_SNIPPET_CONTENT);
-        String newSnippet = newBookmark.getPropertyValue(PROP_SNIPPET_CONTENT);
+        String oldSnippet = oldBookmark == null ? null : oldBookmark.getPropertyValue(PROP_SNIPPET_CONTENT);
+        String newSnippet = newBookmark == null ? null : newBookmark.getPropertyValue(PROP_SNIPPET_CONTENT);
         if (!Objects.equals(newSnippet, oldSnippet)) {
-            ApplicationManager.getApplication().invokeLater(() -> editorField.setText(newSnippet));
+            setText(newSnippet);
         }
 	}
 

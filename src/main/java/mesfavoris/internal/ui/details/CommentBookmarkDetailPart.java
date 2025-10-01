@@ -1,7 +1,6 @@
 package mesfavoris.internal.ui.details;
 
 import com.intellij.ide.ui.UISettingsUtils;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.SpellCheckingEditorCustomizationProvider;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
@@ -33,8 +32,8 @@ import static mesfavoris.model.Bookmark.PROPERTY_COMMENT;
  *
  */
 public class CommentBookmarkDetailPart extends AbstractBookmarkDetailPart {
-    private final BookmarkDatabase bookmarkDatabase;
     private EditorTextField editorField;
+    private boolean updatingText = false;
 
     private static final @NotNull EditorCustomization COLOR_SCHEME_FOR_CURRENT_UI_THEME_CUSTOMIZATION = editor -> {
         editor.setBackgroundColor(null); // to use background from set color scheme
@@ -42,8 +41,11 @@ public class CommentBookmarkDetailPart extends AbstractBookmarkDetailPart {
     };
 
     public CommentBookmarkDetailPart(Project project) {
-        super(project);
-        this.bookmarkDatabase = project.getService(BookmarksService.class).getBookmarkDatabase();
+        this(project, project.getService(BookmarksService.class).getBookmarkDatabase());
+    }
+
+    public CommentBookmarkDetailPart(Project project, BookmarkDatabase bookmarkDatabase) {
+        super(project, bookmarkDatabase);
     }
 
     @Override
@@ -62,6 +64,9 @@ public class CommentBookmarkDetailPart extends AbstractBookmarkDetailPart {
         editorField.addDocumentListener(new DocumentListener() {
             @Override
             public void documentChanged(@NotNull DocumentEvent event) {
+                if (updatingText) {
+                    return;
+                }
                 final String newComment = event.getDocument().getText();
                 try {
                     bookmarkDatabase.modify(bookmarksTreeModifier -> {
@@ -99,7 +104,8 @@ public class CommentBookmarkDetailPart extends AbstractBookmarkDetailPart {
 	public void setBookmark(Bookmark bookmark) {
         super.setBookmark(bookmark);
         String newComment = this.bookmark != null ? this.bookmark.getPropertyValue(PROPERTY_COMMENT): null;
-        editorField.setText(newComment);
+        setText(newComment);
+        editorField.setEnabled(this.bookmark != null);
 	}
 
 	@Override
@@ -113,12 +119,21 @@ public class CommentBookmarkDetailPart extends AbstractBookmarkDetailPart {
 		return "Comments";
 	}
 
+    private void setText(String text) {
+        updatingText = true;
+        try {
+            editorField.setText(text);
+        } finally {
+            updatingText = false;
+        }
+    }
+
 	@Override
 	protected void bookmarkModified(Bookmark oldBookmark, Bookmark newBookmark) {
-        String oldComment = oldBookmark.getPropertyValue(PROPERTY_COMMENT);
-        String newComment = newBookmark.getPropertyValue(PROPERTY_COMMENT);
+        String oldComment = oldBookmark == null ? null : oldBookmark.getPropertyValue(PROPERTY_COMMENT);
+        String newComment = newBookmark == null ? null : newBookmark.getPropertyValue(PROPERTY_COMMENT);
         if (!Objects.equals(newComment, oldComment)) {
-            ApplicationManager.getApplication().invokeLater(() -> editorField.setText(newComment));
+            setText(newComment);
         }
 	}
 

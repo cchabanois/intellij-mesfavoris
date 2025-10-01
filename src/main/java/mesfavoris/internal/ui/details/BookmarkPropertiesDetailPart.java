@@ -1,6 +1,5 @@
 package mesfavoris.internal.ui.details;
 
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
@@ -8,6 +7,7 @@ import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
 import mesfavoris.BookmarksException;
 import mesfavoris.model.Bookmark;
+import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.service.BookmarksService;
 
 import javax.swing.*;
@@ -20,7 +20,11 @@ public class BookmarkPropertiesDetailPart extends AbstractBookmarkDetailPart {
     private ListTableModel<Map.Entry<String, String>> listTableModel;
 
     public BookmarkPropertiesDetailPart(Project project) {
-        super(project);
+        this(project, project.getService(BookmarksService.class).getBookmarkDatabase());
+    }
+
+    public BookmarkPropertiesDetailPart(Project project, BookmarkDatabase  bookmarkDatabase) {
+        super(project, bookmarkDatabase);
     }
 
     @Override
@@ -46,13 +50,13 @@ public class BookmarkPropertiesDetailPart extends AbstractBookmarkDetailPart {
     }
 
     private void updateTableItems() {
-        List<Map.Entry<String, String>> items = new ArrayList<>(bookmark.getProperties().entrySet());
+        List<Map.Entry<String, String>> items = bookmark == null ? List.of() : new ArrayList<>(bookmark.getProperties().entrySet());
         listTableModel.setItems(items);
     }
 
     @Override
     protected void bookmarkModified(Bookmark oldBookmark, Bookmark newBookmark) {
-        ApplicationManager.getApplication().invokeLater(this::updateTableItems);
+        updateTableItems();
     }
 
     private ColumnInfo<Map.Entry<String, String>, String> getPropertyNameColumnInfo() {
