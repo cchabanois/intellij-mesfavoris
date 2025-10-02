@@ -15,6 +15,12 @@ public class PasteBookmarkAction extends AbstractAddBookmarkAction {
 
     @Override
     public void update(@NotNull AnActionEvent event) {
+        // Only enable when the bookmarks tree has focus
+        if (!isFocusOnBookmarksTree()) {
+            event.getPresentation().setEnabled(false);
+            return;
+        }
+
         Transferable transferable = CopyPasteManager.getInstance().getContents();
         event.getPresentation().setEnabled(transferable != null);
     }
