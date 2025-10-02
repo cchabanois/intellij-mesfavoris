@@ -15,6 +15,7 @@ import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.BookmarkMarker;
 import mesfavoris.internal.markers.BookmarksMarkers.BookmarksMarkersListener;
 import mesfavoris.model.Bookmark;
+import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.service.BookmarksService;
 
 import javax.swing.*;
@@ -34,9 +35,12 @@ public class MarkerBookmarkDetailPart extends AbstractBookmarkDetailPart {
     private final IBookmarksMarkers bookmarksMarkers;
 
     public MarkerBookmarkDetailPart(Project project) {
-        super(project);
-        BookmarksService bookmarksService = project.getService(BookmarksService.class);
-        this.bookmarksMarkers = bookmarksService.getBookmarksMarkers();
+        this(project, project.getService(BookmarksService.class).getBookmarkDatabase(), project.getService(BookmarksService.class).getBookmarksMarkers());
+    }
+
+    public MarkerBookmarkDetailPart(Project project, BookmarkDatabase bookmarkDatabase, IBookmarksMarkers bookmarksMarkers) {
+        super(project, bookmarkDatabase);
+        this.bookmarksMarkers = bookmarksMarkers;
         project.getMessageBus().connect(this).subscribe(BookmarksMarkersListener.TOPIC, new BookmarksMarkersListener() {
             @Override
             public void bookmarkMarkerDeleted(BookmarkMarker bookmarkMarker) {

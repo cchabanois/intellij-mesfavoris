@@ -1,11 +1,7 @@
 package mesfavoris.internal.ui.details;
 
-import java.util.List;
-
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import mesfavoris.service.BookmarksService;
-
 import mesfavoris.internal.model.compare.BookmarkComparer;
 import mesfavoris.internal.model.compare.BookmarkComparer.BookmarkDifferences;
 import mesfavoris.model.Bookmark;
@@ -13,6 +9,9 @@ import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.IBookmarksListener;
 import mesfavoris.model.modification.BookmarksModification;
 import mesfavoris.ui.details.IBookmarkDetailPart;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public abstract class AbstractBookmarkDetailPart implements IBookmarkDetailPart {
 	protected final BookmarkDatabase bookmarkDatabase;
@@ -20,10 +19,9 @@ public abstract class AbstractBookmarkDetailPart implements IBookmarkDetailPart 
 	protected Bookmark bookmark;
 	private final IBookmarksListener bookmarksListener = this::handleModifications;
 
-	public AbstractBookmarkDetailPart(Project project) {
+	public AbstractBookmarkDetailPart(Project project, BookmarkDatabase bookmarkDatabase) {
 		this.project = project;
-		BookmarksService bookmarksService = project.getService(BookmarksService.class);
-		this.bookmarkDatabase = bookmarksService.getBookmarkDatabase();
+		this.bookmarkDatabase = bookmarkDatabase;
 	}
 
 	@Override
@@ -67,6 +65,6 @@ public abstract class AbstractBookmarkDetailPart implements IBookmarkDetailPart 
 	 *            the bookmark after the modification. Null if bookmark has been
 	 *            deleted
 	 */
-	protected abstract void bookmarkModified(Bookmark oldBookmark, Bookmark newBookmark);
+	protected abstract void bookmarkModified(Bookmark oldBookmark, @Nullable Bookmark newBookmark);
 
 }

@@ -35,15 +35,15 @@ public class BookmarkDetailsPart implements IBookmarkDetailPart {
 	 * Constructor that creates detail parts from extensions
 	 */
 	public BookmarkDetailsPart(Project project, Disposable parentDisposable) {
-		this.project = project;
-		BookmarksService bookmarksService = project.getService(BookmarksService.class);
-		this.bookmarkDatabase = bookmarksService.getBookmarkDatabase();
-
-        BookmarkTypeExtensionManager extensionManager = BookmarkTypeExtensionManager.getInstance();
-		this.bookmarkDetailParts = extensionManager.createDetailParts(project);
-
-		Disposer.register(parentDisposable, this);
+		this(project, project.getService(BookmarksService.class).getBookmarkDatabase(), BookmarkTypeExtensionManager.getInstance().createDetailParts(project), parentDisposable);
 	}
+
+    public BookmarkDetailsPart(Project project, BookmarkDatabase bookmarkDatabase, List<IBookmarkDetailPart> bookmarkDetailParts, Disposable parentDisposable) {
+        this.project = project;
+        this.bookmarkDetailParts = bookmarkDetailParts;
+        this.bookmarkDatabase = bookmarkDatabase;
+        Disposer.register(parentDisposable, this);
+    }
 
 	@Override
 	public void init() {
@@ -89,7 +89,9 @@ public class BookmarkDetailsPart implements IBookmarkDetailPart {
 				}
 			}
 		}
-        tabs.select(Objects.requireNonNullElseGet(selectedTabItem, () -> tabs.getTabAt(0)), false);
+        if (tabs.getTabCount() > 0) {
+            tabs.select(Objects.requireNonNullElseGet(selectedTabItem, () -> tabs.getTabAt(0)), false);
+        }
 	}
 	
 	@Override

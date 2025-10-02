@@ -2,6 +2,7 @@ package mesfavoris.ui.details;
 
 import com.intellij.openapi.Disposable;
 import mesfavoris.model.Bookmark;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -33,7 +34,7 @@ public interface IBookmarkDetailPart extends Disposable {
 	 * @param bookmark
 	 *            the bookmark or null if no bookmark is selected
 	 */
-	void setBookmark(Bookmark bookmark);
+	void setBookmark(@Nullable Bookmark bookmark);
 
 	/**
 	 * Can this detail part handle this bookmark
@@ -42,7 +43,7 @@ public interface IBookmarkDetailPart extends Disposable {
 	 *            the bookmark or null if no bookmark is selected
 	 * @return true if this detail part can handle bookmark
 	 */
-	boolean canHandle(Bookmark bookmark);
+	boolean canHandle(@Nullable Bookmark bookmark);
 
 
 }
