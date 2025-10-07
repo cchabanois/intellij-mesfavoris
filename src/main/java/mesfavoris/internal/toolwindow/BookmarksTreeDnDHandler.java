@@ -74,61 +74,48 @@ public class BookmarksTreeDnDHandler implements DnDSource, DnDTarget, Disposable
     @Override
     public boolean update(DnDEvent event) {
         event.setDropPossible(false);
-        
+
         Object attached = event.getAttachedObject();
         if (!(attached instanceof List)) {
             return false;
         }
-        
+
         @SuppressWarnings("unchecked")
         List<Bookmark> bookmarks = (List<Bookmark>) attached;
-        
+
         Point point = event.getPoint();
-        TreePath targetPath = tree.getClosestPathForLocation(point.x, point.y);
-        
-        if (targetPath == null) {
+        DropLocation dropLocation = calculateDropLocation(point);
+
+        if (dropLocation == null) {
             return false;
         }
-        
-        Bookmark targetBookmark = tree.getBookmark(targetPath);
-        if (targetBookmark == null) {
-            return false;
-        }
-        
-        BookmarksTree bookmarksTree = bookmarkDatabase.getBookmarksTree();
-        
-        // Determine drop location based on mouse position
-        Rectangle bounds = tree.getPathBounds(targetPath);
-        if (bounds == null) {
-            return false;
-        }
-        
-        DropLocation dropLocation = calculateDropLocation(point, bounds, targetPath, targetBookmark);
-        
+
         // Validate the drop
+        BookmarksTree bookmarksTree = bookmarkDatabase.getBookmarksTree();
         BookmarkFolder parentFolder = dropLocation.getParentFolder(bookmarksTree);
         if (parentFolder == null) {
             return false;
         }
-        
+
         boolean isValid = bookmarkDatabase.getBookmarksModificationValidator()
                 .validateModification(bookmarksTree, parentFolder.getId()).isOk();
-        
+
         if (isValid) {
             event.setDropPossible(true);
-            
+
             // Set the drop highlight
+            Rectangle bounds = dropLocation.bounds;
             if (dropLocation.type == DropType.INTO) {
                 event.setHighlighting(new RelativeRectangle(tree, bounds), DnDEvent.DropTargetHighlightingType.RECTANGLE);
             } else {
                 // Show line above or below
-                Rectangle lineRect = new Rectangle(bounds.x, 
+                Rectangle lineRect = new Rectangle(bounds.x,
                         dropLocation.type == DropType.BEFORE ? bounds.y : bounds.y + bounds.height - 1,
                         bounds.width, 2);
                 event.setHighlighting(new RelativeRectangle(tree, lineRect), DnDEvent.DropTargetHighlightingType.FILLED_RECTANGLE);
             }
         }
-        
+
         return true;
     }
     
@@ -138,28 +125,17 @@ public class BookmarksTreeDnDHandler implements DnDSource, DnDTarget, Disposable
         if (!(attached instanceof List)) {
             return;
         }
-        
+
         @SuppressWarnings("unchecked")
         List<Bookmark> bookmarks = (List<Bookmark>) attached;
-        
+
         Point point = event.getPoint();
-        TreePath targetPath = tree.getClosestPathForLocation(point.x, point.y);
-        
-        if (targetPath == null) {
+        DropLocation dropLocation = calculateDropLocation(point);
+
+        if (dropLocation == null) {
             return;
         }
-        
-        Bookmark targetBookmark = tree.getBookmark(targetPath);
-        if (targetBookmark == null) {
-            return;
-        }
-        
-        Rectangle bounds = tree.getPathBounds(targetPath);
-        if (bounds == null) {
-            return;
-        }
-        
-        DropLocation dropLocation = calculateDropLocation(point, bounds, targetPath, targetBookmark);
+
         performDrop(bookmarks, dropLocation);
     }
     
@@ -184,12 +160,14 @@ public class BookmarksTreeDnDHandler implements DnDSource, DnDTarget, Disposable
     private static class DropLocation {
         final DropType type;
         final Bookmark targetBookmark;
-        
-        DropLocation(DropType type, Bookmark targetBookmark) {
+        final Rectangle bounds;
+
+        DropLocation(DropType type, Bookmark targetBookmark, Rectangle bounds) {
             this.type = type;
             this.targetBookmark = targetBookmark;
+            this.bounds = bounds;
         }
-        
+
         BookmarkFolder getParentFolder(BookmarksTree bookmarksTree) {
             if (type == DropType.INTO && targetBookmark instanceof BookmarkFolder) {
                 return (BookmarkFolder) targetBookmark;
@@ -199,25 +177,40 @@ public class BookmarksTreeDnDHandler implements DnDSource, DnDTarget, Disposable
         }
     }
     
-    private DropLocation calculateDropLocation(Point point, Rectangle bounds, TreePath targetPath, Bookmark targetBookmark) {
+    private DropLocation calculateDropLocation(Point point) {
+        TreePath targetPath = tree.getClosestPathForLocation(point.x, point.y);
+        if (targetPath == null) {
+            return null;
+        }
+
+        Bookmark targetBookmark = tree.getBookmark(targetPath);
+        if (targetBookmark == null) {
+            return null;
+        }
+
+        Rectangle bounds = tree.getPathBounds(targetPath);
+        if (bounds == null) {
+            return null;
+        }
+
         int relativeY = point.y - bounds.y;
         int height = bounds.height;
-        
+
         if (targetBookmark instanceof BookmarkFolder) {
             // For folders: top 25% = before, middle 50% = into, bottom 25% = after
             if (relativeY < height * 0.25) {
-                return new DropLocation(DropType.BEFORE, targetBookmark);
+                return new DropLocation(DropType.BEFORE, targetBookmark, bounds);
             } else if (relativeY > height * 0.75) {
-                return new DropLocation(DropType.AFTER, targetBookmark);
+                return new DropLocation(DropType.AFTER, targetBookmark, bounds);
             } else {
-                return new DropLocation(DropType.INTO, targetBookmark);
+                return new DropLocation(DropType.INTO, targetBookmark, bounds);
             }
         } else {
             // For bookmarks: top 50% = before, bottom 50% = after
             if (relativeY < height * 0.5) {
-                return new DropLocation(DropType.BEFORE, targetBookmark);
+                return new DropLocation(DropType.BEFORE, targetBookmark, bounds);
             } else {
-                return new DropLocation(DropType.AFTER, targetBookmark);
+                return new DropLocation(DropType.AFTER, targetBookmark, bounds);
             }
         }
     }
