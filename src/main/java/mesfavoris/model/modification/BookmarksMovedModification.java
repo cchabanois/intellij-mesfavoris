@@ -1,13 +1,12 @@
 package mesfavoris.model.modification;
 
-import java.util.List;
-
 import com.google.common.collect.Lists;
-
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkFolder;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.BookmarksTree;
+
+import java.util.List;
 
 public class BookmarksMovedModification extends BookmarksModification {
 	private final List<BookmarkId> bookmarkIds;
@@ -26,6 +25,10 @@ public class BookmarksMovedModification extends BookmarksModification {
 	public BookmarkId getNewParentId() {
 		return newParentId;
 	}
+
+    public BookmarkId getOldParentId() {
+        return sourceTree.getParentBookmark(bookmarkIds.get(0)).getId();
+    }
 
 	public BookmarkId getAfterBookmarkId() {
 		BookmarkId bookmarkId = bookmarkIds.get(0);

@@ -4,6 +4,7 @@ import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.*;
 import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.JBUI;
@@ -31,6 +32,7 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
     private final BookmarksService bookmarksService;
     private final BookmarksTreeCellRenderer bookmarksTreeCellRenderer;
     private final BookmarkDetailsPart bookmarkDetailsPart;
+    private final BookmarksTreeDnDHandler dndHandler;
 
     public MesFavorisPanel(@NotNull Project project) {
         super(new BorderLayout());
@@ -45,6 +47,10 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         installTreeSpeedSearch();
         installDoubleClickListener();
         installPopupMenu();
+
+        // Setup drag and drop
+        dndHandler = new BookmarksTreeDnDHandler(tree, bookmarkDatabase);
+        Disposer.register(this, dndHandler);
 
         bookmarkDetailsPart = new BookmarkDetailsPart(project, this);
         bookmarkDetailsPart.init();

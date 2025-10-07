@@ -1,8 +1,8 @@
 package mesfavoris.internal.toolwindow;
 
-import com.intellij.ide.dnd.aware.DnDAwareTree;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.treeStructure.Tree;
 import mesfavoris.commons.Adapters;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
@@ -11,7 +11,7 @@ import mesfavoris.model.BookmarkId;
 import javax.swing.tree.TreePath;
 import java.util.Optional;
 
-public class BookmarksTreeComponent extends DnDAwareTree implements Disposable {
+public class BookmarksTreeComponent extends Tree implements Disposable {
     private final BookmarksTreeModel bookmarksTreeModel;
 
     public BookmarksTreeComponent(BookmarkDatabase bookmarkDatabase, Disposable parentDisposable) {

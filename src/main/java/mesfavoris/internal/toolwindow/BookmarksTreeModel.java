@@ -12,10 +12,7 @@ import mesfavoris.BookmarksException;
 import mesfavoris.commons.Adapters;
 import mesfavoris.internal.service.operations.RenameBookmarkOperation;
 import mesfavoris.model.*;
-import mesfavoris.model.modification.BookmarkDeletedModification;
-import mesfavoris.model.modification.BookmarkPropertiesModification;
-import mesfavoris.model.modification.BookmarksAddedModification;
-import mesfavoris.model.modification.BookmarksModification;
+import mesfavoris.model.modification.*;
 
 import javax.swing.tree.TreePath;
 import java.util.ArrayList;
@@ -43,6 +40,12 @@ public class BookmarksTreeModel extends BaseTreeModel<Bookmark> {
                 // treeNodesChanged is for changes on a given (mutable) object
                 getTreePathForBookmark(parentBookmarkId)
                     .ifPresent(treePath -> treeStructureChanged(treePath, new int[0], new Object[0]));
+            }
+            if (modification instanceof BookmarksMovedModification bookmarksMovedModification) {
+                getTreePathForBookmark(bookmarksMovedModification.getNewParentId())
+                    .ifPresent(treePath -> treeStructureChanged(treePath, new int[0], new Object[0]));
+                getTreePathForBookmark(bookmarksMovedModification.getOldParentId())
+                        .ifPresent(treePath -> treeStructureChanged(treePath, new int[0], new Object[0]));
             }
         }
     }, ModalityState.defaultModalityState());
