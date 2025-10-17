@@ -7,18 +7,18 @@ import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.BookmarksTree;
+import mesfavoris.tests.commons.waits.Waiter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.swing.tree.TreePath;
+import java.awt.event.MouseEvent;
 import java.util.Collections;
 
 import static mesfavoris.tests.commons.bookmarks.BookmarkBuilder.bookmark;
 import static mesfavoris.tests.commons.bookmarks.BookmarksTreeBuilder.bookmarksTree;
 import static org.assertj.core.api.Assertions.assertThat;
-
-import mesfavoris.tests.commons.waits.Waiter;
 
 public class BookmarksTreeComponentTest extends BasePlatformTestCase {
     private BookmarkDatabase bookmarkDatabase;
@@ -100,5 +100,30 @@ public class BookmarksTreeComponentTest extends BasePlatformTestCase {
 
         // Then: Should return the string representation
         assertThat(displayText).isEqualTo("not a bookmark");
+    }
+
+    @Test
+    public void testIsPathEditableReturnsTrueForEditableBookmark() {
+        // Given: Get the tree path for our test bookmark
+        TreePath treePath = treeComponent.getTreePathForBookmark(testBookmarkId).orElseThrow();
+
+        // When: Check if path is editable
+        boolean isPathEditable = treeComponent.isPathEditable(treePath);
+
+        // Then: Path should be editable (validator allows modification)
+        assertThat(isPathEditable).isTrue();
+    }
+
+    @Test
+    public void testCellEditorRejectsMouseEvents() {
+        // Given: A mouse event
+        MouseEvent mouseEvent = new MouseEvent(treeComponent, MouseEvent.MOUSE_CLICKED,
+                System.currentTimeMillis(), 0, 0, 0, 1, false);
+
+        // When: Check if cell editor accepts mouse event
+        boolean isCellEditable = treeComponent.getCellEditor().isCellEditable(mouseEvent);
+
+        // Then: Should return false (inline edit disabled for mouse events)
+        assertThat(isCellEditable).isFalse();
     }
 }
