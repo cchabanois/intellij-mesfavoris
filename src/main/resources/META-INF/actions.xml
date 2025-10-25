@@ -20,6 +20,14 @@
             </action>
             <action id="mesfavoris.actions.RenameBookmarkAction"  class="mesfavoris.internal.actions.RenameBookmarkAction" text="Rename" description="Rename Bookmark">
             </action>
+            <action id="mesfavoris.actions.CopyBookmarkAction"  class="mesfavoris.internal.actions.CopyBookmarkAction" text="Copy" description="Copy" icon="AllIcons.Actions.Copy">
+                <keyboard-shortcut keymap="$default" first-keystroke="control C"/>
+                <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta C"/>
+            </action>
+            <action id="mesfavoris.actions.CutBookmarkAction"  class="mesfavoris.internal.actions.CutBookmarkAction" text="Cut" description="Cut" icon="AllIcons.Actions.Menu_cut">
+                <keyboard-shortcut keymap="$default" first-keystroke="control X"/>
+                <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta X"/>
+            </action>
             <action id="mesfavoris.actions.PasteBookmarkAction"  class="mesfavoris.internal.actions.PasteBookmarkAction" text="Paste" description="Paste" icon="AllIcons.Actions.MenuPaste">
                 <keyboard-shortcut keymap="$default" first-keystroke="control V"/>
                 <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta V"/>
