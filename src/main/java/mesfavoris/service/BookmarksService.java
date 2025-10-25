@@ -174,6 +174,26 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
         operation.setProperties(bookmarkId, properties);
     }
 
+    public void copyToClipboard(List<BookmarkId> selection) {
+        CopyBookmarkOperation operation = new CopyBookmarkOperation();
+        operation.copyToClipboard(bookmarkDatabase.getBookmarksTree(), selection);
+    }
+
+    public void paste(BookmarkId parentBookmarkId, ProgressIndicator progress) throws BookmarksException {
+        PasteBookmarkOperation operation = new PasteBookmarkOperation(project, bookmarkDatabase, bookmarkPropertiesProvider);
+        operation.paste(parentBookmarkId, progress);
+    }
+
+    public void pasteAfter(BookmarkId parentBookmarkId, BookmarkId bookmarkId, ProgressIndicator progress) throws BookmarksException {
+        PasteBookmarkOperation operation = new PasteBookmarkOperation(project, bookmarkDatabase, bookmarkPropertiesProvider);
+        operation.pasteAfter(parentBookmarkId, bookmarkId, progress);
+    }
+
+    public void cutToClipboard(List<BookmarkId> selection) throws BookmarksException {
+        CutBookmarkOperation operation = new CutBookmarkOperation(bookmarkDatabase);
+        operation.cutToClipboard(selection);
+    }
+
     @Override
     public void dispose() {
         bookmarksSaver.close();
