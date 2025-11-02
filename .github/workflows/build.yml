@@ -117,6 +117,9 @@ jobs:
 
       # Run tests
       - name: Run Tests
+        env:
+          USER1_GDRIVE_REFRESH_TOKEN: ${{ secrets.USER1_GDRIVE_REFRESH_TOKEN }}
+          USER1_GDRIVE_USERNAME: ${{ secrets.USER1_GDRIVE_USERNAME }}
         run: ./gradlew check
 
       # Collect Tests Result of failed tests
