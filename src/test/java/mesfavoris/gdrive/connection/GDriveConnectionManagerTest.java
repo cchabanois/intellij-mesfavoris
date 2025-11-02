@@ -3,7 +3,7 @@ package mesfavoris.gdrive.connection;
 import com.google.api.client.auth.oauth2.StoredCredential;
 import com.google.api.client.util.store.DataStore;
 import com.google.api.client.util.store.FileDataStoreFactory;
-import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.progress.util.ProgressIndicatorBase;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import mesfavoris.gdrive.GDriveTestUser;
 import mesfavoris.remote.IRemoteBookmarksStore.State;
@@ -61,7 +61,7 @@ public class GDriveConnectionManagerTest extends BasePlatformTestCase {
     }
 
     private void deleteApplicationFolder() throws IOException {
-        gDriveConnectionManager.connect(new EmptyProgressIndicator());
+        gDriveConnectionManager.connect(new ProgressIndicatorBase());
         gDriveConnectionManager.getDrive().files().delete(gDriveConnectionManager.getApplicationFolderId());
     }
 
@@ -69,7 +69,7 @@ public class GDriveConnectionManagerTest extends BasePlatformTestCase {
         // Given
 
         // When
-        gDriveConnectionManager.connect(new EmptyProgressIndicator());
+        gDriveConnectionManager.connect(new ProgressIndicatorBase());
 
         // Then
         assertThat(gDriveConnectionManager.getState()).isEqualTo(State.connected);
@@ -81,10 +81,10 @@ public class GDriveConnectionManagerTest extends BasePlatformTestCase {
 
     public void testDisconnect() throws Exception {
         // Given
-        gDriveConnectionManager.connect(new EmptyProgressIndicator());
+        gDriveConnectionManager.connect(new ProgressIndicatorBase());
 
         // When
-        gDriveConnectionManager.disconnect(new EmptyProgressIndicator());
+        gDriveConnectionManager.disconnect(new ProgressIndicatorBase());
 
         // Then
         assertThat(gDriveConnectionManager.getState()).isEqualTo(State.disconnected);
