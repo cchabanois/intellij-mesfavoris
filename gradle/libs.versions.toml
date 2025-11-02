@@ -4,6 +4,9 @@ junit = "4.13.2"
 javimmutable-collections = "2.4.1"
 assertj = "3.27.6"
 mockito = "5.20.0"
+opentest4j = "1.3.0"
+google-api-services-drive = "v2-rev20220709-1.32.1"
+google-oauth-client = "1.32.1"
 
 # plugins
 changelog = "2.4.0"
@@ -17,6 +20,11 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 javimmutableCollections = { group = "org.javimmutable", name = "javimmutable-collections", version.ref = "javimmutable-collections" }
 assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
 mockito =  { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
+opentest4j = { group = "org.opentest4j", name = "opentest4j", version.ref = "opentest4j" }
+gdrive = { group = "com.google.apis", name = "google-api-services-drive", version.ref = "google-api-services-drive" }
+googleOauthClientJava6 = { group = "com.google.oauth-client", name = "google-oauth-client-java6", version.ref = "google-oauth-client" }
+googleOauthClientJetty = { group = "com.google.oauth-client", name = "google-oauth-client-jetty", version.ref = "google-oauth-client" }
+googleHttpClientJackson2 = { group = "com.google.http-client", name = "google-http-client-jackson2", version.ref = "google-oauth-client" }
 
 [plugins]
 changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }
