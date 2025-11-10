@@ -53,7 +53,7 @@ public class GDriveConnectionManager {
 	private final String applicationFolderName;
 	private final AtomicReference<State> state = new AtomicReference<>(State.disconnected);
     private final DataStoreFactory dataStoreFactory;
-	private final GDriveUserInfoStore userInfoStore;
+	private final IGDriveUserInfoStore userInfoStore;
 	private Drive drive;
 	private String applicationFolderId;
 	private UserInfo userInfo;
@@ -75,8 +75,10 @@ public class GDriveConnectionManager {
 	}
 
 	public GDriveConnectionManager(DataStoreFactory dataStoreFactory,
-			IAuthorizationCodeInstalledAppProvider authorizationCodeInstalledAppProvider,
-			GDriveUserInfoStore userInfoStore, String applicationName, String applicationFolderName) {
+			                       IAuthorizationCodeInstalledAppProvider authorizationCodeInstalledAppProvider,
+                                   IGDriveUserInfoStore userInfoStore,
+                                   String applicationName,
+                                   String applicationFolderName) {
         this.dataStoreFactory = dataStoreFactory;
 		this.authorizationCodeInstalledAppProvider = authorizationCodeInstalledAppProvider;
 		this.userInfoStore = userInfoStore;
