@@ -2,13 +2,13 @@ package mesfavoris.gdrive.test;
 
 import com.google.api.client.auth.oauth2.StoredCredential;
 import com.google.api.client.util.store.DataStore;
-import com.google.api.client.util.store.MemoryDataStoreFactory;
 import com.google.api.services.drive.Drive;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import mesfavoris.gdrive.GDriveTestUser;
 import mesfavoris.gdrive.connection.GDriveConnectionManager;
 import mesfavoris.gdrive.connection.NoAuthorizationCodeInstalledApp;
 import mesfavoris.gdrive.connection.auth.IAuthorizationCodeInstalledAppProvider;
+import mesfavoris.gdrive.connection.store.PasswordSafeDataStoreFactory;
 import org.junit.rules.ExternalResource;
 
 import java.io.IOException;
@@ -19,7 +19,7 @@ import static com.google.api.client.auth.oauth2.StoredCredential.DEFAULT_DATA_ST
 public class GDriveConnectionRule extends ExternalResource {
 
 	private GDriveConnectionManager gDriveConnectionManager;
-	private MemoryDataStoreFactory dataStoreFactory;
+	private PasswordSafeDataStoreFactory dataStoreFactory;
 	private final boolean connect;
 	private final IAuthorizationCodeInstalledAppProvider authorizationCodeProvider;
 	private final GDriveTestUser user;
@@ -32,8 +32,7 @@ public class GDriveConnectionRule extends ExternalResource {
 
 	@Override
 	public void before() throws Exception {
-		dataStoreFactory = new MemoryDataStoreFactory();
-
+        dataStoreFactory = new PasswordSafeDataStoreFactory();
 		if (user.getCredential().isPresent()) {
 			addCredentialToDataStore(user.getCredential().get());
 		}
@@ -50,7 +49,11 @@ public class GDriveConnectionRule extends ExternalResource {
 
 	private void addCredentialToDataStore(StoredCredential credential) throws IOException {
 		DataStore<StoredCredential> dataStore = dataStoreFactory.getDataStore(DEFAULT_DATA_STORE_ID);
-		dataStore.set("user", credential);
+        StoredCredential existingCred = dataStore.get("user");
+        // only add credential if it's a different one
+        if (existingCred == null || !existingCred.getRefreshToken().equals(credential.getRefreshToken())) {
+            dataStore.set("user", credential);
+        }
 	}
 	
 	public String getApplicationFolderId() {

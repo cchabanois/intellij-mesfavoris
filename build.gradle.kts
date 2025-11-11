@@ -140,6 +140,12 @@ tasks {
     publishPlugin {
         dependsOn(patchChangelog)
     }
+
+    test {
+        testLogging {
+            showStandardStreams = true
+        }
+    }
 }
 
 intellijPlatformTesting {
