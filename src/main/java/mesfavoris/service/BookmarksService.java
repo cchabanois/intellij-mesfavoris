@@ -45,6 +45,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 @Service(Service.Level.PROJECT)
 @State(name = "BookmarksService", storages = @Storage(value = "mesfavoris.xml", roamingType = RoamingType.PER_OS))
@@ -192,6 +193,12 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
     public void cutToClipboard(List<BookmarkId> selection) throws BookmarksException {
         CutBookmarkOperation operation = new CutBookmarkOperation(bookmarkDatabase);
         operation.cutToClipboard(selection);
+    }
+
+    public void addBookmarksTree(BookmarkId parentBookmarkId, BookmarksTree sourceBookmarksTree,
+                                 Consumer<BookmarksTree> afterCommit) throws BookmarksException {
+        AddBookmarksTreeOperation operation = new AddBookmarksTreeOperation(bookmarkDatabase);
+        operation.addBookmarksTree(parentBookmarkId, sourceBookmarksTree, afterCommit);
     }
 
     @Override

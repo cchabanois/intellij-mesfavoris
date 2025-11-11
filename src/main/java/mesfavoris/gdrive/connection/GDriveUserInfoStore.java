@@ -11,10 +11,11 @@ import org.jetbrains.annotations.Nullable;
 
 @Service(Service.Level.PROJECT)
 @State(name = "GDriveUserInfo", storages = @Storage("mesfavoris-gdrive.xml"))
-public final class GDriveUserInfoStore implements PersistentStateComponent<GDriveUserInfoStore.State> {
+public final class GDriveUserInfoStore implements PersistentStateComponent<GDriveUserInfoStore.State>, IGDriveUserInfoStore {
 
     private State state = new State();
 
+    @Override
     @Nullable
     public UserInfo getUserInfo() {
         if (state.email == null) {
@@ -23,6 +24,7 @@ public final class GDriveUserInfoStore implements PersistentStateComponent<GDriv
         return new UserInfo(state.email, state.displayName);
     }
 
+    @Override
     public void setUserInfo(@Nullable UserInfo userInfo) {
         if (userInfo == null) {
             state.email = null;
