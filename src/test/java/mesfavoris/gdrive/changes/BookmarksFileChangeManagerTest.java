@@ -1,6 +1,5 @@
 package mesfavoris.gdrive.changes;
 
-import com.google.api.client.util.Charsets;
 import com.google.api.services.drive.model.Change;
 import com.google.api.services.drive.model.File;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
@@ -21,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static mesfavoris.gdrive.operations.BookmarkFileConstants.MESFAVORIS_MIME_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -70,7 +70,7 @@ public class BookmarksFileChangeManagerTest extends BasePlatformTestCase {
 				"new bookmarks for folder1");
 
 		// Then
-		Waiter.waitUntil("Listener not called", () -> listener.getEvents().size() == 1);
+		Waiter.waitUntil("Listener not called", () -> listener.getEvents().size() == 1, Duration.ofSeconds(10));
 		Thread.sleep(100);
 		assertThat(listener.getEvents()).hasSize(1);
 		assertThat(listener.getEvents().get(0).bookmarkFolderId).isEqualTo(new BookmarkId("bookmarkFolder1"));
@@ -103,15 +103,14 @@ public class BookmarksFileChangeManagerTest extends BasePlatformTestCase {
 
 	private File createFile(String name, String mimeType, String contents) throws IOException {
 		CreateFileOperation createFileOperation = new CreateFileOperation(gdriveConnectionRule.getDrive());
-		byte[] bytes = contents.getBytes("UTF-8");
-		File file = createFileOperation.createFile(gdriveConnectionRule.getApplicationFolderId(), name, mimeType, bytes,
-				new EmptyProgressIndicator());
-		return file;
+		byte[] bytes = contents.getBytes(UTF_8);
+        return createFileOperation.createFile(gdriveConnectionRule.getApplicationFolderId(), name, mimeType, bytes,
+                new EmptyProgressIndicator());
 	}
 
 	private void updateFile(String fileId, String mimeType, String newContents) throws IOException {
 		UpdateFileOperation updateFileOperation = new UpdateFileOperation(gdriveConnectionRule.getDrive());
-		updateFileOperation.updateFile(fileId, mimeType, newContents.getBytes(Charsets.UTF_8), null,
+		updateFileOperation.updateFile(fileId, mimeType, newContents.getBytes(UTF_8), null,
 				new EmptyProgressIndicator());
 	}
 
