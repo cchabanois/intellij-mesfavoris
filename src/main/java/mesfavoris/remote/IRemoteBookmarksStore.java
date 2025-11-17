@@ -10,7 +10,7 @@ import java.util.Set;
 
 public interface IRemoteBookmarksStore {
 
-    public static enum State {
+    enum State {
         disconnected, connecting, connected
     }
 
@@ -21,7 +21,7 @@ public interface IRemoteBookmarksStore {
      */
     UserInfo getUserInfo();
 
-    IRemoteBookmarksStoreDescriptor getDescriptor();
+    RemoteBookmarksStoreDescriptor getDescriptor();
 
     void connect(ProgressIndicator progressIndicator) throws IOException;
 

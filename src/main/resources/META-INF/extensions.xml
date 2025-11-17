@@ -3,6 +3,7 @@
         <toolWindow id="mesfavoris" secondary="true" icon="AllIcons.General.Modified" anchor="right"
                     factoryClass="mesfavoris.internal.toolwindow.MesFavorisToolWindowFactory"/>
         <postStartupActivity implementation="mesfavoris.internal.markers.BookmarksHighlighters$BookmarksHighlightersStartupActivity"/>
+        <postStartupActivity implementation="mesfavoris.internal.actions.RemoteBookmarksStoreActionsRegistrar"/>
         <notificationGroup
                 id="com.cchabanois.mesfavoris.errors"
                 displayType="STICKY_BALLOON"
@@ -15,6 +16,8 @@
         />
         <projectService serviceImplementation="mesfavoris.internal.toolwindow.BookmarksTreeComponentStateService"/>
         <projectService serviceImplementation="mesfavoris.gdrive.connection.GDriveUserInfoStore"/>
+        <projectService serviceImplementation="mesfavoris.gdrive.mappings.BookmarkMappingsStore"/>
+        <projectService serviceImplementation="mesfavoris.remote.RemoteBookmarksStoreExtensionManager"/>
         <applicationService serviceImplementation="mesfavoris.internal.settings.placeholders.PathPlaceholdersStore"/>
         <applicationService serviceImplementation="mesfavoris.internal.settings.bookmarktypes.BookmarkTypesStore"/>
         <applicationConfigurable parentId="tools" instance="mesfavoris.internal.settings.MesFavorisConfigurable"
@@ -41,5 +44,8 @@
 
         <!-- Snippet Bookmark Type -->
         <bookmarkType implementation="mesfavoris.snippets.internal.SnippetBookmarkTypeExtension"/>
+
+        <!-- Remote Bookmarks Stores -->
+        <remoteBookmarksStore implementation="mesfavoris.gdrive.GDriveRemoteBookmarksStoreExtension"/>
     </extensions>
 </idea-plugin>
