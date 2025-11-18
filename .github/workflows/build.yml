@@ -88,7 +88,7 @@ jobs:
 
       # Store already-built plugin as an artifact for downloading
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ steps.artifact.outputs.filename }}
           path: ./build/distributions/content/*/*
@@ -117,12 +117,17 @@ jobs:
 
       # Run tests
       - name: Run Tests
+        env:
+          USER1_GDRIVE_REFRESH_TOKEN: ${{ secrets.USER1_GDRIVE_REFRESH_TOKEN }}
+          USER1_GDRIVE_USERNAME: ${{ secrets.USER1_GDRIVE_USERNAME }}
+          USER2_GDRIVE_REFRESH_TOKEN: ${{ secrets.USER2_GDRIVE_REFRESH_TOKEN }}
+          USER2_GDRIVE_USERNAME: ${{ secrets.USER2_GDRIVE_USERNAME }}
         run: ./gradlew check
 
       # Collect Tests Result of failed tests
       - name: Collect Tests Result
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: tests-result
           path: ${{ github.workspace }}/build/reports/tests
@@ -214,7 +219,7 @@ jobs:
       # Collect Plugin Verifier Result
       - name: Collect Plugin Verifier Result
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: pluginVerifier-result
           path: ${{ github.workspace }}/build/reports/pluginVerifier

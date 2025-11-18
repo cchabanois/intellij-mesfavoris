@@ -45,6 +45,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 @Service(Service.Level.PROJECT)
 @State(name = "BookmarksService", storages = @Storage(value = "mesfavoris.xml", roamingType = RoamingType.PER_OS))
@@ -172,6 +173,32 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
     public void setBookmarkProperties(BookmarkId bookmarkId, Map<String, String> properties) throws BookmarksException {
         SetBookmarkPropertiesOperation operation = new SetBookmarkPropertiesOperation(bookmarkDatabase);
         operation.setProperties(bookmarkId, properties);
+    }
+
+    public void copyToClipboard(List<BookmarkId> selection) {
+        CopyBookmarkOperation operation = new CopyBookmarkOperation();
+        operation.copyToClipboard(bookmarkDatabase.getBookmarksTree(), selection);
+    }
+
+    public void paste(BookmarkId parentBookmarkId, ProgressIndicator progress) throws BookmarksException {
+        PasteBookmarkOperation operation = new PasteBookmarkOperation(project, bookmarkDatabase, bookmarkPropertiesProvider);
+        operation.paste(parentBookmarkId, progress);
+    }
+
+    public void pasteAfter(BookmarkId parentBookmarkId, BookmarkId bookmarkId, ProgressIndicator progress) throws BookmarksException {
+        PasteBookmarkOperation operation = new PasteBookmarkOperation(project, bookmarkDatabase, bookmarkPropertiesProvider);
+        operation.pasteAfter(parentBookmarkId, bookmarkId, progress);
+    }
+
+    public void cutToClipboard(List<BookmarkId> selection) throws BookmarksException {
+        CutBookmarkOperation operation = new CutBookmarkOperation(bookmarkDatabase);
+        operation.cutToClipboard(selection);
+    }
+
+    public void addBookmarksTree(BookmarkId parentBookmarkId, BookmarksTree sourceBookmarksTree,
+                                 Consumer<BookmarksTree> afterCommit) throws BookmarksException {
+        AddBookmarksTreeOperation operation = new AddBookmarksTreeOperation(bookmarkDatabase);
+        operation.addBookmarksTree(parentBookmarkId, sourceBookmarksTree, afterCommit);
     }
 
     @Override

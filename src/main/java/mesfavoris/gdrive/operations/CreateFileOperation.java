@@ -1,0 +1,45 @@
+package mesfavoris.gdrive.operations;
+
+import com.google.api.client.googleapis.media.MediaHttpUploader;
+import com.google.api.client.http.ByteArrayContent;
+import com.google.api.services.drive.Drive;
+import com.google.api.services.drive.model.File;
+import com.google.api.services.drive.model.ParentReference;
+import com.intellij.openapi.progress.ProgressIndicator;
+
+import java.io.IOException;
+import java.util.List;
+
+/**
+ * Create a file on GDrive
+ *
+ * @author cchabanois
+ *
+ */
+public class CreateFileOperation extends AbstractGDriveOperation {
+	public CreateFileOperation(Drive drive) {
+		super(drive);
+	}
+
+	public File createFile(String parentId, String name, String mimeType, byte[] content, ProgressIndicator progressIndicator) throws IOException {
+		File fileMetadata = new File();
+		fileMetadata.setTitle(name);
+		fileMetadata.setParents(List.of(new ParentReference().setId(parentId)));
+		ByteArrayContent mediaContent = new ByteArrayContent(mimeType, content);
+
+		Drive.Files.Insert insert = drive.files().insert(fileMetadata, mediaContent);
+		MediaHttpUploader uploader = insert.getMediaHttpUploader();
+		uploader.setDirectUploadEnabled(true);
+
+		FileUploadProgressListener uploadProgressListener = new FileUploadProgressListener(progressIndicator);
+		uploader.setProgressListener(uploadProgressListener);
+		uploadProgressListener.begin();
+		try {
+			fileMetadata = insert.execute();
+			return fileMetadata;
+		} finally {
+			uploadProgressListener.done();
+		}
+	}
+
+}
