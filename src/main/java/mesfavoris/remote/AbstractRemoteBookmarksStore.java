@@ -5,44 +5,44 @@ import mesfavoris.model.BookmarkId;
 
 public abstract class AbstractRemoteBookmarksStore implements IRemoteBookmarksStore {
 	private final Project project;
-	private IRemoteBookmarksStoreDescriptor descriptor;
+	private RemoteBookmarksStoreDescriptor descriptor;
 
 	public AbstractRemoteBookmarksStore(Project project) {
 		this.project = project;
 	}
 
-	public void init(IRemoteBookmarksStoreDescriptor descriptor) {
+	public void init(RemoteBookmarksStoreDescriptor descriptor) {
 		this.descriptor = descriptor;
 	}
 
 	@Override
-	public IRemoteBookmarksStoreDescriptor getDescriptor() {
+	public RemoteBookmarksStoreDescriptor getDescriptor() {
 		return descriptor;
 	}
 
 	protected void postConnected() {
 		project.getMessageBus().syncPublisher(RemoteBookmarksStoreListener.TOPIC)
-				.remoteBookmarksStoreConnected(getDescriptor().getId());
+				.remoteBookmarksStoreConnected(getDescriptor().id());
 	}
 
 	protected void postDisconnected() {
 		project.getMessageBus().syncPublisher(RemoteBookmarksStoreListener.TOPIC)
-				.remoteBookmarksStoreDisconnected(getDescriptor().getId());
+				.remoteBookmarksStoreDisconnected(getDescriptor().id());
 	}
 
 	protected void postMappingAdded(BookmarkId bookmarkFolderId) {
 		project.getMessageBus().syncPublisher(RemoteBookmarksStoreListener.TOPIC)
-				.mappingAdded(getDescriptor().getId(), bookmarkFolderId);
+				.mappingAdded(getDescriptor().id(), bookmarkFolderId);
 	}
 
 	protected void postMappingRemoved(BookmarkId bookmarkFolderId) {
 		project.getMessageBus().syncPublisher(RemoteBookmarksStoreListener.TOPIC)
-				.mappingRemoved(getDescriptor().getId(), bookmarkFolderId);
+				.mappingRemoved(getDescriptor().id(), bookmarkFolderId);
 	}
 
 	protected void postRemoteBookmarksTreeChanged(BookmarkId bookmarkFolderId) {
 		project.getMessageBus().syncPublisher(RemoteBookmarksStoreListener.TOPIC)
-				.remoteBookmarksTreeChanged(getDescriptor().getId(), bookmarkFolderId);
+				.remoteBookmarksTreeChanged(getDescriptor().id(), bookmarkFolderId);
 	}
 
 }

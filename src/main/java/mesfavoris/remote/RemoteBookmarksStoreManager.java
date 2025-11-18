@@ -22,7 +22,7 @@ public class RemoteBookmarksStoreManager {
 	}
 
 	public Optional<IRemoteBookmarksStore> getRemoteBookmarksStore(String id) {
-		return remoteBookmarksStoreProvider.get().stream().filter(store -> id.equals(store.getDescriptor().getId()))
+		return remoteBookmarksStoreProvider.get().stream().filter(store -> id.equals(store.getDescriptor().id()))
 				.findAny();
 	}
 
