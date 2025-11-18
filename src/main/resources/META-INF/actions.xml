@@ -20,6 +20,8 @@
             </action>
             <action id="mesfavoris.actions.RenameBookmarkAction"  class="mesfavoris.internal.actions.RenameBookmarkAction" text="Rename" description="Rename Bookmark">
             </action>
+            <action id="mesfavoris.actions.SortByNameAction" class="mesfavoris.internal.actions.SortByNameAction" text="Sort by Name" description="Sort bookmarks by name">
+            </action>
             <action id="mesfavoris.actions.CopyBookmarkAction"  class="mesfavoris.internal.actions.CopyBookmarkAction" text="Copy" description="Copy" icon="AllIcons.Actions.Copy">
                 <keyboard-shortcut keymap="$default" first-keystroke="control C"/>
                 <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta C"/>
