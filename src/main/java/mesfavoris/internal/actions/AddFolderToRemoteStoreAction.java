@@ -11,9 +11,11 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import mesfavoris.BookmarksException;
+import mesfavoris.internal.service.operations.AddToRemoteBookmarksStoreOperation;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkFolder;
 import mesfavoris.remote.IRemoteBookmarksStore;
+import mesfavoris.remote.RemoteBookmarksStoreManager;
 import mesfavoris.service.BookmarksService;
 import org.jetbrains.annotations.NotNull;
 
@@ -65,8 +67,8 @@ public class AddFolderToRemoteStoreAction extends AbstractBookmarkAction impleme
         }
 
         // Check if we can add this folder to the store
-        BookmarksService bookmarksService = getBookmarksService(event);
-        boolean canAdd = canAddToRemoteStore(bookmarksService, selectedFolder);
+        AddToRemoteBookmarksStoreOperation operation = getOperation(event);
+        boolean canAdd = operation.canAddToRemoteBookmarkStore(store.getDescriptor().id(), selectedFolder.getId());
         event.getPresentation().setEnabled(canAdd);
     }
 
@@ -91,7 +93,8 @@ public class AddFolderToRemoteStoreAction extends AbstractBookmarkAction impleme
             public void run(@NotNull ProgressIndicator indicator) {
                 indicator.setText("Adding bookmark folder to %s...".formatted(label));
                 try {
-                    bookmarksService.addToRemoteBookmarksStore(storeId, selectedFolder.getId(), indicator);
+                    AddToRemoteBookmarksStoreOperation operation = getOperation(event);
+                    operation.addToRemoteBookmarksStore(storeId, selectedFolder.getId(), indicator);
                     showSuccessMessage(project, label);
                 } catch (BookmarksException e) {
                     LOG.error("Failed to add folder to %s".formatted(label), e);
@@ -106,23 +109,20 @@ public class AddFolderToRemoteStoreAction extends AbstractBookmarkAction impleme
         if (selectedBookmarks.size() != 1) {
             return null;
         }
-        
+
         Bookmark bookmark = selectedBookmarks.get(0);
         if (!(bookmark instanceof BookmarkFolder)) {
             return null;
         }
-        
+
         return (BookmarkFolder) bookmark;
     }
 
-    private boolean canAddToRemoteStore(@NotNull BookmarksService bookmarksService, @NotNull BookmarkFolder folder) {
-        // Check if store is connected
-        if (store.getState() != IRemoteBookmarksStore.State.connected) {
-            return false;
-        }
-
-        // Store is connected, folder can be added
-        return true;
+    private AddToRemoteBookmarksStoreOperation getOperation(@NotNull AnActionEvent event) {
+        Project project = event.getProject();
+        BookmarksService bookmarksService = getBookmarksService(event);
+        RemoteBookmarksStoreManager remoteBookmarksStoreManager = project.getService(RemoteBookmarksStoreManager.class);
+        return new AddToRemoteBookmarksStoreOperation(bookmarksService.getBookmarkDatabase(), remoteBookmarksStoreManager);
     }
 
     private void showSuccessMessage(@NotNull Project project, @NotNull String label) {
