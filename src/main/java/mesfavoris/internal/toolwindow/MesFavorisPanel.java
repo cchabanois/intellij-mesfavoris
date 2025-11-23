@@ -8,11 +8,14 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.*;
 import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.JBUI;
+import mesfavoris.internal.actions.RemoteStoreActionGroup;
 import mesfavoris.internal.markers.BookmarkWithMarkerLabelProvider;
 import mesfavoris.internal.ui.details.BookmarkDetailsPart;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkFolder;
+import mesfavoris.remote.IRemoteBookmarksStore;
+import mesfavoris.remote.RemoteBookmarksStoreExtensionManager;
 import mesfavoris.service.BookmarksService;
 import mesfavoris.ui.renderers.BookmarksTreeCellRenderer;
 import org.jetbrains.annotations.NonNls;
@@ -24,6 +27,7 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
+import java.util.List;
 
 
 public class MesFavorisPanel extends JPanel implements DataProvider, Disposable {
@@ -109,9 +113,17 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
     }
 
     private void installPopupMenu() {
-        PopupHandler.installPopupMenu(tree,
-                (DefaultActionGroup)ActionManager.getInstance().getAction("mesfavoris.PopupMenu"),
-                ActionPlaces.UNKNOWN);
+        DefaultActionGroup popupMenu = (DefaultActionGroup)ActionManager.getInstance().getAction("mesfavoris.PopupMenu");
+
+        // Add remote store menus
+        RemoteBookmarksStoreExtensionManager manager = project.getService(RemoteBookmarksStoreExtensionManager.class);
+        List<IRemoteBookmarksStore> stores = manager.getStores();
+        for (IRemoteBookmarksStore store : stores) {
+            RemoteStoreActionGroup storeGroup = new RemoteStoreActionGroup(store);
+            popupMenu.add(storeGroup);
+        }
+
+        PopupHandler.installPopupMenu(tree, popupMenu, ActionPlaces.UNKNOWN);
     }
 
     private void installTreeSpeedSearch() {
