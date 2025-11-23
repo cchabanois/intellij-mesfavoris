@@ -1,19 +1,43 @@
 package mesfavoris.remote;
 
+import com.intellij.openapi.components.Service;
+import com.intellij.openapi.project.Project;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkFolder;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.BookmarksTree;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public class RemoteBookmarksStoreManager {
+/**
+ * Manager for remote bookmarks stores.
+ * This is a project-level service that provides access to all remote bookmarks stores.
+ */
+@Service(Service.Level.PROJECT)
+public final class RemoteBookmarksStoreManager {
 	private final Supplier<List<IRemoteBookmarksStore>> remoteBookmarksStoreProvider;
 
-	public RemoteBookmarksStoreManager(Supplier<List<IRemoteBookmarksStore>> remoteBookmarksStoreProvider) {
+	/**
+	 * Gets stores from the RemoteBookmarksStoreExtensionManager.
+	 *
+	 * @param project The project for which to manage remote bookmarks stores
+	 */
+	public RemoteBookmarksStoreManager(@NotNull Project project) {
+		RemoteBookmarksStoreExtensionManager extensionManager = project.getService(RemoteBookmarksStoreExtensionManager.class);
+		this.remoteBookmarksStoreProvider = extensionManager::getStores;
+	}
+
+	/**
+	 * Constructor for testing.
+	 * Allows providing a custom supplier of stores.
+	 *
+	 * @param remoteBookmarksStoreProvider Supplier that provides the list of remote bookmarks stores
+	 */
+	public RemoteBookmarksStoreManager(@NotNull Supplier<List<IRemoteBookmarksStore>> remoteBookmarksStoreProvider) {
 		this.remoteBookmarksStoreProvider = remoteBookmarksStoreProvider;
 	}
 
@@ -22,7 +46,8 @@ public class RemoteBookmarksStoreManager {
 	}
 
 	public Optional<IRemoteBookmarksStore> getRemoteBookmarksStore(String id) {
-		return remoteBookmarksStoreProvider.get().stream().filter(store -> id.equals(store.getDescriptor().id()))
+		return remoteBookmarksStoreProvider.get().stream()
+				.filter(store -> id.equals(store.getDescriptor().id()))
 				.findAny();
 	}
 

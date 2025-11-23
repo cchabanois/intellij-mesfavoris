@@ -16,6 +16,7 @@ import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkFolder;
 import mesfavoris.remote.IRemoteBookmarksStore;
 import mesfavoris.remote.RemoteBookmarksStoreExtensionManager;
+import mesfavoris.remote.RemoteBookmarksStoreManager;
 import mesfavoris.service.BookmarksService;
 import mesfavoris.ui.renderers.BookmarksTreeCellRenderer;
 import org.jetbrains.annotations.NonNls;
@@ -44,7 +45,9 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         this.bookmarksService = project.getService(BookmarksService.class);
         BookmarkDatabase bookmarkDatabase = bookmarksService.getBookmarkDatabase();
         tree = new BookmarksTreeComponent(bookmarkDatabase, this);
-        bookmarksTreeCellRenderer = new BookmarksTreeCellRenderer(project, bookmarkDatabase, bookmarksService.getBookmarksDirtyStateTracker(),
+        bookmarksTreeCellRenderer = new BookmarksTreeCellRenderer(project, bookmarkDatabase,
+                project.getService(RemoteBookmarksStoreManager.class),
+                bookmarksService.getBookmarksDirtyStateTracker(),
                 new BookmarkWithMarkerLabelProvider(project, bookmarksService.getBookmarkLabelProvider()), this);
         tree.setCellRenderer(bookmarksTreeCellRenderer);
         tree.setEditable(true);
