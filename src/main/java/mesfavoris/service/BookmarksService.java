@@ -31,6 +31,7 @@ import mesfavoris.model.modification.IBookmarksModificationValidator;
 import mesfavoris.persistence.IBookmarksDirtyStateTracker;
 import mesfavoris.persistence.json.BookmarksTreeJsonDeserializer;
 import mesfavoris.persistence.json.BookmarksTreeJsonSerializer;
+import mesfavoris.remote.RemoteBookmarksStoreManager;
 import mesfavoris.texteditor.internal.WorkspaceFileBookmarkMarkerAttributesProvider;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
@@ -59,6 +60,7 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
     private INewBookmarkPositionProvider newBookmarkPositionProvider;
     private BookmarksAutoSaver bookmarksSaver;
     private IBookmarkLabelProvider bookmarkLabelProvider;
+    private RemoteBookmarksStoreManager remoteBookmarksStoreManager;
 
     public BookmarksService(Project project) throws IOException {
         this.project = project;
@@ -76,6 +78,7 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
         this.newBookmarkPositionProvider = new NewBookmarkPositionProvider(project, bookmarkDatabase);
         this.bookmarksMarkers = new BookmarksMarkers(project, bookmarkDatabase, new BookmarkMarkerAttributesProvider(Arrays.asList(new WorkspaceFileBookmarkMarkerAttributesProvider())));
         this.bookmarksMarkers.init();
+        this.remoteBookmarksStoreManager = project.getService(RemoteBookmarksStoreManager.class);
         LocalBookmarksSaver localBookmarksSaver = new LocalBookmarksSaver(getBookmarksFilePath(project).toFile(),
                 new BookmarksTreeJsonSerializer(true));
         bookmarksSaver = new BookmarksAutoSaver(bookmarkDatabase, localBookmarksSaver);
@@ -199,6 +202,13 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
                                  Consumer<BookmarksTree> afterCommit) throws BookmarksException {
         AddBookmarksTreeOperation operation = new AddBookmarksTreeOperation(bookmarkDatabase);
         operation.addBookmarksTree(parentBookmarkId, sourceBookmarksTree, afterCommit);
+    }
+
+    public void addToRemoteBookmarksStore(String storeId, final BookmarkId bookmarkFolderId,
+                                          final ProgressIndicator monitor) throws BookmarksException {
+        AddToRemoteBookmarksStoreOperation operation = new AddToRemoteBookmarksStoreOperation(bookmarkDatabase,
+                remoteBookmarksStoreManager);
+        operation.addToRemoteBookmarksStore(storeId, bookmarkFolderId, monitor);
     }
 
     @Override
