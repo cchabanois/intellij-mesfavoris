@@ -1,10 +1,12 @@
 package mesfavoris.remote;
 
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.List;
 
 /**
  * Extension point for defining remote bookmarks storage providers.
@@ -48,5 +50,16 @@ public interface RemoteBookmarksStoreExtension {
      */
     @NotNull
     AbstractRemoteBookmarksStore createStore(@NotNull Project project);
+
+    /**
+     * Get additional actions specific to this remote bookmarks store.
+     * These actions will be added to the context menu for this store.
+     *
+     * @return List of additional actions, or empty list if none
+     */
+    @NotNull
+    default List<AnAction> getAdditionalActions() {
+        return List.of();
+    }
 }
 
