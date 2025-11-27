@@ -1,7 +1,9 @@
 package mesfavoris.gdrive;
 
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import mesfavoris.gdrive.actions.ViewInGDriveAction;
 import mesfavoris.gdrive.changes.BookmarksFileChangeManager;
 import mesfavoris.gdrive.connection.GDriveConnectionManager;
 import mesfavoris.gdrive.mappings.BookmarkMappingsStore;
@@ -11,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
 /**
@@ -52,17 +55,23 @@ public class GDriveRemoteBookmarksStoreExtension extends AbstractRemoteBookmarks
 
     private GDriveConnectionManager createConnectionManager(@NotNull Project project) {
         GDriveConnectionManager connectionManager = new GDriveConnectionManager(
-                project, 
-                APPLICATION_NAME, 
+                project,
+                APPLICATION_NAME,
                 APPLICATION_FOLDER_NAME);
-        
+
         try {
             connectionManager.init();
         } catch (GeneralSecurityException | IOException e) {
             throw new RuntimeException("Failed to initialize Google Drive connection manager", e);
         }
-        
+
         return connectionManager;
+    }
+
+    @NotNull
+    @Override
+    public List<AnAction> getAdditionalActions() {
+        return List.of(new ViewInGDriveAction());
     }
 }
 

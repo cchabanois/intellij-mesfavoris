@@ -122,7 +122,10 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         RemoteBookmarksStoreExtensionManager manager = project.getService(RemoteBookmarksStoreExtensionManager.class);
         List<IRemoteBookmarksStore> stores = manager.getStores();
         for (IRemoteBookmarksStore store : stores) {
-            RemoteStoreActionGroup storeGroup = new RemoteStoreActionGroup(store);
+            List<AnAction> additionalActions = manager.getExtension(store.getDescriptor().id())
+                    .map(extension -> extension.getAdditionalActions())
+                    .orElse(List.of());
+            RemoteStoreActionGroup storeGroup = new RemoteStoreActionGroup(store, additionalActions);
             popupMenu.add(storeGroup);
         }
 

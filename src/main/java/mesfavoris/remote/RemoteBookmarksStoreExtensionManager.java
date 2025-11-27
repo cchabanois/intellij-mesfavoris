@@ -48,6 +48,14 @@ public final class RemoteBookmarksStoreExtensionManager {
         return Optional.ofNullable(stores.get(id));
     }
 
+    /**
+     * Get a remote bookmarks store extension by ID
+     */
+    @NotNull
+    public Optional<RemoteBookmarksStoreExtension> getExtension(@NotNull String id) {
+        return Optional.ofNullable(extensions.get(id));
+    }
+
     private void createStoreForExtension(@NotNull RemoteBookmarksStoreExtension extension) {
         try {
             AbstractRemoteBookmarksStore store = extension.createStore(project);
