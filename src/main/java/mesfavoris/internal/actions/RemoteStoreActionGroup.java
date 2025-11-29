@@ -4,6 +4,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.project.DumbAware;
 import mesfavoris.remote.IRemoteBookmarksStore;
 import org.jetbrains.annotations.NotNull;
@@ -44,6 +45,7 @@ public class RemoteStoreActionGroup extends DefaultActionGroup implements DumbAw
 
         // Add extension-specific actions
         if (!additionalActions.isEmpty()) {
+            actions.add(Separator.getInstance());
             actions.addAll(additionalActions);
         }
 

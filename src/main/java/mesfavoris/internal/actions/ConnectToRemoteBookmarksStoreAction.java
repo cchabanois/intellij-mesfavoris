@@ -1,5 +1,8 @@
 package mesfavoris.internal.actions;
 
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -123,13 +126,25 @@ public class ConnectToRemoteBookmarksStoreAction extends AnAction implements Dum
 
     private void showConnectionSuccessMessage(@NotNull Project project, @NotNull RemoteBookmarksStoreDescriptor descriptor) {
         ApplicationManager.getApplication().invokeLater(() -> {
-            String userInfo = store.getUserInfo() != null ?
-                    " as " + store.getUserInfo().getDisplayName() : "";
-            Messages.showInfoMessage(
-                    project,
-                    "Successfully connected to %s%s".formatted(descriptor.label(), userInfo),
-                    "Connected"
+            String userInfo = "";
+            if (store.getUserInfo() != null) {
+                String displayName = store.getUserInfo().getDisplayName();
+                String email = store.getUserInfo().getEmailAddress();
+                if (displayName != null && email != null) {
+                    userInfo = " as %s (%s)".formatted(displayName, email);
+                } else if (displayName != null) {
+                    userInfo = " as " + displayName;
+                } else if (email != null) {
+                    userInfo = " as " + email;
+                }
+            }
+            Notification notification = new Notification(
+                    "com.cchabanois.mesfavoris.info",
+                    "Connected to %s".formatted(descriptor.label()),
+                    "Successfully connected%s".formatted(userInfo),
+                    NotificationType.INFORMATION
             );
+            Notifications.Bus.notify(notification, project);
         });
     }
 
@@ -142,11 +157,15 @@ public class ConnectToRemoteBookmarksStoreAction extends AnAction implements Dum
     }
 
     private void showDisconnectionSuccessMessage(@NotNull Project project, @NotNull RemoteBookmarksStoreDescriptor descriptor) {
-        ApplicationManager.getApplication().invokeLater(() -> Messages.showInfoMessage(
-                project,
-                "Successfully disconnected from %s".formatted(descriptor.label()),
-                "Disconnected"
-        ));
+        ApplicationManager.getApplication().invokeLater(() -> {
+            Notification notification = new Notification(
+                    "com.cchabanois.mesfavoris.info",
+                    "Disconnected from %s".formatted(descriptor.label()),
+                    "Successfully disconnected",
+                    NotificationType.INFORMATION
+            );
+            Notifications.Bus.notify(notification, project);
+        });
     }
 
     private void showDisconnectionErrorMessage(@NotNull Project project, @NotNull RemoteBookmarksStoreDescriptor descriptor, @NotNull IOException e) {

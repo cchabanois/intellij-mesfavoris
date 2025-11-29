@@ -15,6 +15,7 @@
                 isLogByDefault="false"
         />
         <projectService serviceImplementation="mesfavoris.internal.toolwindow.BookmarksTreeComponentStateService"/>
+        <projectService serviceImplementation="mesfavoris.gdrive.BookmarksGDriveService"/>
         <projectService serviceImplementation="mesfavoris.gdrive.connection.GDriveUserInfoStore"/>
         <projectService serviceImplementation="mesfavoris.gdrive.mappings.BookmarkMappingsStore"/>
         <projectService serviceImplementation="mesfavoris.remote.RemoteBookmarksStoreExtensionManager"/>

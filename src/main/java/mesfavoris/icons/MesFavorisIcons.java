@@ -15,6 +15,8 @@ public class MesFavorisIcons {
 
     /** 16x16 **/ public static final @NotNull Icon bookmark = load("/icons/bookmark-16.png");
 
+    /** 16x16 **/ public static final @NotNull Icon bookmarks = load("/icons/bookmarks-16.png");
+
     /** 16x16 **/ public static final @NotNull Icon snippet = load("/icons/snippet.png");
 
 }
