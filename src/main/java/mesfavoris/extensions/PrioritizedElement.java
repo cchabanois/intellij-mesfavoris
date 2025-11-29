@@ -34,8 +34,8 @@ public class PrioritizedElement<T> implements Comparable<PrioritizedElement<T>> 
 
     @Override
     public int compareTo(@NotNull PrioritizedElement<T> other) {
-        // Higher priority first (descending order)
-        return Integer.compare(other.priority, this.priority);
+        // Lower priority value first (ascending order)
+        return Integer.compare(this.priority, other.priority);
     }
 
     @Override

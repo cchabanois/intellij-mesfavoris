@@ -46,6 +46,9 @@
         <!-- Snippet Bookmark Type -->
         <bookmarkType implementation="mesfavoris.snippets.internal.SnippetBookmarkTypeExtension"/>
 
+        <!-- GDrive Bookmark Type -->
+        <bookmarkType implementation="mesfavoris.gdrive.GDriveBookmarkTypeExtension"/>
+
         <!-- Remote Bookmarks Stores -->
         <remoteBookmarksStore implementation="mesfavoris.gdrive.GDriveRemoteBookmarksStoreExtension"/>
     </extensions>
