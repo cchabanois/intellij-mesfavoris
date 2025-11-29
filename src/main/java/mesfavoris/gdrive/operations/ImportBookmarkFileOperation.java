@@ -1,13 +1,8 @@
 package mesfavoris.gdrive.operations;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.Optional;
-
-import com.intellij.openapi.progress.ProgressIndicator;
-
 import com.google.api.services.drive.Drive;
-
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProgressIndicator;
 import mesfavoris.BookmarksException;
 import mesfavoris.gdrive.mappings.BookmarkMappingPropertiesProvider;
 import mesfavoris.gdrive.mappings.BookmarkMappingsStore;
@@ -19,7 +14,14 @@ import mesfavoris.persistence.IBookmarksTreeDeserializer;
 import mesfavoris.persistence.json.BookmarksTreeJsonDeserializer;
 import mesfavoris.service.BookmarksService;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
+
 public class ImportBookmarkFileOperation extends AbstractGDriveOperation {
+	private static final Logger LOG = Logger.getInstance(ImportBookmarkFileOperation.class);
+
 	private final BookmarkMappingsStore bookmarkMappingsStore;
 	private final BookmarksService bookmarksService;
 	private final Optional<String> applicationFolderId;
@@ -42,8 +44,13 @@ public class ImportBookmarkFileOperation extends AbstractGDriveOperation {
 
 		if (applicationFolderId.isPresent()) {
 			// add it to the application folder
-			AddFileToFolderOperation addFileToFolderOperation = new AddFileToFolderOperation(drive);
-			addFileToFolderOperation.addToFolder(applicationFolderId.get(), fileId);
+			try {
+				AddFileToFolderOperation addFileToFolderOperation = new AddFileToFolderOperation(drive);
+				addFileToFolderOperation.addToFolder(applicationFolderId.get(), fileId);
+			} catch (IOException e) {
+				// Cannot be moved if file has been shared with read-only role
+				LOG.warn("Could not add file to application folder (file may be read-only): " + fileId, e);
+			}
 		}
 
 		progressIndicator.setFraction(0.1);
@@ -53,7 +60,7 @@ public class ImportBookmarkFileOperation extends AbstractGDriveOperation {
 		progressIndicator.setFraction(0.8);
 		IBookmarksTreeDeserializer deserializer = new BookmarksTreeJsonDeserializer();
 		BookmarksTree bookmarksTree = deserializer
-				.deserialize(new StringReader(new String(contents.getFileContents(), "UTF-8")));
+				.deserialize(new StringReader(new String(contents.getFileContents(), StandardCharsets.UTF_8)));
 
 		bookmarksService.addBookmarksTree(parentId, bookmarksTree, newBookmarksTree -> bookmarkMappingsStore.add(
 				bookmarksTree.getRootFolder().getId(), contents.getFile().getId(),

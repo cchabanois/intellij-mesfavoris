@@ -3,6 +3,7 @@ package mesfavoris.gdrive;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import mesfavoris.gdrive.actions.ImportBookmarksFromGDriveAction;
 import mesfavoris.gdrive.actions.ViewInGDriveAction;
 import mesfavoris.gdrive.changes.BookmarksFileChangeManager;
 import mesfavoris.gdrive.connection.GDriveConnectionManager;
@@ -11,8 +12,6 @@ import mesfavoris.remote.AbstractRemoteBookmarksStore;
 import mesfavoris.remote.AbstractRemoteBookmarksStoreExtension;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -24,8 +23,6 @@ public class GDriveRemoteBookmarksStoreExtension extends AbstractRemoteBookmarks
 
     private static final String ID = "gdrive";
     private static final String LABEL = "Google Drive";
-    private static final String APPLICATION_NAME = "Mes Favoris";
-    private static final String APPLICATION_FOLDER_NAME = "mesfavoris";
 
     public GDriveRemoteBookmarksStoreExtension() {
         super(ID, LABEL, GDriveIcons.GDRIVE, GDriveIcons.GDRIVE_OVERLAY);
@@ -34,44 +31,33 @@ public class GDriveRemoteBookmarksStoreExtension extends AbstractRemoteBookmarks
     @NotNull
     @Override
     public AbstractRemoteBookmarksStore createStore(@NotNull Project project) {
-        // Get or create the connection manager
-        GDriveConnectionManager connectionManager = createConnectionManager(project);
-        
+        // Get the Google Drive service
+        BookmarksGDriveService gdriveService = project.getService(BookmarksGDriveService.class);
+        GDriveConnectionManager connectionManager = gdriveService.getConnectionManager();
+
         // Get the bookmark mappings store (project-level service)
         BookmarkMappingsStore mappingsStore = project.getService(BookmarkMappingsStore.class);
-        
+
         // Get the scheduled executor service
         ScheduledExecutorService scheduledExecutorService = AppExecutorUtil.getAppScheduledExecutorService();
-        
+
         // Create the bookmarks file change manager
         BookmarksFileChangeManager changeManager = new BookmarksFileChangeManager(
-                connectionManager, 
-                mappingsStore, 
+                connectionManager,
+                mappingsStore,
                 scheduledExecutorService);
-        
+
         // Create and return the store
         return new GDriveRemoteBookmarksStore(project, connectionManager, mappingsStore, changeManager);
-    }
-
-    private GDriveConnectionManager createConnectionManager(@NotNull Project project) {
-        GDriveConnectionManager connectionManager = new GDriveConnectionManager(
-                project,
-                APPLICATION_NAME,
-                APPLICATION_FOLDER_NAME);
-
-        try {
-            connectionManager.init();
-        } catch (GeneralSecurityException | IOException e) {
-            throw new RuntimeException("Failed to initialize Google Drive connection manager", e);
-        }
-
-        return connectionManager;
     }
 
     @NotNull
     @Override
     public List<AnAction> getAdditionalActions() {
-        return List.of(new ViewInGDriveAction());
+        return List.of(
+                new ImportBookmarksFromGDriveAction(),
+                new ViewInGDriveAction()
+        );
     }
 }
 
