@@ -15,10 +15,7 @@
                 isLogByDefault="false"
         />
         <projectService serviceImplementation="mesfavoris.internal.toolwindow.BookmarksTreeComponentStateService"/>
-        <projectService serviceImplementation="mesfavoris.gdrive.BookmarksGDriveService"/>
         <projectService serviceImplementation="mesfavoris.gdrive.connection.GDriveUserInfoStore"/>
-        <projectService serviceImplementation="mesfavoris.gdrive.mappings.BookmarkMappingsStore"/>
-        <projectService serviceImplementation="mesfavoris.remote.RemoteBookmarksStoreExtensionManager"/>
         <applicationService serviceImplementation="mesfavoris.internal.settings.placeholders.PathPlaceholdersStore"/>
         <applicationService serviceImplementation="mesfavoris.internal.settings.bookmarktypes.BookmarkTypesStore"/>
         <applicationConfigurable parentId="tools" instance="mesfavoris.internal.settings.MesFavorisConfigurable"

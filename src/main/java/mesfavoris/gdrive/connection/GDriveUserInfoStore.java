@@ -1,7 +1,6 @@
 package mesfavoris.gdrive.connection;
 
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.annotations.Attribute;
@@ -9,7 +8,6 @@ import mesfavoris.remote.UserInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@Service(Service.Level.PROJECT)
 @State(name = "GDriveUserInfo", storages = @Storage("mesfavoris-gdrive.xml"))
 public final class GDriveUserInfoStore implements PersistentStateComponent<GDriveUserInfoStore.State>, IGDriveUserInfoStore {
 
