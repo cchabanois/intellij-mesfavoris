@@ -10,6 +10,9 @@ import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.JBUI;
 import mesfavoris.internal.actions.RemoteStoreActionGroup;
 import mesfavoris.internal.markers.BookmarkWithMarkerLabelProvider;
+import mesfavoris.internal.toolwindow.search.BookmarksSearchHistoryStore;
+import mesfavoris.internal.toolwindow.search.BookmarksSearchTextField;
+import mesfavoris.internal.toolwindow.search.BookmarksTreeFilter;
 import mesfavoris.internal.ui.details.BookmarkDetailsPart;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
@@ -38,19 +41,30 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
     private final BookmarksTreeCellRenderer bookmarksTreeCellRenderer;
     private final BookmarkDetailsPart bookmarkDetailsPart;
     private final BookmarksTreeDnDHandler dndHandler;
+    private final BookmarksSearchTextField searchTextField;
+    private final BookmarksTreeFilter treeFilter;
 
     public MesFavorisPanel(@NotNull Project project) {
         super(new BorderLayout());
         this.project = project;
         this.bookmarksService = project.getService(BookmarksService.class);
         BookmarkDatabase bookmarkDatabase = bookmarksService.getBookmarkDatabase();
-        tree = new BookmarksTreeComponent(bookmarkDatabase, this);
+
+        // Create tree filter
+        this.treeFilter = new BookmarksTreeFilter(bookmarkDatabase);
+
+        tree = new BookmarksTreeComponent(bookmarkDatabase, treeFilter, this);
         bookmarksTreeCellRenderer = new BookmarksTreeCellRenderer(project, bookmarkDatabase,
                 project.getService(RemoteBookmarksStoreManager.class),
                 bookmarksService.getBookmarksDirtyStateTracker(),
                 new BookmarkWithMarkerLabelProvider(project, bookmarksService.getBookmarkLabelProvider()), this);
         tree.setCellRenderer(bookmarksTreeCellRenderer);
         tree.setEditable(true);
+
+        // Create search text field
+        this.searchTextField = new BookmarksSearchTextField(project);
+        setupSearchTextField();
+
         installTreeSpeedSearch();
         installDoubleClickListener();
         installPopupMenu();
@@ -74,15 +88,20 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         ToolbarDecorator decorator = ToolbarDecorator.createDecorator(tree)
                 .initPosition()
                 .disableAddAction().disableRemoveAction().disableDownAction().disableUpAction();
-        JPanel panel = decorator.createPanel();
+        JPanel treePanel = decorator.createPanel();
+        treePanel.setBorder(JBUI.Borders.empty());
 
-        panel.setBorder(JBUI.Borders.empty());
+        // Create panel with search field and tree
+        JPanel treeWithSearchPanel = new JPanel(new BorderLayout());
+        treeWithSearchPanel.add(searchTextField, BorderLayout.NORTH);
+        treeWithSearchPanel.add(treePanel, BorderLayout.CENTER);
+        treeWithSearchPanel.setBorder(JBUI.Borders.empty());
 
         setBorder(JBUI.Borders.empty());
 
         JBSplitter splitter = new JBSplitter(true);
-        splitter.setFirstComponent(panel);
-        splitter.setSecondComponent(bookmarksDetailsComponent); // tabs.getComponent());
+        splitter.setFirstComponent(treeWithSearchPanel);
+        splitter.setSecondComponent(bookmarksDetailsComponent);
 
         add(splitter, BorderLayout.CENTER);
     }
@@ -132,6 +151,48 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         PopupHandler.installPopupMenu(tree, popupMenu, ActionPlaces.UNKNOWN);
     }
 
+    private void setupSearchTextField() {
+        // Load search history
+        BookmarksSearchHistoryStore historyStore = project.getService(BookmarksSearchHistoryStore.class);
+        List<String> history = historyStore.getSearchHistory();
+        for (int i = history.size() - 1; i >= 0; i--) {
+            searchTextField.setText(history.get(i));
+            searchTextField.addCurrentTextToHistory();
+        }
+        searchTextField.setText("");
+
+        // Add search listener
+        searchTextField.addSearchListener(new BookmarksSearchTextField.SearchListener() {
+            @Override
+            public void searchTextChanged(String searchText) {
+                treeFilter.setSearchText(searchText);
+
+                // Refresh the tree model
+                if (tree.getModel() instanceof FilteredBookmarksTreeModel filteredModel) {
+                    filteredModel.refresh();
+                }
+
+                // Expand all when filtering
+                if (treeFilter.isFiltering()) {
+                    expandAll();
+                }
+            }
+
+            @Override
+            public void searchPerformed(String searchText) {
+                if (!searchText.isEmpty()) {
+                    historyStore.addToHistory(searchText);
+                }
+            }
+        });
+    }
+
+    private void expandAll() {
+        for (int i = 0; i < tree.getRowCount(); i++) {
+            tree.expandRow(i);
+        }
+    }
+
     private void installTreeSpeedSearch() {
         Convertor<? super TreePath, String> TO_STRING = path -> path.getLastPathComponent().toString();
         TreeUIHelper.getInstance().installTreeSpeedSearch(tree, TO_STRING, true);
@@ -139,6 +200,7 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
 
     @Override
     public void dispose() {
+        searchTextField.dispose();
         DataManager.removeDataProvider(this);
     }
 

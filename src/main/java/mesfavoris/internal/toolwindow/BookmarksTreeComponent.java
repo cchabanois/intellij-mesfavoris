@@ -4,11 +4,11 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.treeStructure.Tree;
 import mesfavoris.commons.Adapters;
+import mesfavoris.internal.toolwindow.search.BookmarksTreeFilter;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
 
-import javax.swing.*;
 import javax.swing.tree.DefaultTreeCellEditor;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
@@ -21,9 +21,17 @@ public class BookmarksTreeComponent extends Tree implements Disposable {
     private final BookmarkDatabase bookmarkDatabase;
 
     public BookmarksTreeComponent(BookmarkDatabase bookmarkDatabase, Disposable parentDisposable) {
+        this(bookmarkDatabase, null, parentDisposable);
+    }
+
+    public BookmarksTreeComponent(BookmarkDatabase bookmarkDatabase, BookmarksTreeFilter filter, Disposable parentDisposable) {
         super();
         this.bookmarkDatabase = bookmarkDatabase;
-        this.bookmarksTreeModel = new BookmarksTreeModel(bookmarkDatabase, this);
+        if (filter != null) {
+            this.bookmarksTreeModel = new FilteredBookmarksTreeModel(bookmarkDatabase, filter, this);
+        } else {
+            this.bookmarksTreeModel = new BookmarksTreeModel(bookmarkDatabase, this);
+        }
         setModel(this.bookmarksTreeModel);
         setRootVisible(false);
 
