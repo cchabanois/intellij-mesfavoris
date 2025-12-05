@@ -22,7 +22,7 @@ import mesfavoris.internal.persistence.LocalBookmarksSaver;
 import mesfavoris.internal.service.operations.*;
 import mesfavoris.internal.service.operations.utils.INewBookmarkPositionProvider;
 import mesfavoris.internal.service.operations.utils.NewBookmarkPositionProvider;
-import mesfavoris.internal.validation.AcceptAllBookmarksModificationValidator;
+import mesfavoris.internal.validation.BookmarksModificationValidator;
 import mesfavoris.internal.workspace.BookmarksWorkspaceFactory;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
@@ -68,8 +68,8 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
     }
 
     private void init() throws IOException {
-        IBookmarksModificationValidator bookmarksModificationValidator = new AcceptAllBookmarksModificationValidator();
-
+        this.remoteBookmarksStoreManager = project.getService(RemoteBookmarksStoreManager.class);
+        IBookmarksModificationValidator bookmarksModificationValidator = new BookmarksModificationValidator(remoteBookmarksStoreManager);
         this.bookmarkDatabase = loadBookmarkDatabase(bookmarksModificationValidator);
         this.bookmarkLabelProvider = new ExtensionBookmarkLabelProvider();
         this.bookmarkLocationProvider = new ExtensionBookmarkLocationProvider();
@@ -78,7 +78,6 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
         this.newBookmarkPositionProvider = new NewBookmarkPositionProvider(project, bookmarkDatabase);
         this.bookmarksMarkers = new BookmarksMarkers(project, bookmarkDatabase, new BookmarkMarkerAttributesProvider(Arrays.asList(new WorkspaceFileBookmarkMarkerAttributesProvider())));
         this.bookmarksMarkers.init();
-        this.remoteBookmarksStoreManager = project.getService(RemoteBookmarksStoreManager.class);
         LocalBookmarksSaver localBookmarksSaver = new LocalBookmarksSaver(getBookmarksFilePath(project).toFile(),
                 new BookmarksTreeJsonSerializer(true));
         bookmarksSaver = new BookmarksAutoSaver(bookmarkDatabase, localBookmarksSaver);

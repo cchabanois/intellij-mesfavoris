@@ -3,6 +3,7 @@ package mesfavoris.model;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.ContainerUtil;
 import mesfavoris.BookmarksException;
+import mesfavoris.commons.Status;
 import mesfavoris.internal.validation.AcceptAllBookmarksModificationValidator;
 import mesfavoris.model.modification.BookmarksModification;
 import mesfavoris.model.modification.BookmarksTreeModifier;
@@ -140,7 +141,10 @@ public class BookmarkDatabase {
 
 	private void validateModifications(List<BookmarksModification> modifications) throws BookmarksException {
 		for (BookmarksModification modification : modifications) {
-			bookmarksModificationValidator.validateModification(modification);
+			Status status = bookmarksModificationValidator.validateModification(modification);
+            if (!status.isOk()) {
+                throw new BookmarksException(status);
+            }
 		}
 	}
 	
