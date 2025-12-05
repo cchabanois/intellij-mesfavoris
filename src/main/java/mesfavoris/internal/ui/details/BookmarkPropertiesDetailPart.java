@@ -18,6 +18,7 @@ import java.util.Map;
 
 public class BookmarkPropertiesDetailPart extends AbstractBookmarkDetailPart {
     private ListTableModel<Map.Entry<String, String>> listTableModel;
+    private JBTable table;
 
     public BookmarkPropertiesDetailPart(Project project) {
         this(project, project.getService(BookmarksService.class).getBookmarkDatabase());
@@ -38,7 +39,7 @@ public class BookmarkPropertiesDetailPart extends AbstractBookmarkDetailPart {
         ColumnInfo<Map.Entry<String, String>, String> propertyValueColumn = getPropertyValueColumnInfo();
         listTableModel =
                 new ListTableModel<>(propertyNameColumn, propertyValueColumn);
-        JBTable table = new JBTable(listTableModel);
+        table = new JBTable(listTableModel);
         table.getColumnModel().getColumn(0).setPreferredWidth(150);
         return new JBScrollPane(table);
     }
@@ -47,6 +48,9 @@ public class BookmarkPropertiesDetailPart extends AbstractBookmarkDetailPart {
     public void setBookmark(Bookmark bookmark) {
         super.setBookmark(bookmark);
         updateTableItems();
+        table.setEnabled(this.bookmark != null && bookmarkDatabase.getBookmarksModificationValidator()
+                .validateModification(bookmarkDatabase.getBookmarksTree(), bookmark.getId())
+                .isOk());
     }
 
     private void updateTableItems() {

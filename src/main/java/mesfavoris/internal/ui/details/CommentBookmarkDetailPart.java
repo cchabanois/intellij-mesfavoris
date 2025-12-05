@@ -105,7 +105,9 @@ public class CommentBookmarkDetailPart extends AbstractBookmarkDetailPart {
         super.setBookmark(bookmark);
         String newComment = this.bookmark != null ? this.bookmark.getPropertyValue(PROPERTY_COMMENT): null;
         setText(newComment);
-        editorField.setEnabled(this.bookmark != null);
+        editorField.setEnabled(this.bookmark != null && bookmarkDatabase.getBookmarksModificationValidator()
+                .validateModification(bookmarkDatabase.getBookmarksTree(), bookmark.getId())
+                .isOk());
 	}
 
 	@Override

@@ -105,6 +105,8 @@ public class SnippetBookmarkDetailPart extends AbstractBookmarkDetailPart {
         super.setBookmark(bookmark);
         String newComment = this.bookmark != null ? this.bookmark.getPropertyValue(PROP_SNIPPET_CONTENT) : null;
         setText(newComment);
+        editorField.setEnabled(bookmarkDatabase.getBookmarksModificationValidator()
+                .validateModification(bookmarkDatabase.getBookmarksTree(), bookmark.getId()).isOk());
 	}
 
 	@Override
