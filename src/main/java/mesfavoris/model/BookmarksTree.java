@@ -7,6 +7,7 @@ import mesfavoris.internal.model.BookmarksMap;
 import mesfavoris.internal.model.BookmarksParentsMap;
 import mesfavoris.internal.model.merge.BookmarksTreeIterator;
 import org.javimmutable.collections.tree.JImmutableTreeMap;
+import org.jetbrains.annotations.NotNull;
 
 import java.text.MessageFormat;
 import java.util.*;
@@ -54,7 +55,7 @@ public class BookmarksTree implements Iterable<Bookmark> {
 		if (bookmark == null) {
 			throw new IllegalArgumentException("No bookmark with id " + bookmarkId);
 		}
-		JImmutableTreeMap<String, String> newProperties;
+		final JImmutableTreeMap<String, String> newProperties;
 		if (propertyValue == null) {
 			newProperties = bookmark.properties.delete(propertyName);
 		} else {
@@ -135,9 +136,8 @@ public class BookmarksTree implements Iterable<Bookmark> {
 			return this;
 		}
 		checkNotRootFolder(bookmarkId);
-		BookmarksTree newBookmarksTree = this;
 		if (recurse && bookmark instanceof BookmarkFolder) {
-			newBookmarksTree = deleteBookmarksUnder(bookmarkId);
+            BookmarksTree newBookmarksTree = deleteBookmarksUnder(bookmarkId);
 			return newBookmarksTree.deleteBookmark(bookmarkId, false);
 		} else {
 			if (childrenMap.hasChildren(bookmarkId)) {
@@ -378,7 +378,7 @@ public class BookmarksTree implements Iterable<Bookmark> {
 	}
 
 	@Override
-	public Iterator<Bookmark> iterator() {
+	public @NotNull Iterator<Bookmark> iterator() {
 		return new BookmarksTreeIterator(this, rootFolderId, BookmarksTreeIterator.Algorithm.PRE_ORDER);
 	}
 
