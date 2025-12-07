@@ -19,6 +19,7 @@ import mesfavoris.internal.bookmarktypes.extension.ExtensionGotoBookmark;
 import mesfavoris.internal.markers.BookmarksMarkers;
 import mesfavoris.internal.persistence.BookmarksAutoSaver;
 import mesfavoris.internal.persistence.LocalBookmarksSaver;
+import mesfavoris.internal.recent.RecentBookmarksDatabase;
 import mesfavoris.internal.service.operations.*;
 import mesfavoris.internal.service.operations.utils.INewBookmarkPositionProvider;
 import mesfavoris.internal.service.operations.utils.NewBookmarkPositionProvider;
@@ -43,6 +44,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +53,8 @@ import java.util.function.Consumer;
 @Service(Service.Level.PROJECT)
 @State(name = "BookmarksService", storages = @Storage(value = "mesfavoris.xml", roamingType = RoamingType.PER_OS))
 public final class BookmarksService implements Disposable, PersistentStateComponent<Element> {
+    private static final Duration DEFAULT_RECENT_DURATION = Duration.ofDays(5);
+
     private final Project project;
     private BookmarkDatabase bookmarkDatabase;
     private IBookmarkLocationProvider bookmarkLocationProvider;
@@ -61,6 +65,7 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
     private BookmarksAutoSaver bookmarksSaver;
     private IBookmarkLabelProvider bookmarkLabelProvider;
     private RemoteBookmarksStoreManager remoteBookmarksStoreManager;
+    private RecentBookmarksDatabase recentBookmarksDatabase;
 
     public BookmarksService(Project project) throws IOException {
         this.project = project;
@@ -82,6 +87,8 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
                 new BookmarksTreeJsonSerializer(true));
         bookmarksSaver = new BookmarksAutoSaver(bookmarkDatabase, localBookmarksSaver);
         bookmarksSaver.init();
+        this.recentBookmarksDatabase = new RecentBookmarksDatabase(project, bookmarkDatabase, DEFAULT_RECENT_DURATION);
+        this.recentBookmarksDatabase.init();
     }
 
 
@@ -139,6 +146,10 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
 
     public IBookmarkLabelProvider getBookmarkLabelProvider() {
         return bookmarkLabelProvider;
+    }
+
+    public RecentBookmarksDatabase getRecentBookmarksDatabase() {
+        return recentBookmarksDatabase;
     }
 
     private GotoBookmarkOperation getGotoBookmarkOperation() {
@@ -212,17 +223,48 @@ public final class BookmarksService implements Disposable, PersistentStateCompon
 
     @Override
     public void dispose() {
+        if (recentBookmarksDatabase != null) {
+            recentBookmarksDatabase.close();
+        }
         bookmarksSaver.close();
     }
 
     @Override
     public @Nullable Element getState() {
-        return bookmarksMarkers.getState();
+        Element root = new Element("BookmarksService");
+
+        // Save bookmarks markers state
+        Element markersState = bookmarksMarkers.getState();
+        if (markersState != null) {
+            root.addContent(markersState);
+        }
+
+        // Save recent bookmarks state
+        if (recentBookmarksDatabase != null) {
+            Element recentBookmarksState = recentBookmarksDatabase.getState();
+            if (recentBookmarksState != null) {
+                root.addContent(recentBookmarksState);
+            }
+        }
+
+        return root;
     }
 
     @Override
     public void loadState(@NotNull Element state) {
-        bookmarksMarkers.loadState(state);
+        // Load bookmarks markers state
+        Element markersState = state.getChild("BookmarksMarkers");
+        if (markersState != null) {
+            bookmarksMarkers.loadState(markersState);
+        }
+
+        // Load recent bookmarks state
+        if (recentBookmarksDatabase != null) {
+            Element recentBookmarksState = state.getChild("RecentBookmarks");
+            if (recentBookmarksState != null) {
+                recentBookmarksDatabase.loadState(recentBookmarksState);
+            }
+        }
     }
 
     @Override
