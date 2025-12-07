@@ -10,6 +10,7 @@ import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.JBUI;
 import mesfavoris.internal.actions.RemoteStoreActionGroup;
 import mesfavoris.internal.markers.BookmarkWithMarkerLabelProvider;
+import mesfavoris.internal.recent.RecentBookmarksVirtualFolder;
 import mesfavoris.internal.toolwindow.search.BookmarksSearchHistoryStore;
 import mesfavoris.internal.toolwindow.search.BookmarksSearchTextField;
 import mesfavoris.internal.toolwindow.search.BookmarksTreeFilter;
@@ -17,7 +18,9 @@ import mesfavoris.internal.ui.details.BookmarkDetailsPart;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkFolder;
+import mesfavoris.model.BookmarkId;
 import mesfavoris.remote.IRemoteBookmarksStore;
+import mesfavoris.remote.RemoteBookmarksStoreExtension;
 import mesfavoris.remote.RemoteBookmarksStoreExtensionManager;
 import mesfavoris.remote.RemoteBookmarksStoreManager;
 import mesfavoris.service.BookmarksService;
@@ -53,7 +56,11 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         // Create tree filter
         this.treeFilter = new BookmarksTreeFilter(bookmarkDatabase);
 
-        tree = new BookmarksTreeComponent(bookmarkDatabase, treeFilter, this);
+        BookmarkId rootId = bookmarkDatabase.getBookmarksTree().getRootFolder().getId();
+        RecentBookmarksVirtualFolder recentBookmarksVirtualFolder = new RecentBookmarksVirtualFolder(project,
+                bookmarkDatabase, bookmarksService.getRecentBookmarksDatabase(), rootId, 20);
+
+        tree = new BookmarksTreeComponent(bookmarkDatabase, treeFilter, Arrays.asList(recentBookmarksVirtualFolder),this);
         bookmarksTreeCellRenderer = new BookmarksTreeCellRenderer(project, bookmarkDatabase,
                 project.getService(RemoteBookmarksStoreManager.class),
                 bookmarksService.getBookmarksDirtyStateTracker(),
@@ -142,7 +149,7 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         List<IRemoteBookmarksStore> stores = manager.getStores();
         for (IRemoteBookmarksStore store : stores) {
             List<AnAction> additionalActions = manager.getExtension(store.getDescriptor().id())
-                    .map(extension -> extension.getAdditionalActions())
+                    .map(RemoteBookmarksStoreExtension::getAdditionalActions)
                     .orElse(List.of());
             RemoteStoreActionGroup storeGroup = new RemoteStoreActionGroup(store, additionalActions);
             popupMenu.add(storeGroup);

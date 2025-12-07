@@ -5,6 +5,8 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.treeStructure.Tree;
 import mesfavoris.commons.Adapters;
 import mesfavoris.internal.toolwindow.search.BookmarksTreeFilter;
+import mesfavoris.internal.ui.virtual.ExtendedBookmarksTreeModel;
+import mesfavoris.internal.ui.virtual.VirtualBookmarkFolder;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
@@ -13,7 +15,9 @@ import javax.swing.tree.DefaultTreeCellEditor;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 import java.awt.event.MouseEvent;
+import java.util.Collections;
 import java.util.EventObject;
+import java.util.List;
 import java.util.Optional;
 
 public class BookmarksTreeComponent extends Tree implements Disposable {
@@ -21,10 +25,10 @@ public class BookmarksTreeComponent extends Tree implements Disposable {
     private final BookmarkDatabase bookmarkDatabase;
 
     public BookmarksTreeComponent(BookmarkDatabase bookmarkDatabase, Disposable parentDisposable) {
-        this(bookmarkDatabase, null, parentDisposable);
+        this(bookmarkDatabase, null, Collections.emptyList(), parentDisposable);
     }
 
-    public BookmarksTreeComponent(BookmarkDatabase bookmarkDatabase, BookmarksTreeFilter filter, Disposable parentDisposable) {
+    public BookmarksTreeComponent(BookmarkDatabase bookmarkDatabase, BookmarksTreeFilter filter, List<VirtualBookmarkFolder> virtualBookmarkFolders, Disposable parentDisposable) {
         super();
         this.bookmarkDatabase = bookmarkDatabase;
         if (filter != null) {
@@ -32,7 +36,7 @@ public class BookmarksTreeComponent extends Tree implements Disposable {
         } else {
             this.bookmarksTreeModel = new BookmarksTreeModel(bookmarkDatabase, this);
         }
-        setModel(this.bookmarksTreeModel);
+        setModel(new ExtendedBookmarksTreeModel(bookmarksTreeModel, virtualBookmarkFolders, this));
         setRootVisible(false);
 
         // Install custom cell editor that prevents inline editing via mouse events
