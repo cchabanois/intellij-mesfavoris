@@ -9,7 +9,7 @@ import com.intellij.util.ui.UIUtil;
 import mesfavoris.BookmarksException;
 import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.BookmarkMarker;
-import mesfavoris.internal.service.BookmarksService;
+import mesfavoris.service.IBookmarksService;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkFolder;
@@ -31,7 +31,7 @@ public class BookmarksMarkersTest extends BasePlatformTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        BookmarksService bookmarksService = getProject().getService(BookmarksService.class);
+        IBookmarksService bookmarksService = getProject().getService(IBookmarksService.class);
         this.bookmarkDatabase = bookmarksService.getBookmarkDatabase();
         this.bookmarksMarkers = bookmarksService.getBookmarksMarkers();
         this.rootFolderId = bookmarkDatabase.getBookmarksTree().getRootFolder().getId();

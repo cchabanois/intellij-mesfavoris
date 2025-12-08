@@ -339,8 +339,10 @@ public class BookmarksHighlighters implements Disposable {
             bookmarksHighlighters.init();
 
             // Register with BookmarksService as disposable parent to avoid Project warning
-            BookmarksService bookmarksService = project.getService(BookmarksService.class);
-            Disposer.register(bookmarksService, bookmarksHighlighters);
+            IBookmarksService service = project.getService(IBookmarksService.class);
+            if (service instanceof BookmarksService bookmarksService) {
+                Disposer.register(bookmarksService, bookmarksHighlighters);
+            }
         }
     }
 
