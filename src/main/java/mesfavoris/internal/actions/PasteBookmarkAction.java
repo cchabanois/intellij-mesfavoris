@@ -11,7 +11,7 @@ import mesfavoris.BookmarksException;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkFolder;
 import mesfavoris.model.BookmarkId;
-import mesfavoris.service.BookmarksService;
+import mesfavoris.service.IBookmarksService;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.datatransfer.Transferable;
@@ -43,7 +43,7 @@ public class PasteBookmarkAction extends AbstractBookmarkAction {
             return;
         }
 
-        BookmarksService bookmarksService = getBookmarksService(event);
+        IBookmarksService bookmarksService = getBookmarksService(event);
 
         if (selectedBookmark instanceof BookmarkFolder) {
             paste(event, bookmarksService, selectedBookmark.getId());
@@ -53,7 +53,7 @@ public class PasteBookmarkAction extends AbstractBookmarkAction {
         }
     }
 
-    private void paste(AnActionEvent event, BookmarksService bookmarksService, BookmarkId bookmarkFolderId) {
+    private void paste(AnActionEvent event, IBookmarksService bookmarksService, BookmarkId bookmarkFolderId) {
         ProgressManager.getInstance().run(new Task.Modal(event.getProject(), "Pasting Bookmark", true) {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
@@ -67,7 +67,7 @@ public class PasteBookmarkAction extends AbstractBookmarkAction {
         });
     }
 
-    private void pasteAfter(AnActionEvent event, BookmarksService bookmarksService,
+    private void pasteAfter(AnActionEvent event, IBookmarksService bookmarksService,
                            BookmarkId parentFolderId, BookmarkId bookmarkId) {
         ProgressManager.getInstance().run(new Task.Modal(event.getProject(), "Pasting Bookmark", true) {
             @Override

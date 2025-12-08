@@ -12,7 +12,7 @@ import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.BookmarkMarker;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
-import mesfavoris.service.BookmarksService;
+import mesfavoris.service.IBookmarksService;
 import mesfavoris.ui.renderers.BookmarksListCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
@@ -70,14 +70,14 @@ public class DeleteBookmarkMarkerAction extends AbstractBookmarkAction {
         if (bookmark == null) {
             return false;
         }
-        BookmarksService bookmarksService = getBookmarksService(event);
+        IBookmarksService bookmarksService = getBookmarksService(event);
         IBookmarksMarkers bookmarksMarkers = bookmarksService.getBookmarksMarkers();
         BookmarkMarker marker = bookmarksMarkers.getMarker(bookmark.getId());
         return marker != null;
     }
 
     private void deleteMarkers(AnActionEvent event, List<Bookmark> bookmarks) {
-        BookmarksService bookmarksService = getBookmarksService(event);
+        IBookmarksService bookmarksService = getBookmarksService(event);
         IBookmarksMarkers bookmarksMarkers = bookmarksService.getBookmarksMarkers();
 
         int deletedCount = 0;
@@ -96,7 +96,7 @@ public class DeleteBookmarkMarkerAction extends AbstractBookmarkAction {
 
     private boolean showConfirmationDialog(Project project, List<Bookmark> bookmarksWithMarkers) {
         JBList<Bookmark> list = new JBList<>(JBList.createDefaultListModel(bookmarksWithMarkers));
-        BookmarksService bookmarksService = project.getService(BookmarksService.class);
+        IBookmarksService bookmarksService = project.getService(IBookmarksService.class);
         BookmarkDatabase bookmarkDatabase = bookmarksService.getBookmarkDatabase();
         list.setCellRenderer(new BookmarksListCellRenderer(project, bookmarkDatabase, 
                 bookmarksService.getBookmarksDirtyStateTracker(),

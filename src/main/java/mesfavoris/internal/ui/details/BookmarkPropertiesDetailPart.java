@@ -8,7 +8,7 @@ import com.intellij.util.ui.ListTableModel;
 import mesfavoris.BookmarksException;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
-import mesfavoris.service.BookmarksService;
+import mesfavoris.service.IBookmarksService;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ public class BookmarkPropertiesDetailPart extends AbstractBookmarkDetailPart {
     private JBTable table;
 
     public BookmarkPropertiesDetailPart(Project project) {
-        this(project, project.getService(BookmarksService.class).getBookmarkDatabase());
+        this(project, project.getService(IBookmarksService.class).getBookmarkDatabase());
     }
 
     public BookmarkPropertiesDetailPart(Project project, BookmarkDatabase  bookmarkDatabase) {
@@ -97,7 +97,7 @@ public class BookmarkPropertiesDetailPart extends AbstractBookmarkDetailPart {
 
             @Override
             public void setValue(Map.Entry<String, String> item, String value) {
-                BookmarksService bookmarksService = project.getService(BookmarksService.class);
+                IBookmarksService bookmarksService = project.getService(IBookmarksService.class);
                 Map<String, String> newProperties = new HashMap<>(bookmark.getProperties());
                 newProperties.put(item.getKey(), value);
                 try {

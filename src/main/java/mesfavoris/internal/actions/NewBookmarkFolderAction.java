@@ -12,7 +12,7 @@ import mesfavoris.BookmarksException;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkFolder;
 import mesfavoris.model.BookmarkId;
-import mesfavoris.service.BookmarksService;
+import mesfavoris.service.IBookmarksService;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -28,7 +28,7 @@ public class NewBookmarkFolderAction extends AbstractBookmarkAction {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent event) {
-        BookmarksService bookmarksService = getBookmarksService(event);
+        IBookmarksService bookmarksService = getBookmarksService(event);
         BookmarkId parentId = getParentId(event);
         if (parentId == null) {
             return;
@@ -49,7 +49,7 @@ public class NewBookmarkFolderAction extends AbstractBookmarkAction {
     }
 
     private BookmarkId  getParentId(@NotNull AnActionEvent event) {
-        BookmarksService bookmarksService = getBookmarksService(event);
+        IBookmarksService bookmarksService = getBookmarksService(event);
         Bookmark bookmark = getSelectedBookmark(event);
         BookmarkFolder parent;
         if (bookmark == null) {

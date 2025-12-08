@@ -12,10 +12,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.*;
 import com.intellij.util.ui.UIUtil;
 import mesfavoris.BookmarksException;
+import mesfavoris.internal.service.BookmarksService;
 import mesfavoris.internal.ui.details.AbstractBookmarkDetailPart;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
-import mesfavoris.service.BookmarksService;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

@@ -8,7 +8,7 @@ import mesfavoris.internal.service.operations.SortByNameOperation;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkFolder;
-import mesfavoris.service.BookmarksService;
+import mesfavoris.service.IBookmarksService;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +30,7 @@ public class SortByNameAction extends AbstractBookmarkAction implements DumbAwar
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent event) {
-        BookmarksService bookmarksService = getBookmarksService(event);
+        IBookmarksService bookmarksService = getBookmarksService(event);
         BookmarkDatabase bookmarkDatabase = bookmarksService.getBookmarkDatabase();
         
         BookmarkFolder folderToSort = getFolderToSort(event, bookmarkDatabase);

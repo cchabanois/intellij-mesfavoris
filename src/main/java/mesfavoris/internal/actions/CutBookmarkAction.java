@@ -7,7 +7,7 @@ import mesfavoris.BookmarksException;
 import mesfavoris.internal.service.operations.CutBookmarkOperation;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkId;
-import mesfavoris.service.BookmarksService;
+import mesfavoris.service.IBookmarksService;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -29,7 +29,7 @@ public class CutBookmarkAction extends AbstractBookmarkAction {
         }
 
         // Check if there are duplicated bookmarks in selection
-        BookmarksService bookmarksService = getBookmarksService(event);
+        IBookmarksService bookmarksService = getBookmarksService(event);
         List<BookmarkId> bookmarkIds = bookmarks.stream()
                 .map(Bookmark::getId)
                 .collect(Collectors.toList());
@@ -48,7 +48,7 @@ public class CutBookmarkAction extends AbstractBookmarkAction {
             return;
         }
 
-        BookmarksService bookmarksService = getBookmarksService(event);
+        IBookmarksService bookmarksService = getBookmarksService(event);
         List<BookmarkId> bookmarkIds = bookmarks.stream()
                 .map(Bookmark::getId)
                 .collect(Collectors.toList());

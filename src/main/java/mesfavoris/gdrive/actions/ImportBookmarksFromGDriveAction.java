@@ -20,7 +20,7 @@ import mesfavoris.internal.actions.AbstractBookmarkAction;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkFolder;
 import mesfavoris.remote.IRemoteBookmarksStore;
-import mesfavoris.service.BookmarksService;
+import mesfavoris.service.IBookmarksService;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -68,7 +68,7 @@ public class ImportBookmarksFromGDriveAction extends AbstractBookmarkAction {
             return;
         }
 
-        BookmarksService bookmarksService = project.getService(BookmarksService.class);
+        IBookmarksService bookmarksService = project.getService(IBookmarksService.class);
         BookmarkMappingsStore bookmarkMappingsStore = project.getService(BookmarkMappingsStore.class);
 
         List<Bookmark> selectedBookmarks = getSelectedBookmarks(event);
@@ -97,7 +97,7 @@ public class ImportBookmarksFromGDriveAction extends AbstractBookmarkAction {
     private void importBookmarkFiles(@NotNull Project project,
                                      @NotNull GDriveConnectionManager connectionManager,
                                      @NotNull BookmarkMappingsStore bookmarkMappingsStore,
-                                     @NotNull BookmarksService bookmarksService,
+                                     @NotNull IBookmarksService bookmarksService,
                                      @NotNull BookmarkFolder targetFolder,
                                      @NotNull List<File> files) {
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Importing Bookmarks Files", true) {

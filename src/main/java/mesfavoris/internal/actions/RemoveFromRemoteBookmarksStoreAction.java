@@ -16,7 +16,7 @@ import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkFolder;
 import mesfavoris.remote.IRemoteBookmarksStore;
 import mesfavoris.remote.RemoteBookmarksStoreManager;
-import mesfavoris.service.BookmarksService;
+import mesfavoris.service.IBookmarksService;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -119,7 +119,7 @@ public class RemoveFromRemoteBookmarksStoreAction extends AbstractBookmarkAction
 
     private RemoveFromRemoteBookmarksStoreOperation getOperation(@NotNull AnActionEvent event) {
         Project project = event.getProject();
-        BookmarksService bookmarksService = getBookmarksService(event);
+        IBookmarksService bookmarksService = getBookmarksService(event);
         RemoteBookmarksStoreManager remoteBookmarksStoreManager = project.getService(RemoteBookmarksStoreManager.class);
         return new RemoveFromRemoteBookmarksStoreOperation(bookmarksService.getBookmarkDatabase(), remoteBookmarksStoreManager);
     }

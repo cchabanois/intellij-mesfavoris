@@ -4,9 +4,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
+import mesfavoris.internal.service.BookmarksService;
 import mesfavoris.path.PathBookmarkProperties;
 import mesfavoris.placeholders.PathPlaceholder;
-import mesfavoris.service.BookmarksService;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

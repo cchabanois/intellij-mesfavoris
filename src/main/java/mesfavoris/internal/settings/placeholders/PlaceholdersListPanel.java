@@ -11,6 +11,7 @@ import mesfavoris.BookmarksException;
 import mesfavoris.bookmarktype.BookmarkDatabaseLabelProviderContext;
 import mesfavoris.bookmarktype.IBookmarkLabelProvider;
 import mesfavoris.internal.placeholders.PathPlaceholderResolver;
+import mesfavoris.internal.service.BookmarksService;
 import mesfavoris.internal.service.operations.CollapseBookmarksOperation;
 import mesfavoris.internal.service.operations.ExpandBookmarksOperation;
 import mesfavoris.model.Bookmark;
@@ -20,7 +21,6 @@ import mesfavoris.model.BookmarksTree;
 import mesfavoris.path.PathBookmarkProperties;
 import mesfavoris.placeholders.IPathPlaceholderResolver;
 import mesfavoris.placeholders.PathPlaceholder;
-import mesfavoris.service.BookmarksService;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

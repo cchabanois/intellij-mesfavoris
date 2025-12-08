@@ -23,7 +23,7 @@ import mesfavoris.remote.IRemoteBookmarksStore;
 import mesfavoris.remote.RemoteBookmarksStoreExtension;
 import mesfavoris.remote.RemoteBookmarksStoreExtensionManager;
 import mesfavoris.remote.RemoteBookmarksStoreManager;
-import mesfavoris.service.BookmarksService;
+import mesfavoris.service.IBookmarksService;
 import mesfavoris.ui.renderers.BookmarksTreeCellRenderer;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +40,7 @@ import java.util.List;
 public class MesFavorisPanel extends JPanel implements DataProvider, Disposable {
     private final Project project;
     private final BookmarksTreeComponent tree;
-    private final BookmarksService bookmarksService;
+    private final IBookmarksService bookmarksService;
     private final BookmarksTreeCellRenderer bookmarksTreeCellRenderer;
     private final BookmarkDetailsPart bookmarkDetailsPart;
     private final BookmarksTreeDnDHandler dndHandler;
@@ -50,7 +50,7 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
     public MesFavorisPanel(@NotNull Project project) {
         super(new BorderLayout());
         this.project = project;
-        this.bookmarksService = project.getService(BookmarksService.class);
+        this.bookmarksService = project.getService(IBookmarksService.class);
         BookmarkDatabase bookmarkDatabase = bookmarksService.getBookmarkDatabase();
 
         // Create tree filter

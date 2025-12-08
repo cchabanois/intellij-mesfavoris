@@ -12,7 +12,7 @@ import mesfavoris.model.BookmarkId;
 import mesfavoris.model.BookmarksTree;
 import mesfavoris.persistence.IBookmarksTreeDeserializer;
 import mesfavoris.persistence.json.BookmarksTreeJsonDeserializer;
-import mesfavoris.service.BookmarksService;
+import mesfavoris.service.IBookmarksService;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -23,12 +23,12 @@ public class ImportBookmarkFileOperation extends AbstractGDriveOperation {
 	private static final Logger LOG = Logger.getInstance(ImportBookmarkFileOperation.class);
 
 	private final BookmarkMappingsStore bookmarkMappingsStore;
-	private final BookmarksService bookmarksService;
+	private final IBookmarksService bookmarksService;
 	private final Optional<String> applicationFolderId;
 	private final IBookmarkMappingPropertiesProvider bookmarkMappingPropertiesProvider;
 
 	public ImportBookmarkFileOperation(Drive drive, BookmarkMappingsStore bookmarkMappingsStore,
-			BookmarksService bookmarksService, Optional<String> applicationFolderId) {
+			IBookmarksService bookmarksService, Optional<String> applicationFolderId) {
 		super(drive);
 		this.bookmarkMappingsStore = bookmarkMappingsStore;
 		this.bookmarksService = bookmarksService;

@@ -1,8 +1,11 @@
-package mesfavoris.service;
+package mesfavoris.internal.service;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.components.*;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.RoamingType;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import mesfavoris.BookmarksException;
@@ -33,6 +36,7 @@ import mesfavoris.persistence.IBookmarksDirtyStateTracker;
 import mesfavoris.persistence.json.BookmarksTreeJsonDeserializer;
 import mesfavoris.persistence.json.BookmarksTreeJsonSerializer;
 import mesfavoris.remote.RemoteBookmarksStoreManager;
+import mesfavoris.service.IBookmarksService;
 import mesfavoris.texteditor.internal.WorkspaceFileBookmarkMarkerAttributesProvider;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
@@ -50,9 +54,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-@Service(Service.Level.PROJECT)
 @State(name = "BookmarksService", storages = @Storage(value = "mesfavoris.xml", roamingType = RoamingType.PER_OS))
-public final class BookmarksService implements Disposable, PersistentStateComponent<Element> {
+public final class BookmarksService implements IBookmarksService, Disposable, PersistentStateComponent<Element> {
     private static final Duration DEFAULT_RECENT_DURATION = Duration.ofDays(5);
 
     private final Project project;

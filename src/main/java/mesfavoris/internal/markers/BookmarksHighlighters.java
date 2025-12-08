@@ -27,8 +27,9 @@ import com.intellij.ui.AppUIUtil;
 import com.intellij.util.messages.MessageBus;
 import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.BookmarkMarker;
+import mesfavoris.internal.service.BookmarksService;
 import mesfavoris.model.BookmarkId;
-import mesfavoris.service.BookmarksService;
+import mesfavoris.service.IBookmarksService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,7 +53,7 @@ public class BookmarksHighlighters implements Disposable {
         project.getMessageBus().connect(this).subscribe(BookmarksMarkers.BookmarksMarkersListener.TOPIC, getBookmarksMarkersListener());
 
         EditorEventMulticaster multicaster = EditorFactory.getInstance().getEventMulticaster();
-        IBookmarksMarkers bookmarksMarkers = project.getService(BookmarksService.class).getBookmarksMarkers();
+        IBookmarksMarkers bookmarksMarkers = project.getService(IBookmarksService.class).getBookmarksMarkers();
 
         this.documentListener = new BookmarksHighlightersDocumentListener(project, bookmarksMarkers);
         multicaster.addDocumentListener(documentListener, this);
@@ -187,7 +188,7 @@ public class BookmarksHighlighters implements Disposable {
     }
 
     private List<BookmarkMarker> getMarkers(Project project, VirtualFile file) {
-        BookmarksService bookmarksService = project.getService(BookmarksService.class);
+        IBookmarksService bookmarksService = project.getService(IBookmarksService.class);
         IBookmarksMarkers bookmarksMarkers = bookmarksService.getBookmarksMarkers();
         return bookmarksMarkers.getMarkers(file);
     }

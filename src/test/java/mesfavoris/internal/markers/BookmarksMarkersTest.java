@@ -9,11 +9,11 @@ import com.intellij.util.ui.UIUtil;
 import mesfavoris.BookmarksException;
 import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.BookmarkMarker;
+import mesfavoris.internal.service.BookmarksService;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkFolder;
 import mesfavoris.model.BookmarkId;
-import mesfavoris.service.BookmarksService;
 
 import java.util.List;
 import java.util.concurrent.TimeoutException;

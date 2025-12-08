@@ -8,13 +8,13 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.ui.Messages;
 import mesfavoris.BookmarksException;
-import mesfavoris.service.BookmarksService;
+import mesfavoris.service.IBookmarksService;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractAddBookmarkAction extends AbstractBookmarkAction {
 
     protected void runAddBookmarkTask(AnActionEvent event, DataContext dataContext) {
-        BookmarksService bookmarksService = getBookmarksService(event);
+        IBookmarksService bookmarksService = getBookmarksService(event);
         ProgressManager.getInstance().run(new Task.Modal(event.getProject(), "Adding Bookmark", true) {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {

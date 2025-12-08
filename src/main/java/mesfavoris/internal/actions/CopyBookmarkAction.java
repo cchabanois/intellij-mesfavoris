@@ -5,7 +5,7 @@ import mesfavoris.internal.service.operations.CopyBookmarkOperation;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.BookmarksTree;
-import mesfavoris.service.BookmarksService;
+import mesfavoris.service.IBookmarksService;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -31,7 +31,7 @@ public class CopyBookmarkAction extends AbstractBookmarkAction {
             return;
         }
 
-        BookmarksService bookmarksService = getBookmarksService(event);
+        IBookmarksService bookmarksService = getBookmarksService(event);
         BookmarksTree bookmarksTree = bookmarksService.getBookmarksTree();
         
         List<BookmarkId> bookmarkIds = bookmarks.stream()
