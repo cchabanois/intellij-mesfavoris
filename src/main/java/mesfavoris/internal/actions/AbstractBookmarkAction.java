@@ -13,7 +13,7 @@ import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkFolder;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.BookmarksTree;
-import mesfavoris.service.BookmarksService;
+import mesfavoris.service.IBookmarksService;
 
 import java.awt.*;
 import java.util.*;
@@ -24,9 +24,9 @@ import java.util.stream.StreamSupport;
 
 public abstract class AbstractBookmarkAction extends AnAction implements DumbAware {
 
-    protected BookmarksService getBookmarksService(AnActionEvent event) {
+    protected IBookmarksService getBookmarksService(AnActionEvent event) {
         Project project = event.getProject();
-        return project.getService(BookmarksService.class);
+        return project.getService(IBookmarksService.class);
     }
 
 

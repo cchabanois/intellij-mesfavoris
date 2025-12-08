@@ -12,7 +12,7 @@ import mesfavoris.BookmarksException;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarksTree;
-import mesfavoris.service.BookmarksService;
+import mesfavoris.service.IBookmarksService;
 import mesfavoris.ui.renderers.BookmarksListCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,7 +43,7 @@ public class DeleteBookmarkAction extends AbstractBookmarkAction  {
             return;
         }
         Project project = event.getProject();
-        BookmarksService bookmarksService = getBookmarksService(event);
+        IBookmarksService bookmarksService = getBookmarksService(event);
         BookmarkDatabase bookmarkDatabase = bookmarksService.getBookmarkDatabase();
         List<Bookmark> bookmarksToDelete = new ArrayList<>(getBookmarksToDelete(bookmarkDatabase.getBookmarksTree(), bookmarks));
         if (showConfirmationDialog(project, bookmarksToDelete)) {
@@ -69,7 +69,7 @@ public class DeleteBookmarkAction extends AbstractBookmarkAction  {
 
     private boolean showConfirmationDialog(Project project, List<Bookmark> bookmarksToDelete) {
         JBList<Bookmark> list = new JBList<>(JBList.createDefaultListModel(bookmarksToDelete));
-        BookmarksService bookmarksService = project.getService(BookmarksService.class);
+        IBookmarksService bookmarksService = project.getService(IBookmarksService.class);
         BookmarkDatabase bookmarkDatabase = bookmarksService.getBookmarkDatabase();
         list.setCellRenderer(new BookmarksListCellRenderer(project, bookmarkDatabase, bookmarksService.getBookmarksDirtyStateTracker(),
                 bookmarksService.getBookmarkLabelProvider()));

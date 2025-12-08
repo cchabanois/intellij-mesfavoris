@@ -10,7 +10,7 @@ import com.intellij.ui.tabs.TabInfo;
 import mesfavoris.extensions.BookmarkTypeExtensionManager;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
-import mesfavoris.service.BookmarksService;
+import mesfavoris.service.IBookmarksService;
 import mesfavoris.ui.details.IBookmarkDetailPart;
 
 import javax.swing.*;
@@ -35,7 +35,7 @@ public class BookmarkDetailsPart implements IBookmarkDetailPart {
 	 * Constructor that creates detail parts from extensions
 	 */
 	public BookmarkDetailsPart(Project project, Disposable parentDisposable) {
-		this(project, project.getService(BookmarksService.class).getBookmarkDatabase(), BookmarkTypeExtensionManager.getInstance().createDetailParts(project), parentDisposable);
+		this(project, project.getService(IBookmarksService.class).getBookmarkDatabase(), BookmarkTypeExtensionManager.getInstance().createDetailParts(project), parentDisposable);
 	}
 
     public BookmarkDetailsPart(Project project, BookmarkDatabase bookmarkDatabase, List<IBookmarkDetailPart> bookmarkDetailParts, Disposable parentDisposable) {

@@ -11,6 +11,7 @@ import mesfavoris.BookmarksException;
 import mesfavoris.bookmarktype.BookmarkDatabaseLabelProviderContext;
 import mesfavoris.bookmarktype.IBookmarkLabelProvider;
 import mesfavoris.internal.placeholders.PathPlaceholderResolver;
+import mesfavoris.service.IBookmarksService;
 import mesfavoris.internal.service.operations.CollapseBookmarksOperation;
 import mesfavoris.internal.service.operations.ExpandBookmarksOperation;
 import mesfavoris.model.Bookmark;
@@ -20,7 +21,6 @@ import mesfavoris.model.BookmarksTree;
 import mesfavoris.path.PathBookmarkProperties;
 import mesfavoris.placeholders.IPathPlaceholderResolver;
 import mesfavoris.placeholders.PathPlaceholder;
-import mesfavoris.service.BookmarksService;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -42,7 +42,7 @@ public class PlaceholdersListPanel extends JPanel {
     private JPanel mainPanel;
     private PathPlaceholderStats pathPlaceholderStats;
     private final Project project;
-    private final BookmarksService bookmarksService;
+    private final IBookmarksService bookmarksService;
 
     // Bookmark management components
     private JPanel bookmarkManagementPanel;
@@ -56,7 +56,7 @@ public class PlaceholdersListPanel extends JPanel {
     public PlaceholdersListPanel(@NotNull Project project) {
         super(new BorderLayout());
         this.project = project;
-        this.bookmarksService = project.getService(BookmarksService.class);
+        this.bookmarksService = project.getService(IBookmarksService.class);
         initComponents();
         layoutComponents();
     }
@@ -548,7 +548,7 @@ public class PlaceholdersListPanel extends JPanel {
         private final IBookmarkLabelProvider bookmarkLabelProvider;
         private final IBookmarkLabelProvider.Context context;
 
-        public BookmarkListCellRenderer(@NotNull Project project, @NotNull BookmarksService bookmarksService, @NotNull IBookmarkLabelProvider bookmarkLabelProvider) {
+        public BookmarkListCellRenderer(@NotNull Project project, @NotNull IBookmarksService bookmarksService, @NotNull IBookmarkLabelProvider bookmarkLabelProvider) {
             this.bookmarkLabelProvider = bookmarkLabelProvider;
 
             // Initialize Context once in constructor

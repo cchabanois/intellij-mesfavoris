@@ -14,6 +14,8 @@
                 displayType="BALLOON"
                 isLogByDefault="false"
         />
+        <projectService serviceInterface="mesfavoris.service.IBookmarksService"
+                        serviceImplementation="mesfavoris.internal.service.BookmarksService"/>
         <projectService serviceImplementation="mesfavoris.internal.toolwindow.BookmarksTreeComponentStateService"/>
         <projectService serviceImplementation="mesfavoris.internal.toolwindow.search.BookmarksSearchHistoryStore"/>
         <projectService serviceImplementation="mesfavoris.gdrive.connection.GDriveUserInfoStore"/>

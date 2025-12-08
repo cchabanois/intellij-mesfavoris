@@ -16,7 +16,7 @@ import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkFolder;
 import mesfavoris.remote.IRemoteBookmarksStore;
 import mesfavoris.remote.RemoteBookmarksStoreManager;
-import mesfavoris.service.BookmarksService;
+import mesfavoris.service.IBookmarksService;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -84,7 +84,7 @@ public class AddFolderToRemoteStoreAction extends AbstractBookmarkAction impleme
             return;
         }
 
-        BookmarksService bookmarksService = getBookmarksService(event);
+        IBookmarksService bookmarksService = getBookmarksService(event);
         String storeId = store.getDescriptor().id();
         String label = store.getDescriptor().label();
 
@@ -120,7 +120,7 @@ public class AddFolderToRemoteStoreAction extends AbstractBookmarkAction impleme
 
     private AddToRemoteBookmarksStoreOperation getOperation(@NotNull AnActionEvent event) {
         Project project = event.getProject();
-        BookmarksService bookmarksService = getBookmarksService(event);
+        IBookmarksService bookmarksService = getBookmarksService(event);
         RemoteBookmarksStoreManager remoteBookmarksStoreManager = project.getService(RemoteBookmarksStoreManager.class);
         return new AddToRemoteBookmarksStoreOperation(bookmarksService.getBookmarkDatabase(), remoteBookmarksStoreManager);
     }

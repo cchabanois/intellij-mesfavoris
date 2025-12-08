@@ -9,7 +9,7 @@ import mesfavoris.BookmarksDataKeys;
 import mesfavoris.bookmarktype.IDisabledBookmarkTypesProvider;
 import mesfavoris.internal.actions.AbstractAddBookmarkAction;
 import mesfavoris.internal.settings.bookmarktypes.BookmarkTypesStore;
-import mesfavoris.service.BookmarksService;
+import mesfavoris.service.IBookmarksService;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.datatransfer.DataFlavor;
@@ -48,7 +48,7 @@ public class PasteAsSnippetAction extends AbstractAddBookmarkAction {
         if (transferable == null || !transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
             return;
         }
-        BookmarksService bookmarksService = getBookmarksService(event);
+        IBookmarksService bookmarksService = getBookmarksService(event);
         DataContext originalContext = event.getDataContext();
         DataContext newDataContext = SimpleDataContext.builder()
                 .add(CommonDataKeys.PROJECT, event.getProject())

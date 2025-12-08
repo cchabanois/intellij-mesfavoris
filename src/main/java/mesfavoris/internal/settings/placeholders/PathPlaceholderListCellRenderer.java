@@ -4,9 +4,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
+import mesfavoris.service.IBookmarksService;
 import mesfavoris.path.PathBookmarkProperties;
 import mesfavoris.placeholders.PathPlaceholder;
-import mesfavoris.service.BookmarksService;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -23,7 +23,7 @@ public class PathPlaceholderListCellRenderer extends ColoredListCellRenderer<Pat
     private final PathPlaceholderStats pathPlaceholderStats;
 
     public PathPlaceholderListCellRenderer(@NotNull Project project) {
-        BookmarksService bookmarksService = project.getService(BookmarksService.class);
+        IBookmarksService bookmarksService = project.getService(IBookmarksService.class);
         List<String> pathPropertyNames = Arrays.asList(PathBookmarkProperties.PROP_FILE_PATH);
         this.pathPlaceholderStats = new PathPlaceholderStats(bookmarksService::getBookmarksTree, pathPropertyNames);
     }

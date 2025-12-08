@@ -8,7 +8,7 @@ import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.BookmarkMarker;
 import mesfavoris.bookmarktype.IBookmarkLabelProvider;
 import mesfavoris.model.Bookmark;
-import mesfavoris.service.BookmarksService;
+import mesfavoris.service.IBookmarksService;
 import mesfavoris.ui.renderers.StyledString;
 
 import javax.swing.*;
@@ -22,7 +22,7 @@ public class BookmarkWithMarkerLabelProvider implements IBookmarkLabelProvider {
 
     public BookmarkWithMarkerLabelProvider(Project project, IBookmarkLabelProvider parentBookmarkLabelProvider) {
         this.parentBookmarkLabelProvider = parentBookmarkLabelProvider;
-        BookmarksService bookmarksService = project.getService(BookmarksService.class);
+        IBookmarksService bookmarksService = project.getService(IBookmarksService.class);
         this.bookmarksMarkers = bookmarksService.getBookmarksMarkers();
         this.markerIndicator = createMarkerIndicator();
     }

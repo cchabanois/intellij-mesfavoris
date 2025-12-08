@@ -12,9 +12,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.*;
 import com.intellij.util.ui.UIUtil;
 import mesfavoris.BookmarksException;
+import mesfavoris.service.IBookmarksService;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
-import mesfavoris.service.BookmarksService;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -41,7 +41,7 @@ public class CommentBookmarkDetailPart extends AbstractBookmarkDetailPart {
     };
 
     public CommentBookmarkDetailPart(Project project) {
-        this(project, project.getService(BookmarksService.class).getBookmarkDatabase());
+        this(project, project.getService(IBookmarksService.class).getBookmarkDatabase());
     }
 
     public CommentBookmarkDetailPart(Project project, BookmarkDatabase bookmarkDatabase) {
