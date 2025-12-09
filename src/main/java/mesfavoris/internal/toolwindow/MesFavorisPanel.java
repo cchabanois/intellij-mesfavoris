@@ -58,7 +58,7 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
 
         BookmarkId rootId = bookmarkDatabase.getBookmarksTree().getRootFolder().getId();
         RecentBookmarksVirtualFolder recentBookmarksVirtualFolder = new RecentBookmarksVirtualFolder(project,
-                bookmarkDatabase, bookmarksService.getRecentBookmarksDatabase(), rootId, 20);
+                bookmarkDatabase, bookmarksService.getRecentBookmarksProvider(), rootId, 20);
 
         tree = new BookmarksTreeComponent(bookmarkDatabase, treeFilter, Arrays.asList(recentBookmarksVirtualFolder),this);
         bookmarksTreeCellRenderer = new BookmarksTreeCellRenderer(project, bookmarkDatabase,

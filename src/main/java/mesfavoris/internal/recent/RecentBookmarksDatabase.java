@@ -7,6 +7,7 @@ import mesfavoris.model.*;
 import mesfavoris.model.modification.BookmarkDeletedModification;
 import mesfavoris.model.modification.BookmarksAddedModification;
 import mesfavoris.model.modification.BookmarksModification;
+import mesfavoris.recent.IRecentBookmarksProvider;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +25,7 @@ import java.util.stream.StreamSupport;
  * Database for tracking recently added bookmarks.
  * Persistence is managed by BookmarksService.
  */
-public class RecentBookmarksDatabase implements PersistentStateComponent<Element> {
+public class RecentBookmarksDatabase implements IRecentBookmarksProvider, PersistentStateComponent<Element> {
 	private static final Logger LOG = Logger.getInstance(RecentBookmarksDatabase.class);
 	private static final String NAME_DATE = "date";
 	private static final String NAME_BOOKMARK_ID = "bookmarkId";

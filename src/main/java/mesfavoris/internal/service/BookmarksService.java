@@ -28,6 +28,7 @@ import mesfavoris.internal.service.operations.utils.INewBookmarkPositionProvider
 import mesfavoris.internal.service.operations.utils.NewBookmarkPositionProvider;
 import mesfavoris.internal.validation.BookmarksModificationValidator;
 import mesfavoris.internal.workspace.BookmarksWorkspaceFactory;
+import mesfavoris.recent.IRecentBookmarksProvider;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.BookmarksTree;
@@ -149,6 +150,11 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
 
     public IBookmarkLabelProvider getBookmarkLabelProvider() {
         return bookmarkLabelProvider;
+    }
+
+    @Override
+    public IRecentBookmarksProvider getRecentBookmarksProvider() {
+        return recentBookmarksDatabase;
     }
 
     public RecentBookmarksDatabase getRecentBookmarksDatabase() {
