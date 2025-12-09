@@ -5,11 +5,11 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import mesfavoris.BookmarksException;
 import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.IBookmarkLabelProvider;
-import mesfavoris.internal.recent.RecentBookmarksDatabase;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.BookmarksTree;
 import mesfavoris.persistence.IBookmarksDirtyStateTracker;
+import mesfavoris.recent.IRecentBookmarksProvider;
 
 import java.util.List;
 import java.util.Map;
@@ -47,9 +47,9 @@ public interface IBookmarksService {
     IBookmarkLabelProvider getBookmarkLabelProvider();
 
     /**
-     * Get the recent bookmarks database
+     * Get the recent bookmarks provider
      */
-    RecentBookmarksDatabase getRecentBookmarksDatabase();
+    IRecentBookmarksProvider getRecentBookmarksProvider();
 
     /**
      * Navigate to a bookmark
