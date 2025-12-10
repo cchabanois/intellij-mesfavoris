@@ -3,6 +3,7 @@ package mesfavoris.internal.toolwindow;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.*;
@@ -129,12 +130,9 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
                     return false;
                 } else {
                     DataContext context = DataManager.getInstance().getDataContext(MesFavorisPanel.this);
-
+                    AnAction action = ActionManager.getInstance().getAction("mesfavoris.actions.GotoBookmarkAction");
                     AnActionEvent event = AnActionEvent.createEvent(context, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, mouseEvent);
-
-                    ActionManager.getInstance()
-                            .getAction("mesfavoris.actions.GotoBookmarkAction")
-                            .actionPerformed(event);
+                    ActionUtil.performAction(action, event);
                     return true;
                 }
             }
@@ -208,7 +206,6 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
     @Override
     public void dispose() {
         searchTextField.dispose();
-        DataManager.removeDataProvider(this);
     }
 
     @Override
