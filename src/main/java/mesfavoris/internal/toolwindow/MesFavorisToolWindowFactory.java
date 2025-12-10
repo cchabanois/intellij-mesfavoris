@@ -2,6 +2,7 @@ package mesfavoris.internal.toolwindow;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
+import com.intellij.ide.actions.CollapseAllAction;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
@@ -10,7 +11,6 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
-import com.intellij.ui.treeStructure.actions.CollapseAllAction;
 import mesfavoris.icons.MesFavorisIcons;
 import mesfavoris.internal.actions.ConnectToRemoteBookmarksStoreAction;
 import mesfavoris.internal.actions.ManagePlaceholdersAction;
@@ -48,7 +48,7 @@ public class MesFavorisToolWindowFactory implements ToolWindowFactory, DumbAware
     }
 
     private AnAction createCollapseAllAction() {
-        final CollapseAllAction collapseAction = new CollapseAllAction(null);
+        final CollapseAllAction collapseAction = new CollapseAllAction();
         collapseAction.getTemplatePresentation().setIcon(AllIcons.Actions.Collapseall);
         return collapseAction;
     }

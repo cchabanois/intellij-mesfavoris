@@ -1,6 +1,7 @@
 package mesfavoris.internal.toolwindow;
 
 import com.intellij.ide.DataManager;
+import com.intellij.ide.DefaultTreeExpander;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
@@ -46,6 +47,7 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
     private final BookmarksTreeDnDHandler dndHandler;
     private final BookmarksSearchTextField searchTextField;
     private final BookmarksTreeFilter treeFilter;
+    private final DefaultTreeExpander treeExpander;
 
     public MesFavorisPanel(@NotNull Project project) {
         super(new BorderLayout());
@@ -67,6 +69,9 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
                 new BookmarkWithMarkerLabelProvider(project, bookmarksService.getBookmarkLabelProvider()), this);
         tree.setCellRenderer(bookmarksTreeCellRenderer);
         tree.setEditable(true);
+
+        // Create tree expander for collapse/expand all actions
+        this.treeExpander = new DefaultTreeExpander(tree);
 
         // Create search text field
         this.searchTextField = new BookmarksSearchTextField(project);
@@ -219,6 +224,9 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         }
         if (PlatformDataKeys.SELECTED_ITEMS.is(dataId)) {
             return Arrays.stream(tree.getSelectionModel().getSelectionPaths()).map(tree::getBookmark).toArray();
+        }
+        if (PlatformDataKeys.TREE_EXPANDER.is(dataId)) {
+            return treeExpander;
         }
         return null;
     }
