@@ -28,7 +28,6 @@ import mesfavoris.internal.service.operations.utils.INewBookmarkPositionProvider
 import mesfavoris.internal.service.operations.utils.NewBookmarkPositionProvider;
 import mesfavoris.internal.validation.BookmarksModificationValidator;
 import mesfavoris.internal.workspace.BookmarksWorkspaceFactory;
-import mesfavoris.recent.IRecentBookmarksProvider;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.BookmarksTree;
@@ -36,6 +35,9 @@ import mesfavoris.model.modification.IBookmarksModificationValidator;
 import mesfavoris.persistence.IBookmarksDirtyStateTracker;
 import mesfavoris.persistence.json.BookmarksTreeJsonDeserializer;
 import mesfavoris.persistence.json.BookmarksTreeJsonSerializer;
+import mesfavoris.recent.IRecentBookmarksProvider;
+import mesfavoris.remote.IRemoteBookmarksStore;
+import mesfavoris.remote.RemoteBookmarkFolder;
 import mesfavoris.remote.RemoteBookmarksStoreManager;
 import mesfavoris.service.IBookmarksService;
 import mesfavoris.texteditor.internal.WorkspaceFileBookmarkMarkerAttributesProvider;
@@ -53,6 +55,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 @State(name = "BookmarksService", storages = @Storage(value = "mesfavoris.xml", roamingType = RoamingType.PER_OS))
@@ -228,6 +231,23 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
         AddToRemoteBookmarksStoreOperation operation = new AddToRemoteBookmarksStoreOperation(bookmarkDatabase,
                 remoteBookmarksStoreManager);
         operation.addToRemoteBookmarksStore(storeId, bookmarkFolderId, monitor);
+    }
+
+    public void removeFromRemoteBookmarksStore(String storeId, final BookmarkId bookmarkFolderId,
+                                              final ProgressIndicator progress) throws BookmarksException {
+        RemoveFromRemoteBookmarksStoreOperation operation = new RemoveFromRemoteBookmarksStoreOperation(
+                bookmarkDatabase, remoteBookmarksStoreManager);
+        operation.removeFromRemoteBookmarksStore(storeId, bookmarkFolderId, progress);
+    }
+
+    @Override
+    public Optional<RemoteBookmarkFolder> getRemoteBookmarkFolder(BookmarkId bookmarkFolderId) {
+        return remoteBookmarksStoreManager.getRemoteBookmarkFolder(bookmarkFolderId);
+    }
+
+    @Override
+    public Optional<IRemoteBookmarksStore> getRemoteBookmarksStore(String storeId) {
+        return remoteBookmarksStoreManager.getRemoteBookmarksStore(storeId);
     }
 
     @Override
