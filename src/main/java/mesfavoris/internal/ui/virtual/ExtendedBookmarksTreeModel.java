@@ -8,6 +8,8 @@ import mesfavoris.internal.toolwindow.BookmarksTreeModel;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkFolder;
 
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreePath;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,17 +25,44 @@ public class ExtendedBookmarksTreeModel extends BaseTreeModel<Object> implements
     private final BookmarksTreeModel bookmarksTreeModel;
     private final List<VirtualBookmarkFolder> virtualBookmarkFolders;
     private final IVirtualBookmarkFolderListener virtualBookmarkFolderListener;
+    private final TreeModelListener bookmarksTreeModelListener;
 
     public ExtendedBookmarksTreeModel(BookmarksTreeModel bookmarksTreeModel,
                                       List<VirtualBookmarkFolder> virtualBookmarkFolders,
                                       Disposable parentDisposable) {
         this.bookmarksTreeModel = bookmarksTreeModel;
         this.virtualBookmarkFolders = virtualBookmarkFolders;
+
         this.virtualBookmarkFolderListener = virtualBookmarkFolder ->
             ApplicationManager.getApplication().invokeLater(() -> {
                 // Refresh the tree when virtual bookmark folder children change
                 treeStructureChanged(null, null, null);
             });
+
+        this.bookmarksTreeModelListener = new TreeModelListener() {
+            @Override
+            public void treeNodesChanged(TreeModelEvent e) {
+                ExtendedBookmarksTreeModel.this.treeNodesChanged(e.getTreePath(), e.getChildIndices(), e.getChildren());
+            }
+
+            @Override
+            public void treeNodesInserted(TreeModelEvent e) {
+                ExtendedBookmarksTreeModel.this.treeNodesInserted(e.getTreePath(), e.getChildIndices(), e.getChildren());
+            }
+
+            @Override
+            public void treeNodesRemoved(TreeModelEvent e) {
+                ExtendedBookmarksTreeModel.this.treeNodesRemoved(e.getTreePath(), e.getChildIndices(), e.getChildren());
+            }
+
+            @Override
+            public void treeStructureChanged(TreeModelEvent e) {
+                ExtendedBookmarksTreeModel.this.treeStructureChanged(e.getTreePath(), e.getChildIndices(), e.getChildren());
+            }
+        };
+
+        // Add listener to the underlying BookmarksTreeModel
+        bookmarksTreeModel.addTreeModelListener(bookmarksTreeModelListener);
 
         // Add listeners to all virtual bookmark folders
         virtualBookmarkFolders.forEach(folder -> folder.addListener(virtualBookmarkFolderListener));
@@ -44,6 +73,9 @@ public class ExtendedBookmarksTreeModel extends BaseTreeModel<Object> implements
 
     @Override
     public void dispose() {
+        // Remove listener from the underlying BookmarksTreeModel
+        bookmarksTreeModel.removeTreeModelListener(bookmarksTreeModelListener);
+
         // Remove listeners from all virtual bookmark folders
         virtualBookmarkFolders.forEach(folder -> folder.removeListener(virtualBookmarkFolderListener));
         super.dispose();
@@ -93,5 +125,6 @@ public class ExtendedBookmarksTreeModel extends BaseTreeModel<Object> implements
         // Delegate to bookmarksTreeModel for bookmark renaming
         bookmarksTreeModel.valueForPathChanged(path, newValue);
     }
+
 }
 
