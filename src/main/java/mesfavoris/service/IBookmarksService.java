@@ -10,9 +10,12 @@ import mesfavoris.model.BookmarkId;
 import mesfavoris.model.BookmarksTree;
 import mesfavoris.persistence.IBookmarksDirtyStateTracker;
 import mesfavoris.recent.IRecentBookmarksProvider;
+import mesfavoris.remote.IRemoteBookmarksStore;
+import mesfavoris.remote.RemoteBookmarkFolder;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -161,5 +164,33 @@ public interface IBookmarksService {
      */
     void addToRemoteBookmarksStore(String storeId, BookmarkId bookmarkFolderId,
                                    ProgressIndicator monitor) throws BookmarksException;
+
+    /**
+     * Remove from remote bookmarks store
+     *
+     * @param storeId          the store ID
+     * @param bookmarkFolderId the bookmark folder ID
+     * @param monitor          the progress indicator
+     * @throws BookmarksException if the operation fails
+     */
+    void removeFromRemoteBookmarksStore(String storeId, BookmarkId bookmarkFolderId,
+                                   ProgressIndicator monitor) throws BookmarksException;
+
+    /**
+     * Get the remote bookmark folder for a given bookmark folder ID
+     *
+     * @param bookmarkFolderId the bookmark folder ID
+     * @return the remote bookmark folder, or empty if not found
+     */
+    Optional<RemoteBookmarkFolder> getRemoteBookmarkFolder(BookmarkId bookmarkFolderId);
+
+    /**
+     * Get the remote bookmarks store by ID
+     *
+     * @param storeId the store ID
+     * @return the remote bookmarks store, or empty if not found
+     */
+    Optional<IRemoteBookmarksStore> getRemoteBookmarksStore(String storeId);
+
 }
 

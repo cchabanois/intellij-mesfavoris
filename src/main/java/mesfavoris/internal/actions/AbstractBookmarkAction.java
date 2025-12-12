@@ -6,13 +6,13 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
+import mesfavoris.commons.Status;
 import mesfavoris.internal.model.merge.BookmarksTreeIterable;
 import mesfavoris.internal.model.merge.BookmarksTreeIterator;
 import mesfavoris.internal.toolwindow.BookmarksTreeComponent;
-import mesfavoris.model.Bookmark;
-import mesfavoris.model.BookmarkFolder;
-import mesfavoris.model.BookmarkId;
-import mesfavoris.model.BookmarksTree;
+import mesfavoris.model.*;
+import mesfavoris.model.modification.IBookmarksModificationValidator;
+import mesfavoris.remote.RemoteBookmarksStoreManager;
 import mesfavoris.service.IBookmarksService;
 
 import java.awt.*;
@@ -78,6 +78,30 @@ public abstract class AbstractBookmarkAction extends AnAction implements DumbAwa
         BookmarksTreeIterable bookmarksTreeIterable = new BookmarksTreeIterable(bookmarksTree, folderId,
                 BookmarksTreeIterator.Algorithm.PRE_ORDER);
         return StreamSupport.stream(bookmarksTreeIterable.spliterator(), false).filter(filter).collect(Collectors.toList());
+    }
+
+    protected boolean canAllBeModified(Project project, final List<Bookmark> bookmarks) {
+        IBookmarksService bookmarksService = project.getService(IBookmarksService.class);
+        BookmarkDatabase bookmarkDatabase = bookmarksService.getBookmarkDatabase();
+        IBookmarksModificationValidator bookmarksModificationValidator = bookmarkDatabase.getBookmarksModificationValidator();
+        for (Bookmark bookmark : bookmarks) {
+            Status status = bookmarksModificationValidator
+                .validateModification(bookmarkDatabase.getBookmarksTree(), bookmark.getId());
+            if (!status.isOk()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    protected boolean containsRemoteBookmarkFolder(Project project, final List<Bookmark> bookmarks) {
+        RemoteBookmarksStoreManager remoteBookmarksStoreManager = project.getService(RemoteBookmarksStoreManager.class);
+        for (Bookmark bookmark : bookmarks) {
+            if (remoteBookmarksStoreManager.getRemoteBookmarkFolder(bookmark.getId()).isPresent()) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

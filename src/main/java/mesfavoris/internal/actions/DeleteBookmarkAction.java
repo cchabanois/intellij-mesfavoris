@@ -30,10 +30,8 @@ public class DeleteBookmarkAction extends AbstractBookmarkAction  {
         List<Bookmark> bookmarks = getSelectedBookmarks(event);
         boolean hasBookmarks = !bookmarks.isEmpty();
 
-        // Only enable the action if focus is on the bookmarks tree
-        boolean focusOnTree = isFocusOnBookmarksTree();
-
-        event.getPresentation().setEnabledAndVisible(hasBookmarks && focusOnTree);
+        event.getPresentation().setVisible(hasBookmarks && isFocusOnBookmarksTree() && !containsRemoteBookmarkFolder(event.getProject(), bookmarks));
+        event.getPresentation().setEnabled(canAllBeModified(event.getProject(), bookmarks));
     }
 
     @Override
