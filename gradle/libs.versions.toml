@@ -9,7 +9,7 @@ google-api-services-drive = "v2-rev20220709-1.32.1"
 google-oauth-client = "1.32.1"
 
 # plugins
-changelog = "2.4.0"
+changelog = "2.5.0"
 intelliJPlatform = "2.7.2"
 kotlin = "2.2.21"
 kover = "0.9.3"
