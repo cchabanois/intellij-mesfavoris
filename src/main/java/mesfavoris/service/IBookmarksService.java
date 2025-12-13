@@ -80,7 +80,7 @@ public interface IBookmarksService {
      * @param folderName     the folder name
      * @throws BookmarksException if the folder cannot be created
      */
-    void addBookmarkFolder(BookmarkId parentFolderId, String folderName) throws BookmarksException;
+    BookmarkId addBookmarkFolder(BookmarkId parentFolderId, String folderName) throws BookmarksException;
 
     /**
      * Delete bookmarks

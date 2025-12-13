@@ -14,10 +14,11 @@ public class AddBookmarkFolderOperation {
 		this.bookmarkDatabase = bookmarkDatabase;
 	}
 
-	public void addBookmarkFolder(BookmarkId parentFolderId, String folderName) throws BookmarksException {
+	public BookmarkId addBookmarkFolder(BookmarkId parentFolderId, String folderName) throws BookmarksException {
 		BookmarkId id = new BookmarkId(UUID.randomUUID().toString());
 		BookmarkFolder bookmarkFolder = new BookmarkFolder(id, folderName);
 		addBookmarkFolder(parentFolderId, bookmarkFolder);
+		return id;
 	}
 
 	private void addBookmarkFolder(final BookmarkId parentFolderId, final BookmarkFolder bookmarkFolder)

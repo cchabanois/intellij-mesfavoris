@@ -180,9 +180,9 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
         return operation.addBookmark(dataContext, progress);
     }
 
-    public void addBookmarkFolder(BookmarkId parentFolderId, String folderName) throws BookmarksException {
+    public BookmarkId addBookmarkFolder(BookmarkId parentFolderId, String folderName) throws BookmarksException {
         AddBookmarkFolderOperation operation = new AddBookmarkFolderOperation(bookmarkDatabase);
-		operation.addBookmarkFolder(parentFolderId, folderName);
+		return operation.addBookmarkFolder(parentFolderId, folderName);
 }
 
     public void deleteBookmarks(List<BookmarkId> selection, boolean recurse) throws BookmarksException {
