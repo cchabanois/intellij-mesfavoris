@@ -35,8 +35,11 @@ public class ExtendedBookmarksTreeModel extends BaseTreeModel<Object> implements
 
         this.virtualBookmarkFolderListener = virtualBookmarkFolder ->
             ApplicationManager.getApplication().invokeLater(() -> {
-                // Refresh the tree when virtual bookmark folder children change
-                treeStructureChanged(null, null, null);
+                // Refresh only the virtual bookmark folder that changed, not the entire tree
+                TreePath virtualFolderPath = getTreePathForVirtualFolder(virtualBookmarkFolder);
+                if (virtualFolderPath != null) {
+                    treeStructureChanged(virtualFolderPath, new int[0], new Object[0]);
+                }
             });
 
         this.bookmarksTreeModelListener = new TreeModelListener() {
@@ -124,6 +127,17 @@ public class ExtendedBookmarksTreeModel extends BaseTreeModel<Object> implements
     public void valueForPathChanged(TreePath path, Object newValue) {
         // Delegate to bookmarksTreeModel for bookmark renaming
         bookmarksTreeModel.valueForPathChanged(path, newValue);
+    }
+
+    private TreePath getTreePathForVirtualFolder(VirtualBookmarkFolder virtualBookmarkFolder) {
+        // Get the tree path for the parent bookmark folder
+        TreePath parentPath = bookmarksTreeModel.getTreePathForBookmark(virtualBookmarkFolder.getParentId()).orElse(null);
+        if (parentPath == null) {
+            return null;
+        }
+
+        // Append the virtual folder to the parent path
+        return parentPath.pathByAddingChild(virtualBookmarkFolder);
     }
 
 }

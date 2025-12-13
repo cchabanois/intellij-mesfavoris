@@ -100,7 +100,11 @@ public class NewBookmarkPositionProvider implements INewBookmarkPositionProvider
 		ToolWindow bookmarksToolWindow = ToolWindowManager.getInstance(project).getToolWindow("mesfavoris");
 		Content content = bookmarksToolWindow.getContentManager().getContent(0);
 		Component component = content.getComponent();
-		return Arrays.stream(getSelectedItemsFromDataContext(component)).map(object -> (Bookmark)object).toList();
+		Object[] selectedItems = getSelectedItemsFromDataContext(component);
+		if (selectedItems == null) {
+			return List.of();
+		}
+		return Arrays.stream(selectedItems).map(object -> (Bookmark)object).toList();
 	}
 
 	private Object[] getSelectedItemsFromDataContext(Component component) {

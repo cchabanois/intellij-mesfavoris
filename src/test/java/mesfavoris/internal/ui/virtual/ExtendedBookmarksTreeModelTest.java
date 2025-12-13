@@ -231,6 +231,28 @@ public class ExtendedBookmarksTreeModelTest extends BasePlatformTestCase {
         verify(treeModelListener, atLeastOnce()).treeStructureChanged(any(TreeModelEvent.class));
     }
 
+    @Test
+    public void testVirtualFolderChangeNotifiesWithCorrectTreePath() throws Exception {
+        // Given
+        Bookmark bookmark1 = bookmarkDatabase.getBookmarksTree().getBookmark(new BookmarkId("bookmark1"));
+        BookmarkLink link = new BookmarkLink(virtualFolder.getBookmarkFolder().getId(), bookmark1);
+
+        // When
+        virtualFolder.addChild(link);
+
+        // Wait for EDT to process events
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+
+        // Then: Verify that treeStructureChanged was called with a non-null TreePath
+        // (not with null which would collapse the entire tree)
+        verify(treeModelListener, atLeastOnce()).treeStructureChanged(argThat(event -> {
+            // The TreePath should not be null (which would refresh the entire tree)
+            // It should be the path to the virtual folder
+            return event.getTreePath() != null &&
+                   event.getTreePath().getLastPathComponent() == virtualFolder;
+        }));
+    }
+
     private BookmarksTree createInitialBookmarksTree() {
         return bookmarksTree("root")
                 .addBookmarks("root", bookmarkFolder("folder1"), bookmarkFolder("folder2"))
