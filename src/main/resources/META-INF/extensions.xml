@@ -4,6 +4,7 @@
                     factoryClass="mesfavoris.internal.toolwindow.MesFavorisToolWindowFactory"/>
         <postStartupActivity implementation="mesfavoris.internal.markers.BookmarksHighlighters$BookmarksHighlightersStartupActivity"/>
         <postStartupActivity implementation="mesfavoris.internal.actions.RemoteBookmarksStoreActionsRegistrar"/>
+        <postStartupActivity implementation="mesfavoris.gdrive.mappings.BookmarkMappingsStore$Initializer"/>
         <notificationGroup
                 id="com.cchabanois.mesfavoris.errors"
                 displayType="STICKY_BALLOON"

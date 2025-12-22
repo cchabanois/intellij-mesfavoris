@@ -10,6 +10,7 @@ import mesfavoris.gdrive.connection.GDriveConnectionManager;
 import mesfavoris.gdrive.connection.IConnectionListener;
 import mesfavoris.gdrive.mappings.*;
 import mesfavoris.gdrive.operations.CreateFileOperation;
+import mesfavoris.gdrive.operations.DeleteCredentialsOperation;
 import mesfavoris.gdrive.operations.DownloadHeadRevisionOperation;
 import mesfavoris.gdrive.operations.DownloadHeadRevisionOperation.FileContents;
 import mesfavoris.gdrive.operations.TrashFileOperation;
@@ -234,6 +235,12 @@ public class GDriveRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
 	@Override
 	public UserInfo getUserInfo() {
 		return gDriveConnectionManager.getUserInfo();
+	}
+
+	@Override
+	public void deleteCredentials() throws IOException {
+		DeleteCredentialsOperation operation = new DeleteCredentialsOperation(gDriveConnectionManager, bookmarkMappingsStore);
+		operation.deleteCredentials();
 	}
 
 }

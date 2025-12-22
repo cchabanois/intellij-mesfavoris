@@ -133,6 +133,17 @@ public class InMemoryRemoteBookmarksStore extends AbstractRemoteBookmarksStore i
 	}
 
 	@Override
+	public void deleteCredentials() throws IOException {
+		if (getState() != State.disconnected) {
+			throw new IOException("Cannot delete credentials while connected");
+		}
+		if (!inMemoryRemoteBookmarksTrees.isEmpty()) {
+			throw new IOException("Cannot delete credentials if there are mappings");
+		}
+		// No credentials to delete for in-memory store
+	}
+
+	@Override
 	public void bookmarksModified(List<BookmarksModification> modifications) {
 		for (BookmarkId bookmarkFolderId : getDeletedMappedBookmarkFolders(modifications)) {
 			inMemoryRemoteBookmarksTrees.remove(bookmarkFolderId);
