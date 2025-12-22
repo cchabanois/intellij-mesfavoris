@@ -6,11 +6,14 @@ import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.util.containers.ContainerUtil;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.IBookmarksListener;
 import mesfavoris.model.modification.BookmarkDeletedModification;
 import mesfavoris.model.modification.BookmarksModification;
+import mesfavoris.service.IBookmarksService;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,8 +37,34 @@ public final class BookmarkMappingsStore implements IBookmarksListener, IBookmar
 
 	private final Map<BookmarkId, BookmarkMapping> mappings = new ConcurrentHashMap<>();
 	private final List<IBookmarkMappingsListener> listenerList = ContainerUtil.createLockFreeCopyOnWriteList();
+	private final Project project;
+	private boolean initialized = false;
 
+	public BookmarkMappingsStore(@NotNull Project project) {
+		this.project = project;
+	}
+
+	/**
+	 * For testing purposes only
+	 */
 	public BookmarkMappingsStore() {
+		this.project = null;
+	}
+
+	/**
+	 * Initialize the store by registering it as a listener to BookmarkDatabase.
+	 * This is called by the Initializer PostStartupActivity to ensure
+	 * BookmarksService is fully initialized first.
+	 */
+	public synchronized void init() {
+		if (initialized || project == null) {
+			return;
+		}
+		initialized = true;
+		IBookmarksService bookmarksService = project.getService(IBookmarksService.class);
+		if (bookmarksService != null) {
+			bookmarksService.getBookmarkDatabase().addListener(this);
+		}
 	}
 
 	public void add(BookmarkId bookmarkFolderId, String fileId,  Map<String, String> properties) {
@@ -169,6 +198,22 @@ public final class BookmarkMappingsStore implements IBookmarksListener, IBookmar
 
 				BookmarkId bookmarkFolderId = new BookmarkId(bookmarkFolderIdString);
 				mappings.put(bookmarkFolderId, new BookmarkMapping(bookmarkFolderId, fileId, properties));
+			}
+		}
+	}
+
+	/**
+	 * Initializes BookmarkMappingsStore at project startup to register it as a listener
+	 * to BookmarkDatabase. This runs after all services are initialized to ensure
+	 * BookmarksService is fully ready.
+	 */
+	public static class Initializer implements StartupActivity.DumbAware {
+
+		@Override
+		public void runActivity(@NotNull Project project) {
+			BookmarkMappingsStore mappingsStore = project.getService(BookmarkMappingsStore.class);
+			if (mappingsStore != null) {
+				mappingsStore.init();
 			}
 		}
 	}

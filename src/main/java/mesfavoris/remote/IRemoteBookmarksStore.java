@@ -43,4 +43,11 @@ public interface IRemoteBookmarksStore {
     RemoteBookmarksTree save(BookmarksTree bookmarksTree, BookmarkId bookmarkFolderId, String etag,
                              ProgressIndicator progressIndicator) throws IOException, ConflictException;
 
+    /**
+     * Delete stored credentials for this remote bookmarks store.
+     *
+     * @throws IOException if the operation fails
+     */
+    void deleteCredentials() throws IOException;
+
 }
