@@ -36,6 +36,7 @@ public class GDriveConnectionManagerTest extends BasePlatformTestCase {
         String applicationFolderName = "gdriveConnectionManagerTest" + new Random().nextInt(1000);
         gDriveConnectionManager = new GDriveConnectionManager(dataStoreFactory,
                 new NoAuthorizationCodeInstalledApp.Provider(), getProject().getService(GDriveUserInfoStore.class),
+                GoogleOAuthClientConfig.getDefault(),
                 "mes favoris", applicationFolderName);
         gDriveConnectionManager.init();
         gDriveConnectionManager.addConnectionListener(connectionListener);
