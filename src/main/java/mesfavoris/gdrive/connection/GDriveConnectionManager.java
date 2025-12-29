@@ -30,7 +30,6 @@ import mesfavoris.remote.IRemoteBookmarksStore.State;
 import mesfavoris.remote.UserInfo;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
@@ -54,6 +53,7 @@ public class GDriveConnectionManager {
 	private final AtomicReference<State> state = new AtomicReference<>(State.disconnected);
     private final DataStoreFactory dataStoreFactory;
 	private final IGDriveUserInfoStore userInfoStore;
+	private final GoogleOAuthClientConfig googleOAuthClientConfig;
 	private Drive drive;
 	private String applicationFolderId;
 	private UserInfo userInfo;
@@ -69,19 +69,23 @@ public class GDriveConnectionManager {
 	 *            the folder name for the application on GDrive. It will be
 	 *            created after connection if it does not exist
 	 */
-	public GDriveConnectionManager(Project project, String applicationName, String applicationFolderName) {
+	public GDriveConnectionManager(Project project, String applicationName, String applicationFolderName, GoogleOAuthClientConfig googleOAuthClientConfig) {
 		this(new PasswordSafeDataStoreFactory(), new AuthorizationCodeIntellijApp.Provider(),
-				project.getService(GDriveUserInfoStore.class), applicationName, applicationFolderName);
+				project.getService(GDriveUserInfoStore.class),
+                googleOAuthClientConfig,
+				applicationName, applicationFolderName);
 	}
 
 	public GDriveConnectionManager(DataStoreFactory dataStoreFactory,
 			                       IAuthorizationCodeInstalledAppProvider authorizationCodeInstalledAppProvider,
                                    IGDriveUserInfoStore userInfoStore,
+                                   GoogleOAuthClientConfig googleOAuthClientConfig,
                                    String applicationName,
                                    String applicationFolderName) {
         this.dataStoreFactory = dataStoreFactory;
 		this.authorizationCodeInstalledAppProvider = authorizationCodeInstalledAppProvider;
 		this.userInfoStore = userInfoStore;
+		this.googleOAuthClientConfig = googleOAuthClientConfig;
 		this.applicationName = applicationName;
 		this.applicationFolderName = applicationFolderName;
 	}
@@ -195,11 +199,16 @@ public class GDriveConnectionManager {
 		if (progressIndicator != null) {
 			progressIndicator.setText("Authorizes the application to access user's protected data on Google Drive");
 		}
-		// load client secrets
-		// In this context, the client secret is obviously not treated as a
-		// secret.
-		GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY,
-				new InputStreamReader(GDriveConnectionManager.class.getResourceAsStream("client_secrets.json")));
+		// Create client secrets from GoogleOAuthClientConfig
+		// In this context, the client secret is obviously not treated as a secret
+		// because it's embedded in the application and can be extracted by users.
+		GoogleClientSecrets.Details details = new GoogleClientSecrets.Details();
+		details.setClientId(googleOAuthClientConfig.getClientId());
+		details.setClientSecret(googleOAuthClientConfig.getClientSecret());
+
+		GoogleClientSecrets clientSecrets = new GoogleClientSecrets();
+		clientSecrets.setInstalled(details);
+
 		// set up authorization code flow
 		GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(httpTransport, JSON_FACTORY,
 				clientSecrets, Collections.singleton(DriveScopes.DRIVE)).setDataStoreFactory(dataStoreFactory).build();

@@ -35,6 +35,8 @@ public class MesFavorisConfigurable implements Configurable {
             "Use the sub-sections to configure different aspects of the plugin:" +
             "<ul>" +
             "<li><b>Placeholders</b>: Define shortcuts for frequently used paths</li>" +
+            "<li><b>Bookmark Types</b>: Enable or disable specific bookmark types</li>" +
+            "<li><b>Google Drive</b>: Configure OAuth credentials for Google Drive integration</li>" +
             "</ul>" +
             "</body></html>");
         descriptionLabel.setAlignmentX(Component.LEFT_ALIGNMENT);

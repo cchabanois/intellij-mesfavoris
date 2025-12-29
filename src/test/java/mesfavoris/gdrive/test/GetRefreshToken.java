@@ -7,6 +7,7 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import mesfavoris.gdrive.connection.GDriveConnectionManager;
+import mesfavoris.gdrive.connection.GoogleOAuthClientConfig;
 import mesfavoris.gdrive.connection.auth.AuthorizationCodeIntellijApp;
 
 import static com.google.api.client.auth.oauth2.StoredCredential.DEFAULT_DATA_STORE_ID;
@@ -61,6 +62,7 @@ public class GetRefreshToken extends BasePlatformTestCase {
         GDriveConnectionManager connectionManager = new GDriveConnectionManager(
                 dataStoreFactory, new AuthorizationCodeIntellijApp.Provider(),
                 userInfoStore,
+                GoogleOAuthClientConfig.getDefault(),
                 "Mes Favoris",
                 "mesfavoris-test"
         );

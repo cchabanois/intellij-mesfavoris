@@ -3,6 +3,7 @@ package mesfavoris.gdrive;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.project.Project;
 import mesfavoris.gdrive.connection.GDriveConnectionManager;
+import mesfavoris.gdrive.connection.GoogleOAuthClientConfigStore;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -38,7 +39,8 @@ public final class BookmarksGDriveService {
         GDriveConnectionManager manager = new GDriveConnectionManager(
                 project,
                 APPLICATION_NAME,
-                APPLICATION_FOLDER_NAME);
+                APPLICATION_FOLDER_NAME,
+                project.getService(GoogleOAuthClientConfigStore.class).getConfig());
 
         try {
             manager.init();

@@ -20,6 +20,7 @@
         <projectService serviceImplementation="mesfavoris.internal.toolwindow.BookmarksTreeComponentStateService"/>
         <projectService serviceImplementation="mesfavoris.internal.toolwindow.search.BookmarksSearchHistoryStore"/>
         <projectService serviceImplementation="mesfavoris.gdrive.connection.GDriveUserInfoStore"/>
+        <projectService serviceImplementation="mesfavoris.gdrive.connection.GoogleOAuthClientConfigStore"/>
         <applicationService serviceImplementation="mesfavoris.internal.settings.placeholders.PathPlaceholdersStore"/>
         <applicationService serviceImplementation="mesfavoris.internal.settings.bookmarktypes.BookmarkTypesStore"/>
         <applicationConfigurable parentId="tools" instance="mesfavoris.internal.settings.MesFavorisConfigurable"
@@ -28,6 +29,8 @@
                                  id="mesfavoris.settings.placeholders" displayName="Placeholders"/>
         <applicationConfigurable parentId="mesfavoris.settings" instance="mesfavoris.internal.settings.bookmarktypes.BookmarkTypesConfigurable"
                                  id="mesfavoris.settings.bookmarktypes" displayName="Bookmark Types"/>
+        <projectConfigurable parentId="mesfavoris.settings" instance="mesfavoris.gdrive.settings.GoogleDriveConfigurable"
+                             id="mesfavoris.settings.googledrive" displayName="Google Drive"/>
     </extensions>
 
     <!-- Built-in Bookmark Types -->
