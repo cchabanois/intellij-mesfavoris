@@ -1,5 +1,6 @@
 package mesfavoris.remote;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointListener;
@@ -19,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * This is a project-level service that creates and manages store instances for the project.
  */
 @Service(Service.Level.PROJECT)
-public final class RemoteBookmarksStoreExtensionManager {
+public final class RemoteBookmarksStoreExtensionManager implements Disposable {
     private static final Logger LOG = Logger.getInstance(RemoteBookmarksStoreExtensionManager.class);
 
     private final Project project;
@@ -95,8 +96,20 @@ public final class RemoteBookmarksStoreExtensionManager {
     private void unregisterExtension(@NotNull RemoteBookmarksStoreExtension extension) {
         String id = extension.getId();
         extensions.remove(id);
-        stores.remove(id);
+        IRemoteBookmarksStore store = stores.remove(id);
+        disposeStore(store);
         LOG.info("Unregistered remote bookmarks store extension: " + id);
+    }
+
+    private void disposeStore(IRemoteBookmarksStore store) {
+        if (store == null) {
+            return;
+        }
+        try {
+            store.dispose();
+        } catch (Exception e) {
+            LOG.error("Error disposing remote bookmarks store", e);
+        }
     }
 
     private void setupExtensionPointListener() {
@@ -111,6 +124,16 @@ public final class RemoteBookmarksStoreExtensionManager {
                 unregisterExtension(extension);
             }
         }, null);
+    }
+
+    @Override
+    public void dispose() {
+        // Dispose all stores
+        for (IRemoteBookmarksStore store : stores.values()) {
+            disposeStore(store);
+        }
+        stores.clear();
+        extensions.clear();
     }
 }
 

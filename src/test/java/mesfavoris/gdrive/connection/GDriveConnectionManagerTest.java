@@ -20,26 +20,26 @@ import static org.mockito.Mockito.verify;
 public class GDriveConnectionManagerTest extends BasePlatformTestCase {
 
     private GDriveConnectionManager gDriveConnectionManager;
-    private IConnectionListener connectionListener;
+    private GDriveConnectionListener connectionListener;
     private PasswordSafeDataStoreFactory dataStoreFactory;
     private final GDriveTestUser user = GDriveTestUser.USER1;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        connectionListener = mock(IConnectionListener.class);
+        connectionListener = mock(GDriveConnectionListener.class);
 
         dataStoreFactory = new PasswordSafeDataStoreFactory();
         if (user.getCredential().isPresent()) {
             addCredentialToDataStore(user.getCredential().get());
         }
         String applicationFolderName = "gdriveConnectionManagerTest" + new Random().nextInt(1000);
-        gDriveConnectionManager = new GDriveConnectionManager(dataStoreFactory,
+        gDriveConnectionManager = new GDriveConnectionManager(getProject(), dataStoreFactory,
                 new NoAuthorizationCodeInstalledApp.Provider(), getProject().getService(GDriveUserInfoStore.class),
                 GoogleOAuthClientConfig.getDefault(),
                 "mes favoris", applicationFolderName);
         gDriveConnectionManager.init();
-        gDriveConnectionManager.addConnectionListener(connectionListener);
+        getProject().getMessageBus().connect().subscribe(GDriveConnectionListener.TOPIC, connectionListener);
     }
 
     private void addCredentialToDataStore(StoredCredential credential) throws IOException {
@@ -51,7 +51,6 @@ public class GDriveConnectionManagerTest extends BasePlatformTestCase {
     protected void tearDown() throws Exception {
         try {
             deleteApplicationFolderIfPossible();
-            gDriveConnectionManager.removeConnectionListener(connectionListener);
             gDriveConnectionManager.close();
         } finally {
             super.tearDown();

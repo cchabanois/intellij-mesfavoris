@@ -16,7 +16,7 @@ public class CreateFileOperationTest extends BasePlatformTestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		gdriveConnectionRule = new GDriveConnectionRule(GDriveTestUser.USER1, true);
+		gdriveConnectionRule = new GDriveConnectionRule(getProject(), GDriveTestUser.USER1, true);
 		gdriveConnectionRule.before();
 	}
 

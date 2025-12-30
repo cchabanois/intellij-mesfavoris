@@ -21,9 +21,9 @@ public class ShareFileOperationTest extends BasePlatformTestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		gdriveConnectionUser1 = new GDriveConnectionRule(GDriveTestUser.USER1, true);
+		gdriveConnectionUser1 = new GDriveConnectionRule(getProject(), GDriveTestUser.USER1, true);
 		gdriveConnectionUser1.before();
-		gdriveConnectionUser2 = new GDriveConnectionRule(GDriveTestUser.USER2, true);
+		gdriveConnectionUser2 = new GDriveConnectionRule(getProject(), GDriveTestUser.USER2, true);
 		gdriveConnectionUser2.before();
 	}
 

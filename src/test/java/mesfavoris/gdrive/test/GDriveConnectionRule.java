@@ -4,6 +4,7 @@ import com.google.api.client.auth.oauth2.StoredCredential;
 import com.google.api.client.util.store.DataStore;
 import com.google.api.services.drive.Drive;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.project.Project;
 import mesfavoris.gdrive.GDriveTestUser;
 import mesfavoris.gdrive.connection.GDriveConnectionManager;
 import mesfavoris.gdrive.connection.GoogleOAuthClientConfig;
@@ -24,8 +25,10 @@ public class GDriveConnectionRule extends ExternalResource {
 	private final boolean connect;
 	private final IAuthorizationCodeInstalledAppProvider authorizationCodeProvider;
 	private final GDriveTestUser user;
+	private final Project project;
 
-	public GDriveConnectionRule(GDriveTestUser user, boolean connect) {
+	public GDriveConnectionRule(Project project, GDriveTestUser user, boolean connect) {
+		this.project = project;
 		this.user = user;
 		this.connect = connect;
 		this.authorizationCodeProvider = new NoAuthorizationCodeInstalledApp.Provider();
@@ -40,7 +43,7 @@ public class GDriveConnectionRule extends ExternalResource {
 
 		String applicationFolderName = "gdriveConnectionManagerTest" + new Random().nextInt(1000);
 		InMemoryGDriveUserInfoStore userInfoStore = new InMemoryGDriveUserInfoStore();
-		gDriveConnectionManager = new GDriveConnectionManager(dataStoreFactory, authorizationCodeProvider,
+		gDriveConnectionManager = new GDriveConnectionManager(project, dataStoreFactory, authorizationCodeProvider,
 				userInfoStore, GoogleOAuthClientConfig.getDefault(), "mes favoris", applicationFolderName);
 		gDriveConnectionManager.init();
 		if (connect) {

@@ -4,9 +4,11 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.Change;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.messages.MessageBusConnection;
+import mesfavoris.gdrive.connection.GDriveConnectionListener;
 import mesfavoris.gdrive.connection.GDriveConnectionManager;
-import mesfavoris.gdrive.connection.IConnectionListener;
 import mesfavoris.gdrive.mappings.BookmarkMapping;
 import mesfavoris.gdrive.mappings.IBookmarkMappings;
 import mesfavoris.gdrive.operations.GetChangesOperation;
@@ -35,8 +37,8 @@ public class BookmarksFileChangeManager {
 	private static final Logger LOG = Logger.getInstance(BookmarksFileChangeManager.class);
 	public static final Duration DEFAULT_POLL_DELAY = Duration.ofSeconds(30);
 
+	private final Project project;
 	private final GDriveConnectionManager gdriveConnectionManager;
-	private final IConnectionListener connectionListener = new ConnectionListener();
 	private final BookmarksFileChangeJob job = new BookmarksFileChangeJob();
 	private final Supplier<Duration> pollDelayProvider;
 	private final IBookmarkMappings bookmarkMappings;
@@ -44,15 +46,17 @@ public class BookmarksFileChangeManager {
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 	private final ScheduledExecutorService scheduledExecutorService;
 	private ScheduledFuture<?> scheduledFuture;
+	private MessageBusConnection messageBusConnection;
 	
-	public BookmarksFileChangeManager(GDriveConnectionManager gdriveConnectionManager,
+	public BookmarksFileChangeManager(Project project, GDriveConnectionManager gdriveConnectionManager,
 			IBookmarkMappings bookmarkMappings, ScheduledExecutorService scheduledExecutorService) {
-		this(gdriveConnectionManager, bookmarkMappings, scheduledExecutorService, () -> DEFAULT_POLL_DELAY);
+		this(project, gdriveConnectionManager, bookmarkMappings, scheduledExecutorService, () -> DEFAULT_POLL_DELAY);
 	}
 
-	public BookmarksFileChangeManager(GDriveConnectionManager gdriveConnectionManager,
+	public BookmarksFileChangeManager(Project project, GDriveConnectionManager gdriveConnectionManager,
 			IBookmarkMappings bookmarkMappings, ScheduledExecutorService scheduledExecutorService,
 			Supplier<Duration> pollDelayProvider) {
+		this.project = project;
 		this.gdriveConnectionManager = gdriveConnectionManager;
 		this.bookmarkMappings = bookmarkMappings;
 		this.scheduledExecutorService = scheduledExecutorService;
@@ -60,13 +64,26 @@ public class BookmarksFileChangeManager {
 	}
 
 	public void init() {
-		gdriveConnectionManager.addConnectionListener(connectionListener);
+		messageBusConnection = project.getMessageBus().connect();
+		messageBusConnection.subscribe(GDriveConnectionListener.TOPIC, new GDriveConnectionListener() {
+			@Override
+			public void connected() {
+				scheduleJob();
+			}
+
+			@Override
+			public void disconnected() {
+				cancelJob();
+			}
+		});
 		// won't be scheduled if not connected
 		scheduleJob();
 	}
 
 	public void close() {
-		gdriveConnectionManager.removeConnectionListener(connectionListener);
+		if (messageBusConnection != null) {
+			messageBusConnection.disconnect();
+		}
 		cancelJob();
 		closed.set(true);
 	}
@@ -108,20 +125,6 @@ public class BookmarksFileChangeManager {
 				LOG.error("Error in bookmarks file change listener", e);
 			}
 		}
-	}
-
-	private class ConnectionListener implements IConnectionListener {
-
-		@Override
-		public void connected() {
-			scheduleJob();
-		}
-
-		@Override
-		public void disconnected() {
-			cancelJob();
-		}
-
 	}
 
 	private class BookmarksFileChangeJob implements Runnable {

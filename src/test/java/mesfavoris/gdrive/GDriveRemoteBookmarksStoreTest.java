@@ -36,11 +36,11 @@ public class GDriveRemoteBookmarksStoreTest extends BasePlatformTestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		gDriveConnectionRule = new GDriveConnectionRule(GDriveTestUser.USER1, false);
+		gDriveConnectionRule = new GDriveConnectionRule(getProject(), GDriveTestUser.USER1, false);
 		gDriveConnectionRule.before();
 		scheduledExecutorService = AppExecutorUtil.getAppScheduledExecutorService();
-		bookmarkMappingsStore = new BookmarkMappingsStore();
-		bookmarksFileChangeManager = new BookmarksFileChangeManager(gDriveConnectionRule.getGDriveConnectionManager(),
+		bookmarkMappingsStore = new BookmarkMappingsStore(getProject());
+		bookmarksFileChangeManager = new BookmarksFileChangeManager(getProject(), gDriveConnectionRule.getGDriveConnectionManager(),
 				bookmarkMappingsStore, scheduledExecutorService, ()->Duration.ofSeconds(5));
 		gDriveRemoteBookmarksStore = new GDriveRemoteBookmarksStore(getProject(),
 				gDriveConnectionRule.getGDriveConnectionManager(), bookmarkMappingsStore, bookmarksFileChangeManager);

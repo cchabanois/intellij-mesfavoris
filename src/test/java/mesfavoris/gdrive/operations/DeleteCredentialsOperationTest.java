@@ -18,13 +18,14 @@ import static org.mockito.Mockito.when;
 
 public class DeleteCredentialsOperationTest extends BasePlatformTestCase {
 
-	private final GDriveConnectionRule gdriveConnectionRule = new GDriveConnectionRule(GDriveTestUser.USER1, true);
+	private GDriveConnectionRule gdriveConnectionRule;
 	private DeleteCredentialsOperation operation;
 	private IBookmarkMappings bookmarkMappings;
 
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
+		gdriveConnectionRule = new GDriveConnectionRule(getProject(), GDriveTestUser.USER1, true);
 		gdriveConnectionRule.before();
 		bookmarkMappings = mock(IBookmarkMappings.class);
 		operation = new DeleteCredentialsOperation(gdriveConnectionRule.getGDriveConnectionManager(), bookmarkMappings);

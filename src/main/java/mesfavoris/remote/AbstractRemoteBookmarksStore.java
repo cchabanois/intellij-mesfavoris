@@ -45,4 +45,10 @@ public abstract class AbstractRemoteBookmarksStore implements IRemoteBookmarksSt
 				.remoteBookmarksTreeChanged(getDescriptor().id(), bookmarkFolderId);
 	}
 
+	@Override
+	public void dispose() {
+		// Default implementation does nothing
+		// Subclasses should override if they need cleanup
+	}
+
 }
