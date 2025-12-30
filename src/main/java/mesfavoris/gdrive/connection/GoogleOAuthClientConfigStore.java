@@ -5,7 +5,6 @@ import com.intellij.credentialStore.CredentialAttributesKt;
 import com.intellij.credentialStore.Credentials;
 import com.intellij.ide.passwordSafe.PasswordSafe;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
@@ -18,7 +17,6 @@ import org.jetbrains.annotations.Nullable;
  * Stores whether to use custom configuration and the custom client ID.
  * The custom client secret is stored securely in PasswordSafe.
  */
-@Service(Service.Level.PROJECT)
 @State(
     name = "GoogleOAuthClientConfigStore",
     storages = @Storage("mesfavoris.xml")
