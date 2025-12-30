@@ -2,6 +2,7 @@ package mesfavoris.gdrive.changes;
 
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.Change;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -33,7 +34,7 @@ import java.util.function.Supplier;
  * @author cchabanois
  *
  */
-public class BookmarksFileChangeManager {
+public class BookmarksFileChangeManager implements Disposable {
 	private static final Logger LOG = Logger.getInstance(BookmarksFileChangeManager.class);
 	public static final Duration DEFAULT_POLL_DELAY = Duration.ofSeconds(30);
 
@@ -64,7 +65,7 @@ public class BookmarksFileChangeManager {
 	}
 
 	public void init() {
-		messageBusConnection = project.getMessageBus().connect();
+		messageBusConnection = project.getMessageBus().connect(this);
 		messageBusConnection.subscribe(GDriveConnectionListener.TOPIC, new GDriveConnectionListener() {
 			@Override
 			public void connected() {
@@ -80,10 +81,8 @@ public class BookmarksFileChangeManager {
 		scheduleJob();
 	}
 
-	public void close() {
-		if (messageBusConnection != null) {
-			messageBusConnection.disconnect();
-		}
+	@Override
+	public void dispose() {
 		cancelJob();
 		closed.set(true);
 	}

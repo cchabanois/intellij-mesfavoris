@@ -55,7 +55,7 @@ public class BookmarksFileChangeManagerTest extends BasePlatformTestCase {
 	protected void tearDown() throws Exception {
 		try {
 			bookmarksFileChangeManager.removeListener(listener);
-			bookmarksFileChangeManager.close();
+			bookmarksFileChangeManager.dispose();
 			if (gdriveConnectionRule != null) {
 				gdriveConnectionRule.after();
 			}
@@ -78,7 +78,7 @@ public class BookmarksFileChangeManagerTest extends BasePlatformTestCase {
 
 	public void testListenerNotCalledIfClosed() throws Exception {
 		// Given
-		bookmarksFileChangeManager.close();
+		bookmarksFileChangeManager.dispose();
 
 		// When
 		updateFile(bookmarkMappings.getMapping(new BookmarkId("bookmarkFolder1")).get().getFileId(), MESFAVORIS_MIME_TYPE,

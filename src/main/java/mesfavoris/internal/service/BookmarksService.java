@@ -8,6 +8,7 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import mesfavoris.BookmarksException;
 import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.IBookmarkLabelProvider;
@@ -90,6 +91,7 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
         this.newBookmarkPositionProvider = new NewBookmarkPositionProvider(project, bookmarkDatabase);
         this.bookmarksMarkers = new BookmarksMarkers(project, bookmarkDatabase, new BookmarkMarkerAttributesProvider(Arrays.asList(new WorkspaceFileBookmarkMarkerAttributesProvider())));
         this.bookmarksMarkers.init();
+        Disposer.register(this, bookmarksMarkers);
         LocalBookmarksSaver localBookmarksSaver = new LocalBookmarksSaver(getBookmarksFilePath(project).toFile(),
                 new BookmarksTreeJsonSerializer(true));
         bookmarksSaver = new BookmarksAutoSaver(bookmarkDatabase, localBookmarksSaver);
