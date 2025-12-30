@@ -6,7 +6,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import mesfavoris.gdrive.connection.GDriveConnectionListener;
 import mesfavoris.gdrive.connection.GDriveConnectionManager;
@@ -43,7 +42,6 @@ public class BookmarksFileChangeManager implements Disposable {
 	private final BookmarksFileChangeJob job = new BookmarksFileChangeJob();
 	private final Supplier<Duration> pollDelayProvider;
 	private final IBookmarkMappings bookmarkMappings;
-	private final List<IBookmarksFileChangeListener> listenerList = ContainerUtil.createLockFreeCopyOnWriteList();
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 	private final ScheduledExecutorService scheduledExecutorService;
 	private ScheduledFuture<?> scheduledFuture;
@@ -108,22 +106,9 @@ public class BookmarksFileChangeManager implements Disposable {
 		return gdriveConnectionManager.getState() == State.connected && !closed.get();
 	}
 
-	public void addListener(IBookmarksFileChangeListener listener) {
-		listenerList.add(listener);
-	}
-
-	public void removeListener(IBookmarksFileChangeListener listener) {
-		listenerList.remove(listener);
-	}
-
 	private void fireBookmarksFileChanged(BookmarkId bookmarkFolderId, Change change) {
-		for (IBookmarksFileChangeListener listener : listenerList) {
-			try {
-				listener.bookmarksFileChanged(bookmarkFolderId, change);
-			} catch (Exception e) {
-				LOG.error("Error in bookmarks file change listener", e);
-			}
-		}
+		project.getMessageBus().syncPublisher(IBookmarksFileChangeListener.TOPIC)
+				.bookmarksFileChanged(bookmarkFolderId, change);
 	}
 
 	private class BookmarksFileChangeJob implements Runnable {

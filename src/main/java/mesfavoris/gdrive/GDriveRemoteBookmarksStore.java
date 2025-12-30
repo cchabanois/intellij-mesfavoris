@@ -44,7 +44,6 @@ public class GDriveRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
 	private final Project project;
 
 	private MessageBusConnection messageBusConnection;
-	private IBookmarksFileChangeListener fileChangeListener;
 
 	public GDriveRemoteBookmarksStore(Project project, GDriveConnectionManager gDriveConnectionManager,
 			BookmarkMappingsStore bookmarksMappingsStore, BookmarksFileChangeManager bookmarksFileChangeManager) {
@@ -91,8 +90,8 @@ public class GDriveRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
 		});
 
 		// Subscribe to file change events
-		fileChangeListener = (bookmarkFolderId, change) -> postRemoteBookmarksTreeChanged(bookmarkFolderId);
-		bookmarksFileChangeManager.addListener(fileChangeListener);
+		messageBusConnection.subscribe(IBookmarksFileChangeListener.TOPIC,
+				(bookmarkFolderId, change) -> postRemoteBookmarksTreeChanged(bookmarkFolderId));
 
 		// Initialize and register BookmarksFileChangeManager
 		bookmarksFileChangeManager.init();
@@ -101,10 +100,7 @@ public class GDriveRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
 
 	@Override
 	public void dispose() {
-		if (fileChangeListener != null) {
-			bookmarksFileChangeManager.removeListener(fileChangeListener);
-			fileChangeListener = null;
-		}
+		// MessageBusConnection and BookmarksFileChangeManager are automatically disposed
 	}
 
 	@Override

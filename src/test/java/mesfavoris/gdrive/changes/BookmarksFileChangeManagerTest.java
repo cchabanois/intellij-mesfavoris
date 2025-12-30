@@ -5,6 +5,7 @@ import com.google.api.services.drive.model.File;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.messages.MessageBusConnection;
 import mesfavoris.gdrive.GDriveTestUser;
 import mesfavoris.gdrive.mappings.BookmarkMappingsStore;
 import mesfavoris.gdrive.operations.CreateFileOperation;
@@ -30,6 +31,7 @@ public class BookmarksFileChangeManagerTest extends BasePlatformTestCase {
 	private BookmarksFileChangeManager bookmarksFileChangeManager;
 	private BookmarkMappingsStore bookmarkMappings;
 	private ScheduledExecutorService scheduledExecutorService;
+	private MessageBusConnection messageBusConnection;
 	private final BookmarksFileChangeListener listener = new BookmarksFileChangeListener();
 
 	@Override
@@ -47,14 +49,20 @@ public class BookmarksFileChangeManagerTest extends BasePlatformTestCase {
 		Thread.sleep(10000);
 		bookmarksFileChangeManager = new BookmarksFileChangeManager(getProject(), gdriveConnectionRule.getGDriveConnectionManager(),
 				bookmarkMappings, scheduledExecutorService, () -> Duration.ofMillis(100));
-		bookmarksFileChangeManager.addListener(listener);
+
+		// Subscribe to file change events via MessageBus
+		messageBusConnection = getProject().getMessageBus().connect();
+		messageBusConnection.subscribe(IBookmarksFileChangeListener.TOPIC, listener);
+
 		bookmarksFileChangeManager.init();
 	}
 
 	@Override
 	protected void tearDown() throws Exception {
 		try {
-			bookmarksFileChangeManager.removeListener(listener);
+			if (messageBusConnection != null) {
+				messageBusConnection.disconnect();
+			}
 			bookmarksFileChangeManager.dispose();
 			if (gdriveConnectionRule != null) {
 				gdriveConnectionRule.after();
