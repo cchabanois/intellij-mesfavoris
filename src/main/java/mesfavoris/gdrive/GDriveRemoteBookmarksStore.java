@@ -5,18 +5,15 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.util.messages.MessageBusConnection;
 import mesfavoris.gdrive.changes.BookmarksFileChangeManager;
 import mesfavoris.gdrive.changes.IBookmarksFileChangeListener;
 import mesfavoris.gdrive.connection.GDriveConnectionListener;
 import mesfavoris.gdrive.connection.GDriveConnectionManager;
 import mesfavoris.gdrive.mappings.*;
-import mesfavoris.gdrive.operations.CreateFileOperation;
-import mesfavoris.gdrive.operations.DeleteCredentialsOperation;
-import mesfavoris.gdrive.operations.DownloadHeadRevisionOperation;
+import mesfavoris.gdrive.operations.*;
 import mesfavoris.gdrive.operations.DownloadHeadRevisionOperation.FileContents;
-import mesfavoris.gdrive.operations.TrashFileOperation;
-import mesfavoris.gdrive.operations.UpdateFileOperation;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkFolder;
 import mesfavoris.model.BookmarkId;
@@ -96,6 +93,10 @@ public class GDriveRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
 		// Subscribe to file change events
 		fileChangeListener = (bookmarkFolderId, change) -> postRemoteBookmarksTreeChanged(bookmarkFolderId);
 		bookmarksFileChangeManager.addListener(fileChangeListener);
+
+		// Initialize and register BookmarksFileChangeManager
+		bookmarksFileChangeManager.init();
+		Disposer.register(this, bookmarksFileChangeManager);
 	}
 
 	@Override
@@ -104,7 +105,6 @@ public class GDriveRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
 			bookmarksFileChangeManager.removeListener(fileChangeListener);
 			fileChangeListener = null;
 		}
-		// MessageBusConnection is automatically disposed when this Disposable is disposed
 	}
 
 	@Override

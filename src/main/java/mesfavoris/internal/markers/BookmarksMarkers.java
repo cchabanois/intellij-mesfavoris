@@ -1,11 +1,13 @@
 package mesfavoris.internal.markers;
 
 import com.google.common.collect.Lists;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.editor.ex.RangeHighlighterEx;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
 import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.BookmarkMarker;
@@ -25,12 +27,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class BookmarksMarkers implements IBookmarksMarkers, PersistentStateComponent<Element> {
+public class BookmarksMarkers implements IBookmarksMarkers, PersistentStateComponent<Element>, Disposable {
     private final Project project;
     private final BookmarkDatabase bookmarkDatabase;
     private final IBookmarkMarkerAttributesProvider bookmarkMarkerAttributesProvider;
     private final BackgroundBookmarksModificationsHandler backgroundBookmarksModificationsHandler;
     private final BookmarksMarkersMap bookmarkMarkersMap = new BookmarksMarkersMap();
+    private MessageBusConnection messageBusConnection;
 
     public BookmarksMarkers(Project project, BookmarkDatabase bookmarkDatabase,
                             IBookmarkMarkerAttributesProvider bookmarkMarkerAttributesProvider) {
@@ -42,10 +45,12 @@ public class BookmarksMarkers implements IBookmarksMarkers, PersistentStateCompo
 
     public void init() {
         backgroundBookmarksModificationsHandler.init();
-        project.getMessageBus().connect().subscribe(BookmarksHighlightersListener.TOPIC, new BookmarksHighlightersListenerImpl());
+        messageBusConnection = project.getMessageBus().connect(this);
+        messageBusConnection.subscribe(BookmarksHighlightersListener.TOPIC, new BookmarksHighlightersListenerImpl());
     }
 
-    public void close() {
+    @Override
+    public void dispose() {
         backgroundBookmarksModificationsHandler.close();
     }
 
