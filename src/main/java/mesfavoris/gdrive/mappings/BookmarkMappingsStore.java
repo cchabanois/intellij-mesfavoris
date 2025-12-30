@@ -8,7 +8,6 @@ import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
-import com.intellij.util.containers.ContainerUtil;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.IBookmarksListener;
 import mesfavoris.model.modification.BookmarkDeletedModification;
@@ -36,19 +35,11 @@ public final class BookmarkMappingsStore implements IBookmarksListener, IBookmar
 	private static final String PROPERTY_FILE_ID = "fileId";
 
 	private final Map<BookmarkId, BookmarkMapping> mappings = new ConcurrentHashMap<>();
-	private final List<IBookmarkMappingsListener> listenerList = ContainerUtil.createLockFreeCopyOnWriteList();
 	private final Project project;
 	private boolean initialized = false;
 
 	public BookmarkMappingsStore(@NotNull Project project) {
 		this.project = project;
-	}
-
-	/**
-	 * For testing purposes only
-	 */
-	public BookmarkMappingsStore() {
-		this.project = null;
 	}
 
 	/**
@@ -129,32 +120,12 @@ public final class BookmarkMappingsStore implements IBookmarksListener, IBookmar
 				.collect(Collectors.toSet());
 	}
 
-	public void addListener(IBookmarkMappingsListener listener) {
-		listenerList.add(listener);
-	}
-
-	public void removeListener(IBookmarkMappingsListener listener) {
-		listenerList.remove(listener);
-	}
-
 	private void fireMappingAdded(BookmarkId bookmarkFolderId) {
-		for (IBookmarkMappingsListener listener : listenerList) {
-			try {
-				listener.mappingAdded(bookmarkFolderId);
-			} catch (Exception e) {
-				LOG.error("Error when mapping added", e);
-			}
-		}
+		project.getMessageBus().syncPublisher(IBookmarkMappingsListener.TOPIC).mappingAdded(bookmarkFolderId);
 	}
 
 	private void fireMappingRemoved(BookmarkId bookmarkFolderId) {
-		for (IBookmarkMappingsListener listener : listenerList) {
-			try {
-				listener.mappingRemoved(bookmarkFolderId);
-			} catch (Exception e) {
-				LOG.error("Error when mapping removed", e);
-			}
-		}
+		project.getMessageBus().syncPublisher(IBookmarkMappingsListener.TOPIC).mappingRemoved(bookmarkFolderId);
 	}
 
 	@Nullable

@@ -43,6 +43,7 @@ public class GDriveRemoteBookmarksStoreExtension extends AbstractRemoteBookmarks
 
         // Create the bookmarks file change manager
         BookmarksFileChangeManager changeManager = new BookmarksFileChangeManager(
+                project,
                 connectionManager,
                 mappingsStore,
                 scheduledExecutorService);

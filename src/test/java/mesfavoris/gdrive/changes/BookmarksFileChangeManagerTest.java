@@ -35,17 +35,17 @@ public class BookmarksFileChangeManagerTest extends BasePlatformTestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		gdriveConnectionRule = new GDriveConnectionRule(GDriveTestUser.USER1, true);
+		gdriveConnectionRule = new GDriveConnectionRule(getProject(), GDriveTestUser.USER1, true);
 		gdriveConnectionRule.before();
 		scheduledExecutorService = AppExecutorUtil.getAppScheduledExecutorService();
-		bookmarkMappings = new BookmarkMappingsStore();
+		bookmarkMappings = new BookmarkMappingsStore(getProject());
 		bookmarkMappings.add(new BookmarkId("bookmarkFolder1"),
 				createFile("bookmarks1", MESFAVORIS_MIME_TYPE, "bookmarks for folder1").getId(), Collections.emptyMap());
 		bookmarkMappings.add(new BookmarkId("bookmarkFolder2"),
 				createFile("bookmarks2", MESFAVORIS_MIME_TYPE, "bookmarks for folder2").getId(), Collections.emptyMap());
 		// wait a few seconds to make sure we don't get events related to previous file creation
 		Thread.sleep(10000);
-		bookmarksFileChangeManager = new BookmarksFileChangeManager(gdriveConnectionRule.getGDriveConnectionManager(),
+		bookmarksFileChangeManager = new BookmarksFileChangeManager(getProject(), gdriveConnectionRule.getGDriveConnectionManager(),
 				bookmarkMappings, scheduledExecutorService, () -> Duration.ofMillis(100));
 		bookmarksFileChangeManager.addListener(listener);
 		bookmarksFileChangeManager.init();

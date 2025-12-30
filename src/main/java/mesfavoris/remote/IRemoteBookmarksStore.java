@@ -1,5 +1,6 @@
 package mesfavoris.remote;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.progress.ProgressIndicator;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.BookmarksTree;
@@ -8,7 +9,7 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.Set;
 
-public interface IRemoteBookmarksStore {
+public interface IRemoteBookmarksStore extends Disposable {
 
     enum State {
         disconnected, connecting, connected

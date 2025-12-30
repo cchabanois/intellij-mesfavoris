@@ -5,9 +5,11 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.messages.MessageBusConnection;
 import mesfavoris.gdrive.changes.BookmarksFileChangeManager;
+import mesfavoris.gdrive.changes.IBookmarksFileChangeListener;
+import mesfavoris.gdrive.connection.GDriveConnectionListener;
 import mesfavoris.gdrive.connection.GDriveConnectionManager;
-import mesfavoris.gdrive.connection.IConnectionListener;
 import mesfavoris.gdrive.mappings.*;
 import mesfavoris.gdrive.operations.CreateFileOperation;
 import mesfavoris.gdrive.operations.DeleteCredentialsOperation;
@@ -42,28 +44,44 @@ public class GDriveRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
 	private final BookmarksFileChangeManager bookmarksFileChangeManager;
 	private final Duration durationForNewRevision;
 	private final IBookmarkMappingPropertiesProvider bookmarkMappingPropertiesProvider;
+	private final Project project;
+
+	private MessageBusConnection messageBusConnection;
+	private IBookmarksFileChangeListener fileChangeListener;
 
 	public GDriveRemoteBookmarksStore(Project project, GDriveConnectionManager gDriveConnectionManager,
 			BookmarkMappingsStore bookmarksMappingsStore, BookmarksFileChangeManager bookmarksFileChangeManager) {
 		super(project);
+		this.project = project;
 		this.gDriveConnectionManager = gDriveConnectionManager;
 		this.bookmarkMappingsStore = bookmarksMappingsStore;
 		this.bookmarksFileChangeManager = bookmarksFileChangeManager;
 		this.durationForNewRevision = Duration.ofMinutes(2);
-		this.gDriveConnectionManager.addConnectionListener(new IConnectionListener() {
+		this.bookmarkMappingPropertiesProvider = new BookmarkMappingPropertiesProvider();
+	}
+
+	@Override
+	public void init(RemoteBookmarksStoreDescriptor descriptor) {
+		super.init(descriptor);
+
+		// Create message bus connection
+		messageBusConnection = project.getMessageBus().connect(this);
+
+		// Subscribe to GDrive connection events
+		messageBusConnection.subscribe(GDriveConnectionListener.TOPIC, new GDriveConnectionListener() {
+			@Override
+			public void connected() {
+				postConnected();
+			}
 
 			@Override
 			public void disconnected() {
 				postDisconnected();
 			}
-
-			@Override
-			public void connected() {
-				postConnected();
-			}
 		});
-		this.bookmarkMappingsStore.addListener(new IBookmarkMappingsListener() {
 
+		// Subscribe to bookmark mappings events
+		messageBusConnection.subscribe(IBookmarkMappingsListener.TOPIC, new IBookmarkMappingsListener() {
 			@Override
 			public void mappingRemoved(BookmarkId bookmarkFolderId) {
 				postMappingRemoved(bookmarkFolderId);
@@ -74,8 +92,19 @@ public class GDriveRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
 				postMappingAdded(bookmarkFolderId);
 			}
 		});
-		this.bookmarksFileChangeManager.addListener((bookmarkFolderId, change) -> postRemoteBookmarksTreeChanged(bookmarkFolderId));
-		this.bookmarkMappingPropertiesProvider = new BookmarkMappingPropertiesProvider();
+
+		// Subscribe to file change events
+		fileChangeListener = (bookmarkFolderId, change) -> postRemoteBookmarksTreeChanged(bookmarkFolderId);
+		bookmarksFileChangeManager.addListener(fileChangeListener);
+	}
+
+	@Override
+	public void dispose() {
+		if (fileChangeListener != null) {
+			bookmarksFileChangeManager.removeListener(fileChangeListener);
+			fileChangeListener = null;
+		}
+		// MessageBusConnection is automatically disposed when this Disposable is disposed
 	}
 
 	@Override

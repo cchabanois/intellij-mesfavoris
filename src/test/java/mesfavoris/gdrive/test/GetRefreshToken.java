@@ -60,6 +60,7 @@ public class GetRefreshToken extends BasePlatformTestCase {
         MemoryDataStoreFactory dataStoreFactory = new MemoryDataStoreFactory();
 
         GDriveConnectionManager connectionManager = new GDriveConnectionManager(
+                getProject(),
                 dataStoreFactory, new AuthorizationCodeIntellijApp.Provider(),
                 userInfoStore,
                 GoogleOAuthClientConfig.getDefault(),

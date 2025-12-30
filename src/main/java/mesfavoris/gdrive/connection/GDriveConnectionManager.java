@@ -21,7 +21,6 @@ import com.google.api.services.drive.model.User;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.EventDispatcher;
 import mesfavoris.gdrive.connection.auth.AuthorizationCodeIntellijApp;
 import mesfavoris.gdrive.connection.auth.CancellableLocalServerReceiver;
 import mesfavoris.gdrive.connection.auth.IAuthorizationCodeInstalledAppProvider;
@@ -45,7 +44,7 @@ public class GDriveConnectionManager {
 
 	private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
-	private final EventDispatcher<IConnectionListener> listenerList = EventDispatcher.create(IConnectionListener.class);
+	private final Project project;
 	private HttpTransport httpTransport;
 	private final String applicationName;
 	private final IAuthorizationCodeInstalledAppProvider authorizationCodeInstalledAppProvider;
@@ -69,19 +68,21 @@ public class GDriveConnectionManager {
 	 *            the folder name for the application on GDrive. It will be
 	 *            created after connection if it does not exist
 	 */
-	public GDriveConnectionManager(Project project, String applicationName, String applicationFolderName, GoogleOAuthClientConfig googleOAuthClientConfig) {
-		this(new PasswordSafeDataStoreFactory(), new AuthorizationCodeIntellijApp.Provider(),
+	public GDriveConnectionManager(Project project, String applicationName, String applicationFolderName) {
+		this(project, new PasswordSafeDataStoreFactory(), new AuthorizationCodeIntellijApp.Provider(),
 				project.getService(GDriveUserInfoStore.class),
-                googleOAuthClientConfig,
+				project.getService(GoogleOAuthClientConfigStore.class).getConfig(),
 				applicationName, applicationFolderName);
 	}
 
-	public GDriveConnectionManager(DataStoreFactory dataStoreFactory,
+	public GDriveConnectionManager(Project project,
+									DataStoreFactory dataStoreFactory,
 			                       IAuthorizationCodeInstalledAppProvider authorizationCodeInstalledAppProvider,
                                    IGDriveUserInfoStore userInfoStore,
                                    GoogleOAuthClientConfig googleOAuthClientConfig,
                                    String applicationName,
                                    String applicationFolderName) {
+		this.project = project;
         this.dataStoreFactory = dataStoreFactory;
 		this.authorizationCodeInstalledAppProvider = authorizationCodeInstalledAppProvider;
 		this.userInfoStore = userInfoStore;
@@ -144,7 +145,7 @@ public class GDriveConnectionManager {
 			if (progressIndicator != null) {
 				progressIndicator.setFraction(1.0);
 			}
-			fireConnected(null);
+			fireConnected();
 		} finally {
 			if (state.compareAndSet(State.connecting, State.disconnected)) {
 				synchronized (this) {
@@ -187,12 +188,12 @@ public class GDriveConnectionManager {
 		return state.get();
 	}
 
-	private void fireConnected(final Drive drive) {
-		listenerList.getMulticaster().connected();
+	private void fireConnected() {
+		project.getMessageBus().syncPublisher(GDriveConnectionListener.TOPIC).connected();
 	}
 
-	private void fireDisconnected(final Drive drive) {
-		listenerList.getMulticaster().disconnected();
+	private void fireDisconnected() {
+		project.getMessageBus().syncPublisher(GDriveConnectionListener.TOPIC).disconnected();
 	}
 
 	private Credential authorize(final ProgressIndicator progressIndicator) throws IOException {
@@ -238,16 +239,10 @@ public class GDriveConnectionManager {
 			this.drive = null;
 			this.applicationFolderId = null;
 		}
-		fireDisconnected(null);
+		fireDisconnected();
 	}
 
-	public void addConnectionListener(IConnectionListener listener) {
-		listenerList.addListener(listener);
-	}
 
-	public void removeConnectionListener(IConnectionListener listener) {
-		listenerList.removeListener(listener);
-	}
 
 	private UserInfo loadUserInfo() {
 		return userInfoStore.getUserInfo();
