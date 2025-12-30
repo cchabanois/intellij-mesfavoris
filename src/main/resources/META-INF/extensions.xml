@@ -5,6 +5,7 @@
         <postStartupActivity implementation="mesfavoris.internal.markers.BookmarksHighlighters$BookmarksHighlightersStartupActivity"/>
         <postStartupActivity implementation="mesfavoris.internal.actions.RemoteBookmarksStoreActionsRegistrar"/>
         <postStartupActivity implementation="mesfavoris.gdrive.mappings.BookmarkMappingsStore$Initializer"/>
+        <searchEverywhereContributor implementation="mesfavoris.internal.search.BookmarksSearchEverywhereContributor$Factory"/>
         <notificationGroup
                 id="com.cchabanois.mesfavoris.errors"
                 displayType="STICKY_BALLOON"
