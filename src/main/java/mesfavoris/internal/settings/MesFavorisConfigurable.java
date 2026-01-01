@@ -1,6 +1,8 @@
 package mesfavoris.internal.settings;
 
 import com.intellij.openapi.options.Configurable;
+import com.intellij.ui.components.JBCheckBox;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,6 +14,9 @@ import java.awt.*;
  */
 public class MesFavorisConfigurable implements Configurable {
 
+    private JBCheckBox replaceIntellijShortcutsCheckbox;
+    private MesFavorisSettingsStore settingsStore;
+
     @Nls(capitalization = Nls.Capitalization.Title)
     @Override
     public String getDisplayName() {
@@ -20,7 +25,8 @@ public class MesFavorisConfigurable implements Configurable {
 
     @Override
     public @Nullable JComponent createComponent() {
-        // Simple main page with information text
+        settingsStore = MesFavorisSettingsStore.getInstance();
+
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
@@ -42,27 +48,57 @@ public class MesFavorisConfigurable implements Configurable {
         descriptionLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.add(descriptionLabel);
 
+        panel.add(Box.createVerticalStrut(20));
+
+        // Keyboard shortcuts section
+        JLabel shortcutsLabel = new JLabel("<html><h3>Keyboard Shortcuts</h3></html>");
+        shortcutsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(shortcutsLabel);
+
+        panel.add(Box.createVerticalStrut(5));
+
+        replaceIntellijShortcutsCheckbox = new JBCheckBox(
+            "Replace IntelliJ IDEA bookmark shortcuts with Mesfavoris shortcuts"
+        );
+        replaceIntellijShortcutsCheckbox.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(replaceIntellijShortcutsCheckbox);
+
+        JLabel warningLabel = new JLabel("<html><body style='width: 500px; color: gray;'>" +
+            "<i>When enabled, F11 and Shift+F11 will use Mesfavoris instead of IntelliJ's built-in bookmarks. " +
+            "Restart IntelliJ IDEA for changes to take effect.</i>" +
+            "</body></html>");
+        warningLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        warningLabel.setBorder(JBUI.Borders.emptyLeft(20));
+        panel.add(warningLabel);
+
         return panel;
     }
 
     @Override
     public boolean isModified() {
-        // This main page has no modifiable settings
-        return false;
+        if (replaceIntellijShortcutsCheckbox == null) {
+            return false;
+        }
+        return replaceIntellijShortcutsCheckbox.isSelected() != settingsStore.isReplaceIntellijShortcuts();
     }
 
     @Override
     public void apply() {
-        // Nothing to apply on this main page
+        if (replaceIntellijShortcutsCheckbox != null) {
+            settingsStore.setReplaceIntellijShortcuts(replaceIntellijShortcutsCheckbox.isSelected());
+        }
     }
 
     @Override
     public void reset() {
-        // Nothing to reset on this main page
+        if (replaceIntellijShortcutsCheckbox != null) {
+            replaceIntellijShortcutsCheckbox.setSelected(settingsStore.isReplaceIntellijShortcuts());
+        }
     }
 
     @Override
     public void disposeUIResources() {
-        // Nothing to clean up
+        replaceIntellijShortcutsCheckbox = null;
+        settingsStore = null;
     }
 }
