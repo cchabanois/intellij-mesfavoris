@@ -23,7 +23,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 
@@ -76,8 +77,8 @@ public class UrlBookmarkPropertiesProvider extends AbstractBookmarkPropertiesPro
 	private URL getURL(Transferable transferable) {
 		try {
 			String text = (String) transferable.getTransferData(DataFlavor.stringFlavor);
-            return new URL(text);
-		} catch (UnsupportedFlavorException|IOException e) {
+            return new URI(text).toURL();
+		} catch (UnsupportedFlavorException | IOException | URISyntaxException | IllegalArgumentException e) {
 			return null;
 		}
 	}
@@ -107,8 +108,10 @@ public class UrlBookmarkPropertiesProvider extends AbstractBookmarkPropertiesPro
 
 	private Optional<String> getFavIconUrl(URL url) {
 		try {
-			return Optional.of(new URL(url.getProtocol(), url.getHost(), url.getPort(), "/favicon.ico").toString());
-		} catch (MalformedURLException e) {
+			URI uri = url.toURI();
+			URI favIconUri = new URI(uri.getScheme(), uri.getAuthority(), "/favicon.ico", null, null);
+			return Optional.of(favIconUri.toString());
+		} catch (URISyntaxException | IllegalArgumentException e) {
 			return Optional.empty();
 		}
 	}

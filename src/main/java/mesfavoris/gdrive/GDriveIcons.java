@@ -1,6 +1,6 @@
 package mesfavoris.gdrive;
 
-import com.intellij.ui.IconManager;
+import com.intellij.openapi.util.IconLoader;
 import mesfavoris.icons.MesFavorisIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,7 +22,7 @@ public class GDriveIcons {
     public static final @NotNull Icon GDRIVE_OVERLAY = load("/icons/gdrive_overlay.png");
 
     private static @NotNull Icon load(@NotNull String path) {
-        return IconManager.getInstance().getIcon(path, MesFavorisIcons.class);
+        return IconLoader.getIcon(path, MesFavorisIcons.class);
     }
 
 }
