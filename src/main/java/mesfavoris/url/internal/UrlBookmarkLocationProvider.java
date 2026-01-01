@@ -6,8 +6,7 @@ import mesfavoris.bookmarktype.IBookmarkLocation;
 import mesfavoris.bookmarktype.IBookmarkLocationProvider;
 import mesfavoris.model.Bookmark;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 
 import static mesfavoris.url.UrlBookmarkProperties.PROP_URL;
 
@@ -20,8 +19,8 @@ public class UrlBookmarkLocationProvider implements IBookmarkLocationProvider {
 			return null;
 		}
 		try {
-			return new UrlBookmarkLocation(new URL(url));
-		} catch (MalformedURLException e) {
+			return new UrlBookmarkLocation(new URI(url).toURL());
+		} catch (Exception e) {
 			return null;
 		}
 	}

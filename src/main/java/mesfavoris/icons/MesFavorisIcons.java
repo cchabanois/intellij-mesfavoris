@@ -1,6 +1,6 @@
 package mesfavoris.icons;
 
-import com.intellij.ui.IconManager;
+import com.intellij.openapi.util.IconLoader;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -8,7 +8,7 @@ import javax.swing.*;
 public class MesFavorisIcons {
 
     private static @NotNull Icon load(@NotNull String path) {
-        return IconManager.getInstance().getIcon(path, MesFavorisIcons.class);
+        return IconLoader.getIcon(path, MesFavorisIcons.class);
     }
 
     /** 13x13 */ public static final @NotNull Icon toolWindowMesFavoris = load("/icons/toolWindowMesFavoris.png");

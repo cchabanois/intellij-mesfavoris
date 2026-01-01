@@ -5,6 +5,7 @@ import org.apache.http.client.utils.URLEncodedUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -21,7 +22,7 @@ public class GetFileIdFromUrlOperation {
 			if (uri.getHost() == null || !uri.getHost().endsWith(".google.com")) {
 				return Optional.empty();
 			}
-			List<NameValuePair> params = URLEncodedUtils.parse(uri, "UTF-8");
+			List<NameValuePair> params = URLEncodedUtils.parse(uri, StandardCharsets.UTF_8);
 			Optional<String> idValue = getParameterValue(params, "id");
 			if (idValue.isPresent()) {
 				return idValue;

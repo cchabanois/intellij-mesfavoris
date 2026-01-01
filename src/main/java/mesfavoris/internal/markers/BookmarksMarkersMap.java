@@ -3,7 +3,6 @@ package mesfavoris.internal.markers;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.util.containers.MultiMap;
 import mesfavoris.bookmarktype.BookmarkMarker;
 import mesfavoris.model.BookmarkId;
 import org.jdom.Element;
@@ -14,24 +13,18 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class BookmarksMarkersMap implements PersistentStateComponent<Element> {
     private final Map<BookmarkId, BookmarkMarker> bookmarkIdToMarkerMap = new HashMap<>();
-    private final MultiMap<VirtualFile, BookmarkMarker> fileToMarkerMap = new MultiMap<>() {
-        @Override
-        protected @NotNull Collection<BookmarkMarker> createCollection() {
-            return new HashSet<>();
-        }
-
-        @Override
-        protected @NotNull Collection<BookmarkMarker> createEmptyCollection() {
-            return Collections.emptySet();
-        }
-    };
+    private final Map<VirtualFile, Set<BookmarkMarker>> fileToMarkerMap = new HashMap<>();
     private final ReentrantLock lock = new ReentrantLock();
 
     public BookmarkMarker put(BookmarkMarker bookmarkMarker) {
         lock.lock();
         try {
             BookmarkMarker previous = bookmarkIdToMarkerMap.put(bookmarkMarker.getBookmarkId(), bookmarkMarker);
-            fileToMarkerMap.putValue(bookmarkMarker.getResource(), bookmarkMarker);
+            if (previous != null) {
+                removeFromFileToMarkerMap(previous);
+            }
+            fileToMarkerMap.computeIfAbsent(bookmarkMarker.getResource(), k -> new HashSet<>())
+                    .add(bookmarkMarker);
             return previous;
         } finally {
             lock.unlock();
@@ -40,16 +33,25 @@ public class BookmarksMarkersMap implements PersistentStateComponent<Element> {
 
     public BookmarkMarker remove(BookmarkId bookmarkId) {
         lock.lock();
-        BookmarkMarker bookmarkMarker;
         try {
-            bookmarkMarker = bookmarkIdToMarkerMap.remove(bookmarkId);
+            BookmarkMarker bookmarkMarker = bookmarkIdToMarkerMap.remove(bookmarkId);
             if (bookmarkMarker != null) {
-                fileToMarkerMap.remove(bookmarkMarker.getResource(), bookmarkMarker);
+                removeFromFileToMarkerMap(bookmarkMarker);
             }
+            return bookmarkMarker;
         } finally {
             lock.unlock();
         }
-        return bookmarkMarker;
+    }
+
+    private void removeFromFileToMarkerMap(BookmarkMarker bookmarkMarker) {
+        Set<BookmarkMarker> markers = fileToMarkerMap.get(bookmarkMarker.getResource());
+        if (markers != null) {
+            markers.remove(bookmarkMarker);
+            if (markers.isEmpty()) {
+                fileToMarkerMap.remove(bookmarkMarker.getResource());
+            }
+        }
     }
 
     public BookmarkMarker get(BookmarkId bookmarkId) {
@@ -64,7 +66,8 @@ public class BookmarksMarkersMap implements PersistentStateComponent<Element> {
     public List<BookmarkMarker> get(VirtualFile file) {
         lock.lock();
         try {
-            return new ArrayList<>(fileToMarkerMap.get(file));
+            Set<BookmarkMarker> markers = fileToMarkerMap.get(file);
+            return markers != null ? new ArrayList<>(markers) : Collections.emptyList();
         } finally {
             lock.unlock();
         }
