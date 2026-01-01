@@ -2,7 +2,7 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
     <id>com.cchabanois.mesfavoris</id>
     <name>Mesfavoris</name>
-    <vendor>cchabanois</vendor>
+    <vendor email="cchabanois@gmail.com" url="https://github.com/cchabanois">Cédric Chabanois</vendor>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.java</depends>
