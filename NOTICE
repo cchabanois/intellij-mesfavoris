@@ -1,0 +1,15 @@
+Mesfavoris - IntelliJ IDEA Plugin
+Copyright 2024-2026 Cédric Chabanois
+
+This product includes software developed by Cédric Chabanois.
+
+This plugin is a port and adaptation of the Eclipse Mesfavoris plugin,
+originally developed by the same author.
+
+Third-party dependencies:
+- Google Drive API (Apache License 2.0)
+- Google OAuth Client (Apache License 2.0)
+- Jsoup (MIT License)
+- imgscalr (Apache License 2.0)
+- AssertJ (Apache License 2.0)
+
