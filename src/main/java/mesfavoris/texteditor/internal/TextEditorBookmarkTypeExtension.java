@@ -45,9 +45,9 @@ public class TextEditorBookmarkTypeExtension extends AbstractBookmarkTypeExtensi
                 .description("Workspace relative path")
                 .build());
 
-        addLabelProvider(new TextEditorBookmarkLabelProvider());
         PathPlaceholdersStore placeholdersStore = PathPlaceholdersStore.getInstance();
         PathPlaceholderResolver pathPlaceholderResolver = new PathPlaceholderResolver(placeholdersStore);
+        addLabelProvider(new TextEditorBookmarkLabelProvider(pathPlaceholderResolver));
         addPropertiesProvider(new TextEditorBookmarkPropertiesProvider(pathPlaceholderResolver), 100);
         addLocationProvider(new WorkspaceFileBookmarkLocationProvider(), 100);
         addLocationProvider(new ExternalFileBookmarkLocationProvider(pathPlaceholderResolver), 100);
