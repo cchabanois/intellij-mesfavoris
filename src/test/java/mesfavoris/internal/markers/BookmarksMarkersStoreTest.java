@@ -12,14 +12,14 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class BookmarksMarkersMapTest extends BasePlatformTestCase {
+public class BookmarksMarkersStoreTest extends BasePlatformTestCase {
 
-    private BookmarksMarkersMap bookmarksMarkersMap;
+    private BookmarksMarkersStore bookmarksMarkersStore;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        bookmarksMarkersMap = new BookmarksMarkersMap();
+        bookmarksMarkersStore = new BookmarksMarkersStore();
     }
 
     public void testPutAndGetByBookmarkId() {
@@ -31,10 +31,10 @@ public class BookmarksMarkersMapTest extends BasePlatformTestCase {
         BookmarkMarker marker = new BookmarkMarker(file, bookmarkId, attributes);
 
         // When
-        bookmarksMarkersMap.put(marker);
+        bookmarksMarkersStore.put(marker);
 
         // Then
-        BookmarkMarker retrieved = bookmarksMarkersMap.get(bookmarkId);
+        BookmarkMarker retrieved = bookmarksMarkersStore.get(bookmarkId);
         assertThat(retrieved).isNotNull();
         assertThat(retrieved.getBookmarkId()).isEqualTo(bookmarkId);
         assertThat(retrieved.getResource()).isEqualTo(file);
@@ -50,11 +50,11 @@ public class BookmarksMarkersMapTest extends BasePlatformTestCase {
         BookmarkMarker marker2 = new BookmarkMarker(file, bookmarkId2, Map.of(BookmarkMarker.LINE_NUMBER, "20"));
 
         // When
-        bookmarksMarkersMap.put(marker1);
-        bookmarksMarkersMap.put(marker2);
+        bookmarksMarkersStore.put(marker1);
+        bookmarksMarkersStore.put(marker2);
 
         // Then
-        List<BookmarkMarker> markers = bookmarksMarkersMap.get(file);
+        List<BookmarkMarker> markers = bookmarksMarkersStore.get(file);
         assertThat(markers).hasSize(2);
         assertThat(markers).containsExactlyInAnyOrder(marker1, marker2);
     }
@@ -69,12 +69,12 @@ public class BookmarksMarkersMapTest extends BasePlatformTestCase {
         BookmarkMarker marker2 = new BookmarkMarker(file2, bookmarkId2, Map.of());
 
         // When
-        bookmarksMarkersMap.put(marker1);
-        bookmarksMarkersMap.put(marker2);
+        bookmarksMarkersStore.put(marker1);
+        bookmarksMarkersStore.put(marker2);
 
         // Then
-        assertThat(bookmarksMarkersMap.get(file1)).containsExactly(marker1);
-        assertThat(bookmarksMarkersMap.get(file2)).containsExactly(marker2);
+        assertThat(bookmarksMarkersStore.get(file1)).containsExactly(marker1);
+        assertThat(bookmarksMarkersStore.get(file2)).containsExactly(marker2);
     }
 
     public void testRemoveMarker() {
@@ -82,15 +82,15 @@ public class BookmarksMarkersMapTest extends BasePlatformTestCase {
         VirtualFile file = myFixture.getTempDirFixture().createFile("test.txt");
         BookmarkId bookmarkId = new BookmarkId("bookmark1");
         BookmarkMarker marker = new BookmarkMarker(file, bookmarkId, Map.of());
-        bookmarksMarkersMap.put(marker);
+        bookmarksMarkersStore.put(marker);
 
         // When
-        BookmarkMarker removed = bookmarksMarkersMap.remove(bookmarkId);
+        BookmarkMarker removed = bookmarksMarkersStore.remove(bookmarkId);
 
         // Then
         assertThat(removed).isEqualTo(marker);
-        assertThat(bookmarksMarkersMap.get(bookmarkId)).isNull();
-        assertThat(bookmarksMarkersMap.get(file)).isEmpty();
+        assertThat(bookmarksMarkersStore.get(bookmarkId)).isNull();
+        assertThat(bookmarksMarkersStore.get(file)).isEmpty();
     }
 
     public void testRemoveOneMarkerFromFileWithMultipleMarkers() {
@@ -100,20 +100,20 @@ public class BookmarksMarkersMapTest extends BasePlatformTestCase {
         BookmarkId bookmarkId2 = new BookmarkId("bookmark2");
         BookmarkMarker marker1 = new BookmarkMarker(file, bookmarkId1, Map.of());
         BookmarkMarker marker2 = new BookmarkMarker(file, bookmarkId2, Map.of());
-        bookmarksMarkersMap.put(marker1);
-        bookmarksMarkersMap.put(marker2);
+        bookmarksMarkersStore.put(marker1);
+        bookmarksMarkersStore.put(marker2);
 
         // When
-        bookmarksMarkersMap.remove(bookmarkId1);
+        bookmarksMarkersStore.remove(bookmarkId1);
 
         // Then
-        assertThat(bookmarksMarkersMap.get(bookmarkId1)).isNull();
-        assertThat(bookmarksMarkersMap.get(file)).containsExactly(marker2);
+        assertThat(bookmarksMarkersStore.get(bookmarkId1)).isNull();
+        assertThat(bookmarksMarkersStore.get(file)).containsExactly(marker2);
     }
 
     public void testGetNonExistentBookmarkReturnsNull() {
         // When
-        BookmarkMarker marker = bookmarksMarkersMap.get(new BookmarkId("nonexistent"));
+        BookmarkMarker marker = bookmarksMarkersStore.get(new BookmarkId("nonexistent"));
 
         // Then
         assertThat(marker).isNull();
@@ -124,7 +124,7 @@ public class BookmarksMarkersMapTest extends BasePlatformTestCase {
         VirtualFile file = myFixture.getTempDirFixture().createFile("test.txt");
 
         // When
-        List<BookmarkMarker> markers = bookmarksMarkersMap.get(file);
+        List<BookmarkMarker> markers = bookmarksMarkersStore.get(file);
 
         // Then
         assertThat(markers).isEmpty();
@@ -136,15 +136,15 @@ public class BookmarksMarkersMapTest extends BasePlatformTestCase {
         BookmarkId bookmarkId = new BookmarkId("bookmark1");
         BookmarkMarker marker1 = new BookmarkMarker(file, bookmarkId, Map.of(BookmarkMarker.LINE_NUMBER, "10"));
         BookmarkMarker marker2 = new BookmarkMarker(file, bookmarkId, Map.of(BookmarkMarker.LINE_NUMBER, "20"));
-        bookmarksMarkersMap.put(marker1);
+        bookmarksMarkersStore.put(marker1);
 
         // When
-        BookmarkMarker previous = bookmarksMarkersMap.put(marker2);
+        BookmarkMarker previous = bookmarksMarkersStore.put(marker2);
 
         // Then
         assertThat(previous).isEqualTo(marker1);
-        assertThat(bookmarksMarkersMap.get(bookmarkId)).isEqualTo(marker2);
-        assertThat(bookmarksMarkersMap.get(file)).containsExactly(marker2); // Old marker is removed, only new one remains
+        assertThat(bookmarksMarkersStore.get(bookmarkId)).isEqualTo(marker2);
+        assertThat(bookmarksMarkersStore.get(file)).containsExactly(marker2); // Old marker is removed, only new one remains
     }
 
     public void testGetStateAndLoadState() {
@@ -162,12 +162,12 @@ public class BookmarksMarkersMapTest extends BasePlatformTestCase {
         );
         BookmarkMarker marker1 = new BookmarkMarker(file1, bookmarkId1, attributes1);
         BookmarkMarker marker2 = new BookmarkMarker(file2, bookmarkId2, attributes2);
-        bookmarksMarkersMap.put(marker1);
-        bookmarksMarkersMap.put(marker2);
+        bookmarksMarkersStore.put(marker1);
+        bookmarksMarkersStore.put(marker2);
 
         // When
-        Element state = bookmarksMarkersMap.getState();
-        BookmarksMarkersMap newMap = new BookmarksMarkersMap();
+        Element state = bookmarksMarkersStore.getState();
+        BookmarksMarkersStore newMap = new BookmarksMarkersStore();
         newMap.loadState(state);
 
         // Then
@@ -187,10 +187,10 @@ public class BookmarksMarkersMapTest extends BasePlatformTestCase {
 
     public void testGetStateWithEmptyMap() {
         // When
-        Element state = bookmarksMarkersMap.getState();
+        Element state = bookmarksMarkersStore.getState();
 
         // Then
-        assertThat(state.getName()).isEqualTo("BookmarkManager");
+        assertThat(state.getName()).isEqualTo("BookmarkMarkers");
         assertThat(state.getChildren()).isEmpty();
     }
 }

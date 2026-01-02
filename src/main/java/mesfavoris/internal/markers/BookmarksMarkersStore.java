@@ -1,6 +1,8 @@
 package mesfavoris.internal.markers;
 
 import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import mesfavoris.bookmarktype.BookmarkMarker;
@@ -11,11 +13,19 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class BookmarksMarkersMap implements PersistentStateComponent<Element> {
+/**
+ * Persistent storage for bookmark markers
+ */
+@State(
+    name = "BookmarkMarkers",
+    storages = @Storage("mesfavoris.xml")
+)
+public class BookmarksMarkersStore implements PersistentStateComponent<Element>, IBookmarksMarkersStore {
     private final Map<BookmarkId, BookmarkMarker> bookmarkIdToMarkerMap = new HashMap<>();
     private final Map<VirtualFile, Set<BookmarkMarker>> fileToMarkerMap = new HashMap<>();
     private final ReentrantLock lock = new ReentrantLock();
 
+    @Override
     public BookmarkMarker put(BookmarkMarker bookmarkMarker) {
         lock.lock();
         try {
@@ -31,6 +41,7 @@ public class BookmarksMarkersMap implements PersistentStateComponent<Element> {
         }
     }
 
+    @Override
     public BookmarkMarker remove(BookmarkId bookmarkId) {
         lock.lock();
         try {
@@ -54,6 +65,7 @@ public class BookmarksMarkersMap implements PersistentStateComponent<Element> {
         }
     }
 
+    @Override
     public BookmarkMarker get(BookmarkId bookmarkId) {
         lock.lock();
         try {
@@ -63,6 +75,7 @@ public class BookmarksMarkersMap implements PersistentStateComponent<Element> {
         }
     }
 
+    @Override
     public List<BookmarkMarker> get(VirtualFile file) {
         lock.lock();
         try {
@@ -77,7 +90,7 @@ public class BookmarksMarkersMap implements PersistentStateComponent<Element> {
     public Element getState() {
         lock.lock();
         try {
-            Element container = new Element("BookmarkManager");
+            Element container = new Element("BookmarkMarkers");
             for (BookmarkMarker bookmarkMarker : bookmarkIdToMarkerMap.values()) {
                 Element bookmarkMarkerElement = new Element("bookmarkMarker");
                 bookmarkMarkerElement.setAttribute("url", bookmarkMarker.getResource().getUrl());
@@ -102,7 +115,6 @@ public class BookmarksMarkersMap implements PersistentStateComponent<Element> {
         try {
             bookmarkIdToMarkerMap.clear();
             fileToMarkerMap.clear();
-            List<BookmarkMarker> result = new ArrayList<>();
             for (Element bookmarkElement : state.getChildren("bookmarkMarker")) {
                 String urlString = bookmarkElement.getAttributeValue("url");
                 String bookmarkIdString = bookmarkElement.getAttributeValue("bookmarkId");

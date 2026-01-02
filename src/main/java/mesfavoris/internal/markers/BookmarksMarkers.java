@@ -2,7 +2,6 @@ package mesfavoris.internal.markers;
 
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.editor.ex.RangeHighlighterEx;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -20,32 +19,30 @@ import mesfavoris.model.modification.BookmarkDeletedModification;
 import mesfavoris.model.modification.BookmarkPropertiesModification;
 import mesfavoris.model.modification.BookmarksAddedModification;
 import mesfavoris.model.modification.BookmarksModification;
-import org.jdom.Element;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class BookmarksMarkers implements IBookmarksMarkers, PersistentStateComponent<Element>, Disposable {
+public class BookmarksMarkers implements IBookmarksMarkers, Disposable {
     private final Project project;
     private final BookmarkDatabase bookmarkDatabase;
     private final IBookmarkMarkerAttributesProvider bookmarkMarkerAttributesProvider;
     private final BackgroundBookmarksModificationsHandler backgroundBookmarksModificationsHandler;
-    private final BookmarksMarkersMap bookmarkMarkersMap = new BookmarksMarkersMap();
-    private MessageBusConnection messageBusConnection;
+    private final IBookmarksMarkersStore bookmarkMarkersStore;
 
-    public BookmarksMarkers(Project project, BookmarkDatabase bookmarkDatabase,
+    public BookmarksMarkers(Project project, BookmarkDatabase bookmarkDatabase, IBookmarksMarkersStore bookmarksMarkersStore,
                             IBookmarkMarkerAttributesProvider bookmarkMarkerAttributesProvider) {
         this.project = project;
         this.bookmarkDatabase = bookmarkDatabase;
         this.bookmarkMarkerAttributesProvider = bookmarkMarkerAttributesProvider;
         this.backgroundBookmarksModificationsHandler = new BackgroundBookmarksModificationsHandler(bookmarkDatabase, new BookmarksModificationsHandler(), 200);
+        this.bookmarkMarkersStore = bookmarksMarkersStore;
     }
 
     public void init() {
         backgroundBookmarksModificationsHandler.init();
-        messageBusConnection = project.getMessageBus().connect(this);
+        MessageBusConnection messageBusConnection = project.getMessageBus().connect(this);
         messageBusConnection.subscribe(BookmarksHighlightersListener.TOPIC, new BookmarksHighlightersListenerImpl());
     }
 
@@ -69,12 +66,12 @@ public class BookmarksMarkers implements IBookmarksMarkers, PersistentStateCompo
     private void createOrUpdateMarker(Bookmark bookmarkAdded) {
         BookmarkMarker bookmarkMarker = bookmarkMarkerAttributesProvider.getMarkerDescriptor(project, bookmarkAdded, new EmptyProgressIndicator());
         if (bookmarkMarker == null) {
-            BookmarkMarker previous = bookmarkMarkersMap.remove(bookmarkAdded.getId());
+            BookmarkMarker previous = bookmarkMarkersStore.remove(bookmarkAdded.getId());
             if (previous != null) {
                 project.getMessageBus().syncPublisher(BookmarksMarkersListener.TOPIC).bookmarkMarkerDeleted(previous);
             }
         } else {
-            BookmarkMarker previous = bookmarkMarkersMap.put(bookmarkMarker);
+            BookmarkMarker previous = bookmarkMarkersStore.put(bookmarkMarker);
             if (previous != null) {
                 project.getMessageBus().syncPublisher(BookmarksMarkersListener.TOPIC).bookmarkMarkerUpdated(previous, bookmarkMarker);
             } else {
@@ -85,7 +82,7 @@ public class BookmarksMarkers implements IBookmarksMarkers, PersistentStateCompo
 
     @Override
     public void deleteMarker(BookmarkId bookmarkId) {
-        BookmarkMarker bookmarkMarker = bookmarkMarkersMap.remove(bookmarkId);
+        BookmarkMarker bookmarkMarker = bookmarkMarkersStore.remove(bookmarkId);
         if (bookmarkMarker != null) {
             project.getMessageBus().syncPublisher(BookmarksMarkersListener.TOPIC).bookmarkMarkerDeleted(bookmarkMarker);
         }
@@ -93,12 +90,12 @@ public class BookmarksMarkers implements IBookmarksMarkers, PersistentStateCompo
 
     @Override
     public BookmarkMarker getMarker(BookmarkId bookmarkId) {
-        return bookmarkMarkersMap.get(bookmarkId);
+        return bookmarkMarkersStore.get(bookmarkId);
     }
 
     @Override
     public List<BookmarkMarker> getMarkers(VirtualFile file) {
-        return bookmarkMarkersMap.get(file);
+        return bookmarkMarkersStore.get(file);
     }
 
     @Override
@@ -109,16 +106,6 @@ public class BookmarksMarkers implements IBookmarksMarkers, PersistentStateCompo
         } else {
             createOrUpdateMarker(bookmark);
         }
-    }
-
-    @Override
-    public Element getState() {
-        return bookmarkMarkersMap.getState();
-    }
-
-    @Override
-    public void loadState(@NotNull Element state) {
-        bookmarkMarkersMap.loadState(state);
     }
 
     private class BookmarksModificationsHandler implements BackgroundBookmarksModificationsHandler.IBookmarksModificationsHandler {
@@ -146,12 +133,12 @@ public class BookmarksMarkers implements IBookmarksMarkers, PersistentStateCompo
         @Override
         public void bookmarkHighlighterUpdated(RangeHighlighterEx bookmarkHighlighter) {
             int newLineNumber = bookmarkHighlighter.getDocument().getLineNumber(bookmarkHighlighter.getStartOffset());
-            BookmarkMarker previousBookmarkMarker = bookmarkMarkersMap.get(this.getBookmarkId(bookmarkHighlighter));
+            BookmarkMarker previousBookmarkMarker = bookmarkMarkersStore.get(this.getBookmarkId(bookmarkHighlighter));
             if (previousBookmarkMarker.getLineNumber() != newLineNumber) {
                 Map<String, String> newAttributes = new HashMap<>(previousBookmarkMarker.getAttributes());
                 newAttributes.put(BookmarkMarker.LINE_NUMBER, Integer.toString(newLineNumber));
                 BookmarkMarker newBookmarkMarker = new BookmarkMarker(previousBookmarkMarker.getResource(), previousBookmarkMarker.getBookmarkId(), newAttributes);
-                bookmarkMarkersMap.put(newBookmarkMarker);
+                bookmarkMarkersStore.put(newBookmarkMarker);
                 project.getMessageBus().syncPublisher(BookmarksMarkersListener.TOPIC).bookmarkMarkerUpdated(previousBookmarkMarker, newBookmarkMarker);
             }
         }
