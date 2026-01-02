@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 @State(
         name = "BookmarksTreeComponentState",
-        storages = @Storage("bookmarksTreeComponentState.xml")
+        storages = @Storage("mesfavoris.xml")
 )
 public class BookmarksTreeComponentStateService implements PersistentStateComponent<BookmarksTreeComponentStateService.BookmarksTreeComponentState> {
 

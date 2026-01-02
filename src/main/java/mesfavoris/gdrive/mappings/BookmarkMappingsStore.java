@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  *
  */
 @Service(Service.Level.PROJECT)
-@State(name = "BookmarkMappings", storages = @Storage("mesfavoris-gdrive-mappings.xml"))
+@State(name = "BookmarkMappings", storages = @Storage("mesfavoris.xml"))
 public final class BookmarkMappingsStore implements IBookmarksListener, IBookmarkMappings, PersistentStateComponent<Element> {
 	private static final Logger LOG = Logger.getInstance(BookmarkMappingsStore.class);
 	private static final String PROPERTY_FILE_ID = "fileId";

@@ -3,7 +3,6 @@ package mesfavoris.internal.service;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.RoamingType;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -59,7 +58,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-@State(name = "BookmarksService", storages = @Storage(value = "mesfavoris.xml", roamingType = RoamingType.PER_OS))
+@State(name = "BookmarksService", storages = @Storage(value = "mesfavoris.xml"))
 public final class BookmarksService implements IBookmarksService, Disposable, PersistentStateComponent<Element> {
     private static final Duration DEFAULT_RECENT_DURATION = Duration.ofDays(5);
 

@@ -14,7 +14,7 @@ import java.util.List;
  */
 @State(
     name = "BookmarksSearchHistory",
-    storages = @Storage("bookmarksSearchHistory.xml")
+    storages = @Storage("mesfavoris.xml")
 )
 public class BookmarksSearchHistoryStore implements PersistentStateComponent<BookmarksSearchHistoryStore.State> {
     private static final int MAX_HISTORY_SIZE = 20;
