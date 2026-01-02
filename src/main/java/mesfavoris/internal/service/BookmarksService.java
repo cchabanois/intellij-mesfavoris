@@ -20,6 +20,7 @@ import mesfavoris.internal.bookmarktypes.extension.ExtensionBookmarkLocationProv
 import mesfavoris.internal.bookmarktypes.extension.ExtensionBookmarkPropertiesProvider;
 import mesfavoris.internal.bookmarktypes.extension.ExtensionGotoBookmark;
 import mesfavoris.internal.markers.BookmarksMarkers;
+import mesfavoris.internal.markers.BookmarksMarkersStore;
 import mesfavoris.internal.persistence.BookmarksAutoSaver;
 import mesfavoris.internal.persistence.LocalBookmarksSaver;
 import mesfavoris.internal.recent.RecentBookmarksDatabase;
@@ -88,9 +89,14 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
         this.gotoBookmark = new ExtensionGotoBookmark();
         this.bookmarkPropertiesProvider = new ExtensionBookmarkPropertiesProvider();
         this.newBookmarkPositionProvider = new NewBookmarkPositionProvider(project, bookmarkDatabase);
-        this.bookmarksMarkers = new BookmarksMarkers(project, bookmarkDatabase, new BookmarkMarkerAttributesProvider(Arrays.asList(new WorkspaceFileBookmarkMarkerAttributesProvider())));
+
+        // Get BookmarksMarkersStore service and create BookmarksMarkers
+        BookmarksMarkersStore bookmarksMarkersStore = project.getService(BookmarksMarkersStore.class);
+        this.bookmarksMarkers = new BookmarksMarkers(project, bookmarkDatabase, bookmarksMarkersStore,
+                new BookmarkMarkerAttributesProvider(Arrays.asList(new WorkspaceFileBookmarkMarkerAttributesProvider())));
         this.bookmarksMarkers.init();
         Disposer.register(this, bookmarksMarkers);
+
         LocalBookmarksSaver localBookmarksSaver = new LocalBookmarksSaver(getBookmarksFilePath(project).toFile(),
                 new BookmarksTreeJsonSerializer(true));
         bookmarksSaver = new BookmarksAutoSaver(bookmarkDatabase, localBookmarksSaver);
@@ -263,12 +269,6 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
     public @Nullable Element getState() {
         Element root = new Element("BookmarksService");
 
-        // Save bookmarks markers state
-        Element markersState = bookmarksMarkers.getState();
-        if (markersState != null) {
-            root.addContent(markersState);
-        }
-
         // Save recent bookmarks state
         if (recentBookmarksDatabase != null) {
             Element recentBookmarksState = recentBookmarksDatabase.getState();
@@ -282,12 +282,6 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
 
     @Override
     public void loadState(@NotNull Element state) {
-        // Load bookmarks markers state
-        Element markersState = state.getChild("BookmarksMarkers");
-        if (markersState != null) {
-            bookmarksMarkers.loadState(markersState);
-        }
-
         // Load recent bookmarks state
         if (recentBookmarksDatabase != null) {
             Element recentBookmarksState = state.getChild("RecentBookmarks");
