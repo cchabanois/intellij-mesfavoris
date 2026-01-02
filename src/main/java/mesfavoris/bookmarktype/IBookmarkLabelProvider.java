@@ -1,24 +1,19 @@
 package mesfavoris.bookmarktype;
 
+import com.intellij.openapi.project.Project;
 import mesfavoris.model.Bookmark;
 import mesfavoris.ui.renderers.StyledString;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 public interface IBookmarkLabelProvider {
 
-	public StyledString getStyledText(Context context, Bookmark bookmark);
+	StyledString getStyledText(@Nullable Project project, @NotNull Bookmark bookmark);
 
-	public Icon getIcon(Context context, Bookmark bookmark);
+	Icon getIcon(@Nullable Project project, @NotNull Bookmark bookmark);
 
-	public boolean canHandle(Context context, Bookmark bookmark);
-
-	public static interface Context {
-		public static final String BOOKMARK_DATABASE_ID = "id";
-		public static final String BOOKMARKS_TREE = "bookmarksTree";
-		public static final String PROJECT = "project";
-				
-		public <T> T get(String name);
-	}
+	boolean canHandle(@Nullable Project project, @NotNull Bookmark bookmark);
 
 }

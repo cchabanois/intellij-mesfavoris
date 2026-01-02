@@ -8,7 +8,6 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import mesfavoris.BookmarksException;
-import mesfavoris.bookmarktype.BookmarkDatabaseLabelProviderContext;
 import mesfavoris.bookmarktype.IBookmarkLabelProvider;
 import mesfavoris.internal.placeholders.PathPlaceholderResolver;
 import mesfavoris.service.IBookmarksService;
@@ -545,21 +544,19 @@ public class PlaceholdersListPanel extends JPanel {
      * Custom cell renderer for bookmark list items with icons
      */
     private static class BookmarkListCellRenderer extends ColoredListCellRenderer<Bookmark> {
+        private final Project project;
         private final IBookmarkLabelProvider bookmarkLabelProvider;
-        private final IBookmarkLabelProvider.Context context;
 
         public BookmarkListCellRenderer(@NotNull Project project, @NotNull IBookmarksService bookmarksService, @NotNull IBookmarkLabelProvider bookmarkLabelProvider) {
+            this.project = project;
             this.bookmarkLabelProvider = bookmarkLabelProvider;
-
-            // Initialize Context once in constructor
-            this.context = new BookmarkDatabaseLabelProviderContext(project, bookmarksService.getBookmarkDatabase());
         }
 
         @Override
         protected void customizeCellRenderer(@NotNull JList<? extends Bookmark> list, Bookmark bookmark,
                                            int index, boolean selected, boolean hasFocus) {
             // Set bookmark icon
-            Icon icon = bookmarkLabelProvider.getIcon(context, bookmark);
+            Icon icon = bookmarkLabelProvider.getIcon(project, bookmark);
             setIcon(icon);
 
             // Bookmark name

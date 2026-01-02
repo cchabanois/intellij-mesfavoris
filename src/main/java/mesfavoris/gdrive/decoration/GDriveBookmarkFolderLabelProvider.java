@@ -5,12 +5,13 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import mesfavoris.gdrive.mappings.BookmarkMapping;
 import mesfavoris.gdrive.mappings.BookmarkMappingsStore;
-import mesfavoris.internal.workspace.BookmarksWorkspaceFactory;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkFolder;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.ui.renderers.BookmarkFolderLabelProvider;
 import mesfavoris.ui.renderers.StyledString;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -20,10 +21,9 @@ public class GDriveBookmarkFolderLabelProvider extends BookmarkFolderLabelProvid
 	}
 
 	@Override
-	public StyledString getStyledText(Context context, Bookmark bookmark) {
-		StyledString styledString = super.getStyledText(context, bookmark);
+	public StyledString getStyledText(@Nullable Project project, @NotNull Bookmark bookmark) {
+		StyledString styledString = super.getStyledText(project, bookmark);
 
-		Project project = context.get(Context.PROJECT);
 		if (project == null) {
 			return styledString;
 		}
@@ -49,23 +49,17 @@ public class GDriveBookmarkFolderLabelProvider extends BookmarkFolderLabelProvid
 	}
 
 	@Override
-	public boolean canHandle(Context context, Bookmark bookmark) {
-		if (!super.canHandle(context, bookmark) || !isMainBookmarkDatabase(context)) {
+	public boolean canHandle(@Nullable Project project, @NotNull Bookmark bookmark) {
+		if (!super.canHandle(project, bookmark)) {
 			return false;
 		}
 
-		Project project = context.get(Context.PROJECT);
 		if (project == null) {
 			return false;
 		}
 
 		BookmarkMappingsStore bookmarkMappings = project.getService(BookmarkMappingsStore.class);
 		return bookmarkMappings.getMapping(bookmark.getId()).isPresent();
-	}
-
-	private boolean isMainBookmarkDatabase(Context context) {
-		String bookmarkDatabaseId = context.get(Context.BOOKMARK_DATABASE_ID);
-		return BookmarksWorkspaceFactory.BOOKMARKS_DATABASE_ID.equals(bookmarkDatabaseId);
 	}
 
 }

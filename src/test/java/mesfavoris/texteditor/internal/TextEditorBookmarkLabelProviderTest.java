@@ -2,8 +2,6 @@ package mesfavoris.texteditor.internal;
 
 import com.google.common.collect.ImmutableMap;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
-import mesfavoris.bookmarktype.BookmarkDatabaseLabelProviderContext;
-import mesfavoris.bookmarktype.IBookmarkLabelProvider;
 import mesfavoris.internal.placeholders.PathPlaceholderResolver;
 import mesfavoris.internal.settings.placeholders.PathPlaceholdersStore;
 import mesfavoris.model.Bookmark;
@@ -19,7 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class TextEditorBookmarkLabelProviderTest extends BasePlatformTestCase {
     private TextEditorBookmarkLabelProvider labelProvider;
-    private IBookmarkLabelProvider.Context context;
     private PathPlaceholdersStore placeholdersStore;
 
     @Override
@@ -28,7 +25,6 @@ public class TextEditorBookmarkLabelProviderTest extends BasePlatformTestCase {
         placeholdersStore = new PathPlaceholdersStore();
         PathPlaceholderResolver pathPlaceholderResolver = new PathPlaceholderResolver(placeholdersStore);
         labelProvider = new TextEditorBookmarkLabelProvider(pathPlaceholderResolver);
-        context = new BookmarkDatabaseLabelProviderContext(getProject(), "testDb", () -> null);
     }
 
     @Override
@@ -41,7 +37,7 @@ public class TextEditorBookmarkLabelProviderTest extends BasePlatformTestCase {
         Bookmark bookmark = new Bookmark(new BookmarkId(), ImmutableMap.of(PROP_FILE_PATH, "${PLACEHOLDER}/myFile.txt"));
 
         // When
-        Icon icon = labelProvider.getIcon(context, bookmark);
+        Icon icon = labelProvider.getIcon(getProject(), bookmark);
 
         // Then
         assertThat(icon).isNotNull();
@@ -66,8 +62,8 @@ public class TextEditorBookmarkLabelProviderTest extends BasePlatformTestCase {
                 ImmutableMap.of(PROP_FILE_PATH, "${TESTDIR}/MyInterface.java"));
 
         // When
-        Icon classIcon = labelProvider.getIcon(context, classBookmark);
-        Icon interfaceIcon = labelProvider.getIcon(context, interfaceBookmark);
+        Icon classIcon = labelProvider.getIcon(getProject(), classBookmark);
+        Icon interfaceIcon = labelProvider.getIcon(getProject(), interfaceBookmark);
 
         // Then - icons should be different (class vs interface), proving placeholder was resolved
         assertThat(classIcon).isNotNull();

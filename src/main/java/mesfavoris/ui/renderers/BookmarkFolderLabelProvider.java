@@ -10,6 +10,8 @@ import mesfavoris.model.BookmarkFolder;
 import mesfavoris.remote.IRemoteBookmarksStore;
 import mesfavoris.remote.RemoteBookmarkFolder;
 import mesfavoris.remote.RemoteBookmarksStoreManager;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Optional;
@@ -20,11 +22,10 @@ public class BookmarkFolderLabelProvider extends AbstractBookmarkLabelProvider {
     }
 
     @Override
-    public StyledString getStyledText(Context context, Bookmark bookmark) {
+    public StyledString getStyledText(@Nullable Project project, @NotNull Bookmark bookmark) {
         BookmarkFolder bookmarkFolder = (BookmarkFolder) bookmark;
-        StyledString result = super.getStyledText(context, bookmark);
+        StyledString result = super.getStyledText(project, bookmark);
 
-        Project project = context.get(Context.PROJECT);
         if (project == null) {
             return result;
         }
@@ -78,12 +79,12 @@ public class BookmarkFolderLabelProvider extends AbstractBookmarkLabelProvider {
     }
 
     @Override
-    public Icon getIcon(Context context, Bookmark bookmark) {
+    public Icon getIcon(@Nullable Project project, @NotNull Bookmark bookmark) {
         return AllIcons.Nodes.Folder;
     }
 
     @Override
-    public boolean canHandle(Context context, Bookmark bookmark) {
+    public boolean canHandle(@Nullable Project project, @NotNull Bookmark bookmark) {
         return bookmark instanceof BookmarkFolder;
     }
 

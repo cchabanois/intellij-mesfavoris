@@ -9,7 +9,6 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.LayeredIcon;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.UIUtil;
-import mesfavoris.bookmarktype.BookmarkDatabaseLabelProviderContext;
 import mesfavoris.bookmarktype.IBookmarkLabelProvider;
 import mesfavoris.commons.Adapters;
 import mesfavoris.model.Bookmark;
@@ -30,10 +29,10 @@ import java.util.Scanner;
 import static mesfavoris.remote.IRemoteBookmarksStore.State.connected;
 
 public class BookmarksTreeCellRenderer extends ColoredTreeCellRenderer implements Disposable {
+    private final Project project;
     private final BookmarkDatabase bookmarkDatabase;
     private final IBookmarkLabelProvider bookmarkLabelProvider;
     private final IBookmarksDirtyStateTracker bookmarksDirtyStateTracker;
-    private final BookmarkDatabaseLabelProviderContext context;
     private final Color commentColor = new JBColor(new Color(63, 127, 95), new Color(63, 127, 95));
     private final IBookmarksDirtyStateListener dirtyStateListener = dirtyBookmarks -> ApplicationManager.getApplication().invokeLater(() -> {
         if (!getTree().isShowing()) {
@@ -44,11 +43,11 @@ public class BookmarksTreeCellRenderer extends ColoredTreeCellRenderer implement
     private final RemoteBookmarksStoreManager remoteBookmarksStoreManager;
 
     public BookmarksTreeCellRenderer(Project project, BookmarkDatabase bookmarkDatabase, RemoteBookmarksStoreManager remoteBookmarksStoreManager, IBookmarksDirtyStateTracker bookmarksDirtyStateTracker, IBookmarkLabelProvider bookmarkLabelProvider, Disposable parentDisposable) {
+        this.project = project;
         this.bookmarkDatabase = bookmarkDatabase;
         this.remoteBookmarksStoreManager = remoteBookmarksStoreManager;
         this.bookmarkLabelProvider = bookmarkLabelProvider;
         this.bookmarksDirtyStateTracker = bookmarksDirtyStateTracker;
-        this.context = new BookmarkDatabaseLabelProviderContext(project, bookmarkDatabase);
         bookmarksDirtyStateTracker.addListener(dirtyStateListener);
 
         Disposer.register(parentDisposable, this);
@@ -69,7 +68,7 @@ public class BookmarksTreeCellRenderer extends ColoredTreeCellRenderer implement
 
     private Icon getIcon(final Object element) {
         Bookmark bookmark = Adapters.adapt(element, Bookmark.class);
-        Icon baseIcon = bookmarkLabelProvider.getIcon(context, bookmark);
+        Icon baseIcon = bookmarkLabelProvider.getIcon(project, bookmark);
         if (baseIcon == null) {
             return null;
         }
@@ -93,7 +92,7 @@ public class BookmarksTreeCellRenderer extends ColoredTreeCellRenderer implement
         if (bookmarksDirtyStateTracker.getDirtyBookmarks().contains(bookmark.getId())) {
             styledString = styledString.append("> ");
         }
-        styledString = styledString.append(bookmarkLabelProvider.getStyledText(context, bookmark));
+        styledString = styledString.append(bookmarkLabelProvider.getStyledText(project, bookmark));
         if (isDisabled) {
             styledString = styledString.setStyle(SimpleTextAttributes.GRAYED_ATTRIBUTES);
         }

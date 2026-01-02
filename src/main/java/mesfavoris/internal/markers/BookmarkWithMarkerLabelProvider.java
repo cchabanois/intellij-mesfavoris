@@ -10,6 +10,8 @@ import mesfavoris.bookmarktype.IBookmarkLabelProvider;
 import mesfavoris.model.Bookmark;
 import mesfavoris.service.IBookmarksService;
 import mesfavoris.ui.renderers.StyledString;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,13 +30,13 @@ public class BookmarkWithMarkerLabelProvider implements IBookmarkLabelProvider {
     }
 
     @Override
-    public StyledString getStyledText(Context context, Bookmark bookmark) {
-        return parentBookmarkLabelProvider.getStyledText(context, bookmark);
+    public StyledString getStyledText(@Nullable Project project, @NotNull Bookmark bookmark) {
+        return parentBookmarkLabelProvider.getStyledText(project, bookmark);
     }
 
     @Override
-    public Icon getIcon(Context context, Bookmark bookmark) {
-        Icon baseIcon = parentBookmarkLabelProvider.getIcon(context, bookmark);
+    public Icon getIcon(@Nullable Project project, @NotNull Bookmark bookmark) {
+        Icon baseIcon = parentBookmarkLabelProvider.getIcon(project, bookmark);
         if (baseIcon == null) {
             return null;
         }
@@ -76,7 +78,7 @@ public class BookmarkWithMarkerLabelProvider implements IBookmarkLabelProvider {
     }
 
     @Override
-    public boolean canHandle(Context context, Bookmark bookmark) {
-        return parentBookmarkLabelProvider.canHandle(context, bookmark);
+    public boolean canHandle(@Nullable Project project, @NotNull Bookmark bookmark) {
+        return parentBookmarkLabelProvider.canHandle(project, bookmark);
     }
 }
