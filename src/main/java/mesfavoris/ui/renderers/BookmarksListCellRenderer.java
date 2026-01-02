@@ -5,7 +5,6 @@ import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.UIUtil;
-import mesfavoris.bookmarktype.BookmarkDatabaseLabelProviderContext;
 import mesfavoris.bookmarktype.IBookmarkLabelProvider;
 import mesfavoris.commons.Adapters;
 import mesfavoris.model.Bookmark;
@@ -19,22 +18,22 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class BookmarksListCellRenderer extends ColoredListCellRenderer<Bookmark> {
+    private final Project project;
     private final BookmarkDatabase bookmarkDatabase;
     private final IBookmarkLabelProvider bookmarkLabelProvider;
     private final IBookmarksDirtyStateTracker bookmarksDirtyStateTracker;
-    private final BookmarkDatabaseLabelProviderContext context;
     private final Color commentColor = new JBColor(new Color(63, 127, 95), new Color(63, 127, 95));
 
     public BookmarksListCellRenderer(Project project, BookmarkDatabase bookmarkDatabase, IBookmarksDirtyStateTracker bookmarksDirtyStateTracker, IBookmarkLabelProvider bookmarkLabelProvider) {
+        this.project = project;
         this.bookmarkDatabase = bookmarkDatabase;
         this.bookmarkLabelProvider = bookmarkLabelProvider;
         this.bookmarksDirtyStateTracker = bookmarksDirtyStateTracker;
-        this.context = new BookmarkDatabaseLabelProviderContext(project, bookmarkDatabase);
     }
 
     private Icon getIcon(final Object element) {
         Bookmark bookmark = Adapters.adapt(element, Bookmark.class);
-        return bookmarkLabelProvider.getIcon(context, bookmark);
+        return bookmarkLabelProvider.getIcon(project, bookmark);
     }
 
     private StyledString getStyledText(final Bookmark bookmark) {
@@ -45,7 +44,7 @@ public class BookmarksListCellRenderer extends ColoredListCellRenderer<Bookmark>
         if (bookmarksDirtyStateTracker.getDirtyBookmarks().contains(bookmark.getId())) {
             styledString = styledString.append("> ");
         }
-        styledString = styledString.append(bookmarkLabelProvider.getStyledText(context, bookmark));
+        styledString = styledString.append(bookmarkLabelProvider.getStyledText(project, bookmark));
         if (isDisabled) {
             styledString = styledString.setStyle(SimpleTextAttributes.GRAYED_ATTRIBUTES);
         }

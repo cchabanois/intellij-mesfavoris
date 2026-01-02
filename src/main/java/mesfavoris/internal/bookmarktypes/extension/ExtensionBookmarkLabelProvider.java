@@ -1,11 +1,13 @@
 package mesfavoris.internal.bookmarktypes.extension;
 
+import com.intellij.openapi.project.Project;
 import mesfavoris.bookmarktype.IBookmarkLabelProvider;
 import mesfavoris.extensions.BookmarkTypeExtensionManager;
 import mesfavoris.internal.bookmarktypes.BookmarkLabelProvider;
 import mesfavoris.model.Bookmark;
 import mesfavoris.ui.renderers.StyledString;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.List;
@@ -28,21 +30,21 @@ public class ExtensionBookmarkLabelProvider implements IBookmarkLabelProvider {
     }
 
     @Override
-    public boolean canHandle(Context context, Bookmark bookmark) {
+    public boolean canHandle(@Nullable Project project, @NotNull Bookmark bookmark) {
         BookmarkLabelProvider labelProvider = createBookmarkLabelProvider();
-        return labelProvider.canHandle(context, bookmark);
+        return labelProvider.canHandle(project, bookmark);
     }
 
     @Override
-    public StyledString getStyledText(Context context, Bookmark bookmark) {
+    public StyledString getStyledText(@Nullable Project project, @NotNull Bookmark bookmark) {
         BookmarkLabelProvider labelProvider = createBookmarkLabelProvider();
-        return labelProvider.getStyledText(context, bookmark);
+        return labelProvider.getStyledText(project, bookmark);
     }
 
     @Override
-    public Icon getIcon(Context context, Bookmark bookmark) {
+    public Icon getIcon(@Nullable Project project, @NotNull Bookmark bookmark) {
         BookmarkLabelProvider labelProvider = createBookmarkLabelProvider();
-        return labelProvider.getIcon(context, bookmark);
+        return labelProvider.getIcon(project, bookmark);
     }
 
     /**
