@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
  */
 @State(
     name = "MesFavorisSettings",
-    storages = @Storage("mesfavoris-settings.xml")
+    storages = @Storage("mesfavoris.xml")
 )
 public class MesFavorisSettingsStore implements PersistentStateComponent<Element> {
     

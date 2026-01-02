@@ -8,7 +8,7 @@ import mesfavoris.remote.UserInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@State(name = "GDriveUserInfo", storages = @Storage("mesfavoris-gdrive.xml"))
+@State(name = "GDriveUserInfo", storages = @Storage("mesfavoris.xml"))
 public final class GDriveUserInfoStore implements PersistentStateComponent<GDriveUserInfoStore.State>, IGDriveUserInfoStore {
 
     private State state = new State();

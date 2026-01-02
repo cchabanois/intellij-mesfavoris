@@ -21,7 +21,7 @@ import java.util.List;
  */
 @State(
     name = "PathPlaceholdersStore",
-    storages = @Storage("path-placeholders.xml")
+    storages = @Storage("mesfavoris.xml")
 )
 public class PathPlaceholdersStore implements PersistentStateComponent<Element>, IPathPlaceholders {
     private final List<PathPlaceholder> placeholders = new ArrayList<>();

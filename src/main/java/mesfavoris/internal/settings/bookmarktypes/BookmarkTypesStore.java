@@ -18,7 +18,7 @@ import java.util.Set;
  */
 @State(
     name = "BookmarkTypesStore",
-    storages = @Storage("bookmark-types.xml")
+    storages = @Storage("mesfavoris.xml")
 )
 public class BookmarkTypesStore implements PersistentStateComponent<Element>, IDisabledBookmarkTypesProvider {
     
