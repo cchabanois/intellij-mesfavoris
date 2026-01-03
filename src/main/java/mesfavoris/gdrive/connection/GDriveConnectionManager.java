@@ -211,8 +211,9 @@ public class GDriveConnectionManager {
 		clientSecrets.setInstalled(details);
 
 		// set up authorization code flow
+		// Use DRIVE_FILE scope for security: only access files created by this app
 		GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(httpTransport, JSON_FACTORY,
-				clientSecrets, Collections.singleton(DriveScopes.DRIVE)).setDataStoreFactory(dataStoreFactory).build();
+				clientSecrets, Collections.singleton(DriveScopes.DRIVE_FILE)).setDataStoreFactory(dataStoreFactory).build();
 		// authorize
 		LocalServerReceiver localServerReceiver = new LocalServerReceiver();
 		CancellableLocalServerReceiver cancellableReceiver = new CancellableLocalServerReceiver(
