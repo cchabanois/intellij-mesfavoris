@@ -74,6 +74,7 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
     private IBookmarkLabelProvider bookmarkLabelProvider;
     private RemoteBookmarksStoreManager remoteBookmarksStoreManager;
     private RecentBookmarksDatabase recentBookmarksDatabase;
+    private IBookmarksDirtyStateTracker bookmarksDirtyStateTracker;
 
     public BookmarksService(Project project) throws IOException {
         this.project = project;
@@ -101,6 +102,7 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
                 new BookmarksTreeJsonSerializer(true));
         bookmarksSaver = new BookmarksAutoSaver(bookmarkDatabase, localBookmarksSaver);
         bookmarksSaver.init();
+        this.bookmarksDirtyStateTracker = bookmarksSaver;
         this.recentBookmarksDatabase = new RecentBookmarksDatabase(project, bookmarkDatabase, DEFAULT_RECENT_DURATION);
         this.recentBookmarksDatabase.init();
     }
@@ -261,6 +263,27 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
     public void selectBookmarkInTree(BookmarkId bookmarkId) {
         SelectBookmarkInTreeOperation operation = new SelectBookmarkInTreeOperation(project);
         operation.selectBookmark(bookmarkId);
+    }
+
+    @Override
+    public void refresh(BookmarkId bookmarkFolderId, ProgressIndicator progress) throws BookmarksException {
+        RefreshRemoteFolderOperation operation = new RefreshRemoteFolderOperation(bookmarkDatabase,
+                remoteBookmarksStoreManager, bookmarksDirtyStateTracker);
+        operation.refresh(bookmarkFolderId, progress);
+    }
+
+    @Override
+    public void refresh(ProgressIndicator progress) throws BookmarksException {
+        RefreshRemoteFolderOperation operation = new RefreshRemoteFolderOperation(bookmarkDatabase,
+                remoteBookmarksStoreManager, bookmarksDirtyStateTracker);
+        operation.refresh(progress);
+    }
+
+    @Override
+    public void refresh(String storeId, ProgressIndicator progress) throws BookmarksException {
+        RefreshRemoteFolderOperation operation = new RefreshRemoteFolderOperation(bookmarkDatabase,
+                remoteBookmarksStoreManager, bookmarksDirtyStateTracker);
+        operation.refresh(storeId, progress);
     }
 
     @Override

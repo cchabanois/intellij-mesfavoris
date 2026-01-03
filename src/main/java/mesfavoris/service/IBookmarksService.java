@@ -199,5 +199,31 @@ public interface IBookmarksService {
      */
     void selectBookmarkInTree(BookmarkId bookmarkId);
 
+    /**
+     * Refresh a specific remote bookmark folder
+     *
+     * @param bookmarkFolderId the bookmark folder ID to refresh
+     * @param progress         the progress indicator
+     * @throws BookmarksException if the operation fails
+     */
+    void refresh(BookmarkId bookmarkFolderId, ProgressIndicator progress) throws BookmarksException;
+
+    /**
+     * Refresh all remote bookmark folders
+     *
+     * @param progress the progress indicator
+     * @throws BookmarksException if the operation fails
+     */
+    void refresh(ProgressIndicator progress) throws BookmarksException;
+
+    /**
+     * Refresh all remote bookmark folders for a specific store
+     *
+     * @param storeId  the store ID
+     * @param progress the progress indicator
+     * @throws BookmarksException if the operation fails
+     */
+    void refresh(String storeId, ProgressIndicator progress) throws BookmarksException;
+
 }
 
