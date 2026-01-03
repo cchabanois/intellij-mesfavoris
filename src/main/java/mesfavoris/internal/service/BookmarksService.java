@@ -258,6 +258,12 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
     }
 
     @Override
+    public void selectBookmarkInTree(BookmarkId bookmarkId) {
+        SelectBookmarkInTreeOperation operation = new SelectBookmarkInTreeOperation(project);
+        operation.selectBookmark(bookmarkId);
+    }
+
+    @Override
     public void dispose() {
         if (recentBookmarksDatabase != null) {
             recentBookmarksDatabase.close();

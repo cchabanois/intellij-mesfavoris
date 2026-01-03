@@ -13,6 +13,7 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import mesfavoris.icons.MesFavorisIcons;
 import mesfavoris.internal.actions.ConnectToRemoteBookmarksStoreAction;
+import mesfavoris.internal.actions.SelectBookmarkAtCaretAction;
 import mesfavoris.internal.actions.SettingsActionGroup;
 import mesfavoris.remote.IRemoteBookmarksStore;
 import mesfavoris.remote.RemoteBookmarksStoreExtensionManager;
@@ -40,11 +41,18 @@ public class MesFavorisToolWindowFactory implements ToolWindowFactory, DumbAware
     private List<AnAction> getTitleActions(@NotNull Project project) {
         List<AnAction> actions = new ArrayList<>();
 
+        actions.add(createSelectBookmarkAtCaretAction());
         actions.add(createCollapseAllAction());
         actions.addAll(createRemoteBookmarksStoreActions(project));
         actions.add(createSettingsActionGroup());
 
         return actions;
+    }
+
+    private AnAction createSelectBookmarkAtCaretAction() {
+        final SelectBookmarkAtCaretAction selectBookmarkAtCaretAction = new SelectBookmarkAtCaretAction();
+        selectBookmarkAtCaretAction.getTemplatePresentation().setIcon(AllIcons.General.Locate);
+        return selectBookmarkAtCaretAction;
     }
 
     private AnAction createCollapseAllAction() {
