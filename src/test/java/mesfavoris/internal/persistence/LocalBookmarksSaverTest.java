@@ -98,5 +98,39 @@ public class LocalBookmarksSaverTest extends BasePlatformTestCase {
         });
     }
 
+    public void testSaveBookmarksCreatesParentDirectories() throws Exception {
+        // Given
+        BookmarkFolder rootFolder = new BookmarkFolder(new BookmarkId("root"), "Root");
+        BookmarksTree originalTree = new BookmarksTree(rootFolder);
+        Map<String, String> bookmarkProperties = new HashMap<>();
+        bookmarkProperties.put(Bookmark.PROPERTY_NAME, "Test Bookmark");
+        Bookmark bookmark = new Bookmark(new BookmarkId("test"), bookmarkProperties);
+        originalTree = originalTree.addBookmarks(rootFolder.getId(), asList(bookmark));
+
+        // Create a file path with non-existent parent directories
+        VirtualFile tempVirtualDir = myFixture.getTempDirFixture().getFile("");
+        File tempDir = new File(tempVirtualDir.getPath());
+        File nonExistentDir = new File(tempDir, "subdir1/subdir2/subdir3");
+        File file = new File(nonExistentDir, "test-bookmarks.json");
+
+        // Verify parent directories don't exist
+        assertThat(nonExistentDir).doesNotExist();
+
+        LocalBookmarksSaver saver = new LocalBookmarksSaver(file, new BookmarksTreeJsonSerializer(true));
+
+        // When
+        saver.saveBookmarks(originalTree);
+
+        // Then
+        assertThat(nonExistentDir).exists();
+        assertThat(file).exists();
+        assertThat(file.length()).isGreaterThan(0L);
+
+        // Verify the content was written
+        String content = Files.readString(file.toPath());
+        assertThat(content).contains("Test Bookmark");
+        assertThat(content).contains("root");
+    }
+
 
 }
