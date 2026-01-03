@@ -22,12 +22,23 @@ public class LocalBookmarksSaver {
     }
 
     public void saveBookmarks(BookmarksTree bookmarksTree) {
-        try (FileWriter writer = new FileWriter(file)) {
-            bookmarksSerializer.serialize(bookmarksTree,
-                    bookmarksTree.getRootFolder().getId(), writer);
+        try {
+            // Create parent directories if they don't exist
+            File parentDir = file.getParentFile();
+            if (parentDir != null && !parentDir.exists()) {
+                if (!parentDir.mkdirs()) {
+                    LOG.error("Failed to create parent directories for bookmarks file: " + parentDir.getAbsolutePath());
+                    return;
+                }
+            }
 
-            // Reload the file in any open editors
-            refreshFile();
+            try (FileWriter writer = new FileWriter(file)) {
+                bookmarksSerializer.serialize(bookmarksTree,
+                        bookmarksTree.getRootFolder().getId(), writer);
+
+                // Reload the file in any open editors
+                refreshFile();
+            }
         } catch (IOException e) {
             LOG.error("Failed to save bookmarks", e);
         }
