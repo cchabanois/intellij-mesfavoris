@@ -10,7 +10,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Action to show the Mesfavoris tool window
+ * Action to toggle the Mesfavoris tool window visibility
  */
 public class ShowMesFavorisToolWindowAction extends AnAction implements DumbAware {
 
@@ -28,7 +28,11 @@ public class ShowMesFavorisToolWindowAction extends AnAction implements DumbAwar
 
         ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow("mesfavoris");
         if (toolWindow != null) {
-            toolWindow.activate(null);
+            if (toolWindow.isVisible()) {
+                toolWindow.hide(null);
+            } else {
+                toolWindow.activate(null);
+            }
         }
     }
 

@@ -10,9 +10,14 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import mesfavoris.internal.markers.BookmarksHighlighters;
+import mesfavoris.internal.toolwindow.BookmarksTreeComponent;
+import mesfavoris.internal.toolwindow.MesFavorisToolWindowUtils;
+import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.service.IBookmarksService;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.tree.TreePath;
 
 import java.util.List;
 import java.util.Optional;
@@ -53,7 +58,7 @@ public class SelectBookmarkAtCaretAction extends AnAction implements DumbAware {
             return;
         }
 
-        // Select the bookmark in the tree using the operation
+        // Select the bookmark in the tree (this also activates the tool window and sets focus on the tree)
         IBookmarksService bookmarksService = project.getService(IBookmarksService.class);
         bookmarksService.selectBookmarkInTree(bookmarkId.get());
     }
@@ -94,7 +99,32 @@ public class SelectBookmarkAtCaretAction extends AnAction implements DumbAware {
         int lineNumber = document.getLineNumber(caretOffset);
 
         Optional<BookmarkId> bookmarkId = findBookmarkAtLine(project, document, lineNumber);
-        event.getPresentation().setEnabledAndVisible(bookmarkId.isPresent());
+        if (bookmarkId.isEmpty()) {
+            event.getPresentation().setEnabledAndVisible(false);
+            return;
+        }
+
+        // Always visible if there's a bookmark at caret
+        event.getPresentation().setVisible(true);
+
+        // Enabled only if the bookmark at caret is not already selected in the tree
+        boolean isAlreadySelected = isBookmarkSelectedInTree(project, bookmarkId.get());
+        event.getPresentation().setEnabled(!isAlreadySelected);
+    }
+
+    private boolean isBookmarkSelectedInTree(Project project, BookmarkId bookmarkId) {
+        BookmarksTreeComponent tree = MesFavorisToolWindowUtils.findBookmarksTree(project);
+        if (tree == null) {
+            return false;
+        }
+
+        TreePath selectionPath = tree.getSelectionPath();
+        if (selectionPath == null) {
+            return false;
+        }
+
+        Bookmark selectedBookmark = tree.getBookmark(selectionPath);
+        return selectedBookmark != null && selectedBookmark.getId().equals(bookmarkId);
     }
 }
 

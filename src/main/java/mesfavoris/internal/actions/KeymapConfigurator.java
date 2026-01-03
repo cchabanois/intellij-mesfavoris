@@ -82,7 +82,7 @@ public final class KeymapConfigurator implements Disposable {
 
         // Register Mesfavoris actions with IntelliJ action IDs
         actionManager.registerAction(INTELLIJ_TOGGLE_BOOKMARK, new AddBookmarkAction());
-        actionManager.registerAction(INTELLIJ_SHOW_BOOKMARKS, new ShowMesFavorisToolWindowAction());
+        actionManager.registerAction(INTELLIJ_SHOW_BOOKMARKS, new ShowBookmarksAction());
 
         actionsReplaced = true;
         LOG.info("Replaced IntelliJ bookmark actions with Mesfavoris actions");
