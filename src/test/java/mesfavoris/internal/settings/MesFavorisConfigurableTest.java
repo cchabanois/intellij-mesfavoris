@@ -1,13 +1,12 @@
 package mesfavoris.internal.settings;
 
+import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  * Test for MesFavorisConfigurable
  */
-public class MesFavorisConfigurableTest {
+public class MesFavorisConfigurableTest extends BasePlatformTestCase {
 
     @Test
     public void testGetDisplayName() {
@@ -42,6 +41,6 @@ public class MesFavorisConfigurableTest {
         boolean isModified = configurable.isModified();
 
         // Then
-        assertFalse(isModified); // Main page has no modifiable settings
+        assertFalse(isModified);
     }
 }

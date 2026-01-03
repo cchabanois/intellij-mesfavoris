@@ -2,10 +2,10 @@
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow id="mesfavoris" secondary="true" icon="AllIcons.General.Modified" anchor="right"
                     factoryClass="mesfavoris.internal.toolwindow.MesFavorisToolWindowFactory"/>
+        <postStartupActivity implementation="mesfavoris.internal.actions.KeymapConfigurator$Initializer"/>
         <postStartupActivity implementation="mesfavoris.internal.markers.BookmarksHighlighters$BookmarksHighlightersStartupActivity"/>
         <postStartupActivity implementation="mesfavoris.internal.actions.RemoteBookmarksStoreActionsRegistrar"/>
         <postStartupActivity implementation="mesfavoris.gdrive.mappings.BookmarkMappingsStore$Initializer"/>
-        <postStartupActivity implementation="mesfavoris.internal.actions.KeymapConfigurator"/>
         <searchEverywhereContributor implementation="mesfavoris.internal.search.BookmarksSearchEverywhereContributor$Factory"/>
         <notificationGroup
                 id="com.cchabanois.mesfavoris.errors"
@@ -27,6 +27,7 @@
         <applicationService serviceImplementation="mesfavoris.internal.settings.placeholders.PathPlaceholdersStore"/>
         <applicationService serviceImplementation="mesfavoris.internal.settings.bookmarktypes.BookmarkTypesStore"/>
         <applicationService serviceImplementation="mesfavoris.internal.settings.MesFavorisSettingsStore"/>
+        <applicationService serviceImplementation="mesfavoris.internal.actions.KeymapConfigurator"/>
         <applicationConfigurable parentId="tools" instance="mesfavoris.internal.settings.MesFavorisConfigurable"
                                  id="mesfavoris.settings" displayName="Mes Favoris"/>
         <applicationConfigurable parentId="mesfavoris.settings" instance="mesfavoris.internal.settings.placeholders.PlaceholdersConfigurable"

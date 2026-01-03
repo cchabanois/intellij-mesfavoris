@@ -64,8 +64,7 @@ public class MesFavorisConfigurable implements Configurable {
         panel.add(replaceIntellijShortcutsCheckbox);
 
         JLabel warningLabel = new JLabel("<html><body style='width: 500px; color: gray;'>" +
-            "<i>When enabled, F11 and Shift+F11 will use Mesfavoris instead of IntelliJ's built-in bookmarks. " +
-            "Restart IntelliJ IDEA for changes to take effect.</i>" +
+            "<i>When enabled, F11 and Shift+F11 will use Mesfavoris instead of IntelliJ's built-in bookmarks.</i>" +
             "</body></html>");
         warningLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         warningLabel.setBorder(JBUI.Borders.emptyLeft(20));

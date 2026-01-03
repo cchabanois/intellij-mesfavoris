@@ -1,11 +1,14 @@
 package mesfavoris.internal.settings;
 
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.testFramework.fixtures.BasePlatformTestCase;
+import com.intellij.util.messages.MessageBusConnection;
 import org.jdom.Element;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class MesFavorisSettingsStoreTest {
+public class MesFavorisSettingsStoreTest extends BasePlatformTestCase {
 
     @Test
     public void testDefaultSettings() {
@@ -84,6 +87,55 @@ public class MesFavorisSettingsStoreTest {
 
         // Then - should keep previous value when attribute is missing
         assertThat(store.isReplaceIntellijShortcuts()).isTrue();
+    }
+
+    @Test
+    public void testMessageBusNotificationWhenSettingChanges() {
+        // Given
+        MesFavorisSettingsStore store = MesFavorisSettingsStore.getInstance();
+        // Reset to false first
+        store.setReplaceIntellijShortcuts(false);
+
+        final boolean[] listenerCalled = {false};
+        final boolean[] expectedValue = {false};
+
+        MessageBusConnection connection = ApplicationManager.getApplication().getMessageBus().connect();
+        try {
+            connection.subscribe(MesFavorisSettingsListener.TOPIC, enabled -> {
+                listenerCalled[0] = true;
+                expectedValue[0] = enabled;
+            });
+
+            // When
+            store.setReplaceIntellijShortcuts(true);
+
+            // Then
+            assertThat(listenerCalled[0]).isTrue();
+            assertThat(expectedValue[0]).isTrue();
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    @Test
+    public void testMessageBusNotificationNotCalledWhenSettingDoesNotChange() {
+        // Given
+        MesFavorisSettingsStore store = MesFavorisSettingsStore.getInstance();
+        store.setReplaceIntellijShortcuts(true);
+        final int[] listenerCallCount = {0};
+
+        MessageBusConnection connection = ApplicationManager.getApplication().getMessageBus().connect();
+        try {
+            connection.subscribe(MesFavorisSettingsListener.TOPIC, enabled -> listenerCallCount[0]++);
+
+            // When
+            store.setReplaceIntellijShortcuts(true);
+
+            // Then
+            assertThat(listenerCallCount[0]).isEqualTo(0);
+        } finally {
+            connection.disconnect();
+        }
     }
 }
 

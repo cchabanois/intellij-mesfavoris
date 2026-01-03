@@ -16,9 +16,9 @@ import org.jetbrains.annotations.Nullable;
     storages = @Storage("mesfavoris.xml")
 )
 public class MesFavorisSettingsStore implements PersistentStateComponent<Element> {
-    
+
     private static final String ATTR_REPLACE_INTELLIJ_SHORTCUTS = "replaceIntellijShortcuts";
-    
+
     private boolean replaceIntellijShortcuts = false;
 
     public static MesFavorisSettingsStore getInstance() {
@@ -45,7 +45,16 @@ public class MesFavorisSettingsStore implements PersistentStateComponent<Element
     }
 
     public void setReplaceIntellijShortcuts(boolean replaceIntellijShortcuts) {
-        this.replaceIntellijShortcuts = replaceIntellijShortcuts;
+        if (this.replaceIntellijShortcuts != replaceIntellijShortcuts) {
+            this.replaceIntellijShortcuts = replaceIntellijShortcuts;
+            fireReplaceIntellijShortcutsChanged(replaceIntellijShortcuts);
+        }
+    }
+
+    private void fireReplaceIntellijShortcutsChanged(boolean enabled) {
+        ApplicationManager.getApplication().getMessageBus()
+                .syncPublisher(MesFavorisSettingsListener.TOPIC)
+                .replaceIntellijShortcutsChanged(enabled);
     }
 }
 
