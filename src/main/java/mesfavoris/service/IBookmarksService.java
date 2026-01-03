@@ -192,5 +192,12 @@ public interface IBookmarksService {
      */
     Optional<IRemoteBookmarksStore> getRemoteBookmarksStore(String storeId);
 
+    /**
+     * Select a bookmark in the bookmarks tree view
+     *
+     * @param bookmarkId the bookmark to select
+     */
+    void selectBookmarkInTree(BookmarkId bookmarkId);
+
 }
 
