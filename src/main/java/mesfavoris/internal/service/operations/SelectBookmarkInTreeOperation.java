@@ -41,6 +41,7 @@ public class SelectBookmarkInTreeOperation {
                     treePath.ifPresent(path -> {
                         tree.setSelectionPath(path);
                         tree.scrollPathToVisible(path);
+                        tree.requestFocusInWindow();
                     });
                 }
             });
