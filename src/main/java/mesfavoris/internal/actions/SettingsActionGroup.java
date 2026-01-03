@@ -18,10 +18,12 @@ import java.util.List;
  */
 public class SettingsActionGroup extends DefaultActionGroup implements DumbAware {
     private final SettingsAction settingsAction;
+    private final ManagePlaceholdersAction managePlaceholdersAction;
 
     public SettingsActionGroup() {
         super("Settings", true);
         this.settingsAction = new SettingsAction();
+        this.managePlaceholdersAction = new ManagePlaceholdersAction();
         getTemplatePresentation().setPopupGroup(true);
     }
 
@@ -34,6 +36,7 @@ public class SettingsActionGroup extends DefaultActionGroup implements DumbAware
     public AnAction @NotNull [] getChildren(@NotNull AnActionEvent event) {
         List<AnAction> actions = new ArrayList<>();
         actions.add(settingsAction);
+        actions.add(managePlaceholdersAction);
 
         // Add delete credentials actions for each remote store
         Project project = event.getProject();
