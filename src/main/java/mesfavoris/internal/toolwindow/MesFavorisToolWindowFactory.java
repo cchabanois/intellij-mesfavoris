@@ -13,7 +13,6 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import mesfavoris.icons.MesFavorisIcons;
 import mesfavoris.internal.actions.ConnectToRemoteBookmarksStoreAction;
-import mesfavoris.internal.actions.ManagePlaceholdersAction;
 import mesfavoris.internal.actions.SettingsActionGroup;
 import mesfavoris.remote.IRemoteBookmarksStore;
 import mesfavoris.remote.RemoteBookmarksStoreExtensionManager;
@@ -42,7 +41,6 @@ public class MesFavorisToolWindowFactory implements ToolWindowFactory, DumbAware
         List<AnAction> actions = new ArrayList<>();
 
         actions.add(createCollapseAllAction());
-        actions.add(createManagePlaceholdersAction());
         actions.addAll(createRemoteBookmarksStoreActions(project));
         actions.add(createSettingsActionGroup());
 
@@ -53,12 +51,6 @@ public class MesFavorisToolWindowFactory implements ToolWindowFactory, DumbAware
         final CollapseAllAction collapseAction = new CollapseAllAction();
         collapseAction.getTemplatePresentation().setIcon(AllIcons.Actions.Collapseall);
         return collapseAction;
-    }
-
-    private AnAction createManagePlaceholdersAction() {
-        final ManagePlaceholdersAction managePlaceholdersAction = new ManagePlaceholdersAction();
-        managePlaceholdersAction.getTemplatePresentation().setIcon(AllIcons.Actions.Properties);
-        return managePlaceholdersAction;
     }
 
     private List<AnAction> createRemoteBookmarksStoreActions(@NotNull Project project) {
