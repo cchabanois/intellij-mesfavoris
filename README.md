@@ -1,8 +1,8 @@
 # intellij-mesfavoris
 
 ![Build](https://github.com/cchabanois/intellij-mesfavoris/workflows/Build/badge.svg)
-[![Version](https://img.shields.io/jetbrains/plugin/v/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
-[![Downloads](https://img.shields.io/jetbrains/plugin/d/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
+[![Version](https://img.shields.io/jetbrains/plugin/v/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/29581)
+[![Downloads](https://img.shields.io/jetbrains/plugin/d/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/29581)
 
 <!-- Plugin description -->
 Mes Favoris is an advanced bookmark management plugin for IntelliJ IDEA that provides a powerful alternative to the built-in bookmark system.
