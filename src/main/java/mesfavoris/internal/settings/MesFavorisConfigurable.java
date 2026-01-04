@@ -1,5 +1,9 @@
 package mesfavoris.internal.settings;
 
+import com.intellij.openapi.actionSystem.Shortcut;
+import com.intellij.openapi.keymap.Keymap;
+import com.intellij.openapi.keymap.KeymapManager;
+import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.ui.JBUI;
@@ -8,6 +12,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * Main "Mes Favoris" configuration page in settings
@@ -57,20 +63,36 @@ public class MesFavorisConfigurable implements Configurable {
 
         panel.add(Box.createVerticalStrut(5));
 
-        useIntellijBookmarkShortcutsCheckbox = new JBCheckBox(
-            "Use IntelliJ IDEA bookmark shortcuts (Shift+F11) instead of Mesfavoris shortcuts (Shift+Alt+B)"
+        String checkboxText = String.format(
+                "Use IntelliJ IDEA bookmark shortcuts (%s) instead of Mesfavoris shortcuts (%s)",
+                getShortcutsText("ShowBookmarks"),
+                getShortcutsText("mesfavoris.actions.ShowBookmarksAction")
         );
+        useIntellijBookmarkShortcutsCheckbox = new JBCheckBox(checkboxText);
         useIntellijBookmarkShortcutsCheckbox.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.add(useIntellijBookmarkShortcutsCheckbox);
 
         JLabel warningLabel = new JLabel("<html><body style='width: 500px; color: gray;'>" +
-            "<i>When unchecked, Mesfavoris actions will replace IntelliJ's bookmark actions (F11 and Shift+F11).</i>" +
+            "<i>When checked, Mesfavoris actions will replace IntelliJ's bookmark actions.</i>" +
             "</body></html>");
         warningLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         warningLabel.setBorder(JBUI.Borders.emptyLeft(20));
         panel.add(warningLabel);
 
         return panel;
+    }
+
+    private String getShortcutsText(String actionId) {
+        Keymap activeKeymap = KeymapManager.getInstance().getActiveKeymap();
+        Shortcut[] shortcuts = activeKeymap.getShortcuts(actionId);
+
+        if (shortcuts.length == 0) {
+            return "no shortcut";
+        }
+
+        return Arrays.stream(shortcuts)
+            .map(KeymapUtil::getShortcutText)
+            .collect(Collectors.joining(", "));
     }
 
     @Override
