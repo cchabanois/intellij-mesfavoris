@@ -10,9 +10,9 @@ public interface MesFavorisSettingsListener {
     Topic<MesFavorisSettingsListener> TOPIC = Topic.create("MesFavorisSettingsListener", MesFavorisSettingsListener.class);
 
     /**
-     * Called when the "replace IntelliJ shortcuts" setting changes
-     * @param enabled true if shortcuts should be replaced, false otherwise
+     * Called when the "use IntelliJ bookmark shortcuts" setting changes
+     * @param enabled true if IntelliJ shortcuts should be used, false to use Mesfavoris shortcuts
      */
-    void replaceIntellijShortcutsChanged(boolean enabled);
+    void useIntellijBookmarkShortcutsChanged(boolean enabled);
 }
 

@@ -17,9 +17,9 @@ import org.jetbrains.annotations.Nullable;
 )
 public class MesFavorisSettingsStore implements PersistentStateComponent<Element> {
 
-    private static final String ATTR_REPLACE_INTELLIJ_SHORTCUTS = "replaceIntellijShortcuts";
+    private static final String ATTR_USE_INTELLIJ_BOOKMARK_SHORTCUTS = "useIntellijBookmarkShortcuts";
 
-    private boolean replaceIntellijShortcuts = false;
+    private boolean useIntellijBookmarkShortcuts = false;
 
     public static MesFavorisSettingsStore getInstance() {
         return ApplicationManager.getApplication().getService(MesFavorisSettingsStore.class);
@@ -28,33 +28,33 @@ public class MesFavorisSettingsStore implements PersistentStateComponent<Element
     @Override
     public @Nullable Element getState() {
         Element container = new Element("MesFavorisSettings");
-        container.setAttribute(ATTR_REPLACE_INTELLIJ_SHORTCUTS, String.valueOf(replaceIntellijShortcuts));
+        container.setAttribute(ATTR_USE_INTELLIJ_BOOKMARK_SHORTCUTS, String.valueOf(useIntellijBookmarkShortcuts));
         return container;
     }
 
     @Override
     public void loadState(@NotNull Element state) {
-        String value = state.getAttributeValue(ATTR_REPLACE_INTELLIJ_SHORTCUTS);
+        String value = state.getAttributeValue(ATTR_USE_INTELLIJ_BOOKMARK_SHORTCUTS);
         if (value != null) {
-            replaceIntellijShortcuts = Boolean.parseBoolean(value);
+            useIntellijBookmarkShortcuts = Boolean.parseBoolean(value);
         }
     }
 
-    public boolean isReplaceIntellijShortcuts() {
-        return replaceIntellijShortcuts;
+    public boolean isUseIntellijBookmarkShortcuts() {
+        return useIntellijBookmarkShortcuts;
     }
 
-    public void setReplaceIntellijShortcuts(boolean replaceIntellijShortcuts) {
-        if (this.replaceIntellijShortcuts != replaceIntellijShortcuts) {
-            this.replaceIntellijShortcuts = replaceIntellijShortcuts;
-            fireReplaceIntellijShortcutsChanged(replaceIntellijShortcuts);
+    public void setUseIntellijBookmarkShortcuts(boolean useIntellijBookmarkShortcuts) {
+        if (this.useIntellijBookmarkShortcuts != useIntellijBookmarkShortcuts) {
+            this.useIntellijBookmarkShortcuts = useIntellijBookmarkShortcuts;
+            fireUseIntellijBookmarkShortcutsChanged(useIntellijBookmarkShortcuts);
         }
     }
 
-    private void fireReplaceIntellijShortcutsChanged(boolean enabled) {
+    private void fireUseIntellijBookmarkShortcutsChanged(boolean enabled) {
         ApplicationManager.getApplication().getMessageBus()
                 .syncPublisher(MesFavorisSettingsListener.TOPIC)
-                .replaceIntellijShortcutsChanged(enabled);
+                .useIntellijBookmarkShortcutsChanged(enabled);
     }
 }
 

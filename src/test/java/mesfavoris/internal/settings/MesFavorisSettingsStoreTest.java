@@ -16,26 +16,26 @@ public class MesFavorisSettingsStoreTest extends BasePlatformTestCase {
         MesFavorisSettingsStore store = new MesFavorisSettingsStore();
 
         // Then
-        assertThat(store.isReplaceIntellijShortcuts()).isFalse();
+        assertThat(store.isUseIntellijBookmarkShortcuts()).isFalse();
     }
 
     @Test
-    public void testSetReplaceIntellijShortcuts() {
+    public void testSetUseIntellijBookmarkShortcuts() {
         // Given
         MesFavorisSettingsStore store = new MesFavorisSettingsStore();
 
         // When
-        store.setReplaceIntellijShortcuts(true);
+        store.setUseIntellijBookmarkShortcuts(true);
 
         // Then
-        assertThat(store.isReplaceIntellijShortcuts()).isTrue();
+        assertThat(store.isUseIntellijBookmarkShortcuts()).isTrue();
     }
 
     @Test
     public void testPersistenceGetState() {
         // Given
         MesFavorisSettingsStore store = new MesFavorisSettingsStore();
-        store.setReplaceIntellijShortcuts(true);
+        store.setUseIntellijBookmarkShortcuts(true);
 
         // When
         Element state = store.getState();
@@ -43,7 +43,7 @@ public class MesFavorisSettingsStoreTest extends BasePlatformTestCase {
         // Then
         assertThat(state).isNotNull();
         assertThat(state.getName()).isEqualTo("MesFavorisSettings");
-        assertThat(state.getAttributeValue("replaceIntellijShortcuts")).isEqualTo("true");
+        assertThat(state.getAttributeValue("useIntellijBookmarkShortcuts")).isEqualTo("true");
     }
 
     @Test
@@ -51,42 +51,42 @@ public class MesFavorisSettingsStoreTest extends BasePlatformTestCase {
         // Given
         MesFavorisSettingsStore store = new MesFavorisSettingsStore();
         Element state = new Element("MesFavorisSettings");
-        state.setAttribute("replaceIntellijShortcuts", "true");
+        state.setAttribute("useIntellijBookmarkShortcuts", "true");
 
         // When
         store.loadState(state);
 
         // Then
-        assertThat(store.isReplaceIntellijShortcuts()).isTrue();
+        assertThat(store.isUseIntellijBookmarkShortcuts()).isTrue();
     }
 
     @Test
     public void testPersistenceLoadStateWithFalse() {
         // Given
         MesFavorisSettingsStore store = new MesFavorisSettingsStore();
-        store.setReplaceIntellijShortcuts(true);
+        store.setUseIntellijBookmarkShortcuts(true);
         Element state = new Element("MesFavorisSettings");
-        state.setAttribute("replaceIntellijShortcuts", "false");
+        state.setAttribute("useIntellijBookmarkShortcuts", "false");
 
         // When
         store.loadState(state);
 
         // Then
-        assertThat(store.isReplaceIntellijShortcuts()).isFalse();
+        assertThat(store.isUseIntellijBookmarkShortcuts()).isFalse();
     }
 
     @Test
     public void testPersistenceLoadStateWithMissingAttribute() {
         // Given
         MesFavorisSettingsStore store = new MesFavorisSettingsStore();
-        store.setReplaceIntellijShortcuts(true);
+        store.setUseIntellijBookmarkShortcuts(true);
         Element state = new Element("MesFavorisSettings");
 
         // When
         store.loadState(state);
 
         // Then - should keep previous value when attribute is missing
-        assertThat(store.isReplaceIntellijShortcuts()).isTrue();
+        assertThat(store.isUseIntellijBookmarkShortcuts()).isTrue();
     }
 
     @Test
@@ -94,7 +94,7 @@ public class MesFavorisSettingsStoreTest extends BasePlatformTestCase {
         // Given
         MesFavorisSettingsStore store = MesFavorisSettingsStore.getInstance();
         // Reset to false first
-        store.setReplaceIntellijShortcuts(false);
+        store.setUseIntellijBookmarkShortcuts(false);
 
         final boolean[] listenerCalled = {false};
         final boolean[] expectedValue = {false};
@@ -107,7 +107,7 @@ public class MesFavorisSettingsStoreTest extends BasePlatformTestCase {
             });
 
             // When
-            store.setReplaceIntellijShortcuts(true);
+            store.setUseIntellijBookmarkShortcuts(true);
 
             // Then
             assertThat(listenerCalled[0]).isTrue();
@@ -121,7 +121,7 @@ public class MesFavorisSettingsStoreTest extends BasePlatformTestCase {
     public void testMessageBusNotificationNotCalledWhenSettingDoesNotChange() {
         // Given
         MesFavorisSettingsStore store = MesFavorisSettingsStore.getInstance();
-        store.setReplaceIntellijShortcuts(true);
+        store.setUseIntellijBookmarkShortcuts(true);
         final int[] listenerCallCount = {0};
 
         MessageBusConnection connection = ApplicationManager.getApplication().getMessageBus().connect();
@@ -129,7 +129,7 @@ public class MesFavorisSettingsStoreTest extends BasePlatformTestCase {
             connection.subscribe(MesFavorisSettingsListener.TOPIC, enabled -> listenerCallCount[0]++);
 
             // When
-            store.setReplaceIntellijShortcuts(true);
+            store.setUseIntellijBookmarkShortcuts(true);
 
             // Then
             assertThat(listenerCallCount[0]).isEqualTo(0);
