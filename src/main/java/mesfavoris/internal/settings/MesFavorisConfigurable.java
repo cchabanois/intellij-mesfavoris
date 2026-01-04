@@ -14,7 +14,7 @@ import java.awt.*;
  */
 public class MesFavorisConfigurable implements Configurable {
 
-    private JBCheckBox replaceIntellijShortcutsCheckbox;
+    private JBCheckBox useIntellijBookmarkShortcutsCheckbox;
     private MesFavorisSettingsStore settingsStore;
 
     @Nls(capitalization = Nls.Capitalization.Title)
@@ -57,14 +57,14 @@ public class MesFavorisConfigurable implements Configurable {
 
         panel.add(Box.createVerticalStrut(5));
 
-        replaceIntellijShortcutsCheckbox = new JBCheckBox(
-            "Replace IntelliJ IDEA bookmark shortcuts with Mesfavoris shortcuts"
+        useIntellijBookmarkShortcutsCheckbox = new JBCheckBox(
+            "Use IntelliJ IDEA bookmark shortcuts (Shift+F11) instead of Mesfavoris shortcuts (Shift+Alt+B)"
         );
-        replaceIntellijShortcutsCheckbox.setAlignmentX(Component.LEFT_ALIGNMENT);
-        panel.add(replaceIntellijShortcutsCheckbox);
+        useIntellijBookmarkShortcutsCheckbox.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(useIntellijBookmarkShortcutsCheckbox);
 
         JLabel warningLabel = new JLabel("<html><body style='width: 500px; color: gray;'>" +
-            "<i>When enabled, F11 and Shift+F11 will use Mesfavoris instead of IntelliJ's built-in bookmarks.</i>" +
+            "<i>When unchecked, Mesfavoris actions will replace IntelliJ's bookmark actions (F11 and Shift+F11).</i>" +
             "</body></html>");
         warningLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         warningLabel.setBorder(JBUI.Borders.emptyLeft(20));
@@ -75,29 +75,29 @@ public class MesFavorisConfigurable implements Configurable {
 
     @Override
     public boolean isModified() {
-        if (replaceIntellijShortcutsCheckbox == null) {
+        if (useIntellijBookmarkShortcutsCheckbox == null) {
             return false;
         }
-        return replaceIntellijShortcutsCheckbox.isSelected() != settingsStore.isReplaceIntellijShortcuts();
+        return useIntellijBookmarkShortcutsCheckbox.isSelected() != settingsStore.isUseIntellijBookmarkShortcuts();
     }
 
     @Override
     public void apply() {
-        if (replaceIntellijShortcutsCheckbox != null) {
-            settingsStore.setReplaceIntellijShortcuts(replaceIntellijShortcutsCheckbox.isSelected());
+        if (useIntellijBookmarkShortcutsCheckbox != null) {
+            settingsStore.setUseIntellijBookmarkShortcuts(useIntellijBookmarkShortcutsCheckbox.isSelected());
         }
     }
 
     @Override
     public void reset() {
-        if (replaceIntellijShortcutsCheckbox != null) {
-            replaceIntellijShortcutsCheckbox.setSelected(settingsStore.isReplaceIntellijShortcuts());
+        if (useIntellijBookmarkShortcutsCheckbox != null) {
+            useIntellijBookmarkShortcutsCheckbox.setSelected(settingsStore.isUseIntellijBookmarkShortcuts());
         }
     }
 
     @Override
     public void disposeUIResources() {
-        replaceIntellijShortcutsCheckbox = null;
+        useIntellijBookmarkShortcutsCheckbox = null;
         settingsStore = null;
     }
 }

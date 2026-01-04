@@ -2,7 +2,6 @@
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow id="mesfavoris" secondary="true" icon="AllIcons.General.Modified" anchor="right"
                     factoryClass="mesfavoris.internal.toolwindow.MesFavorisToolWindowFactory"/>
-        <postStartupActivity implementation="mesfavoris.internal.actions.KeymapConfigurator$Initializer"/>
         <postStartupActivity implementation="mesfavoris.internal.markers.BookmarksHighlighters$BookmarksHighlightersStartupActivity"/>
         <postStartupActivity implementation="mesfavoris.internal.actions.RemoteBookmarksStoreActionsRegistrar"/>
         <postStartupActivity implementation="mesfavoris.gdrive.mappings.BookmarkMappingsStore$Initializer"/>
