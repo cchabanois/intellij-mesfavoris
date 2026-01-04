@@ -4,6 +4,33 @@
 
 ## [Unreleased]
 
+## [0.0.1-beta.3] - 2026-01-04
+
+### Added
+- **Keyboard Shortcuts**
+  - Option to use IntelliJ IDEA default bookmark shortcuts instead of Mesfavoris shortcuts
+  - Dynamic shortcut display in settings showing actual configured shortcuts
+  - No restart required when changing shortcut preferences
+  - Shortcut displayed on tool window icon
+
+- **Tool Window Actions**
+  - Hide/show tool window action that also selects bookmark at caret
+  - Select bookmark at caret action
+  - Refresh remote bookmark folders action
+  - Manage Placeholders action moved to settings button sub-menu
+
+### Changed
+- Google Drive integration now uses DRIVE_FILE scope (more secure - only accesses files created by the app)
+- Removed Context parameter from IBookmarkLabelProvider interface
+- Updated dependencies to latest versions
+
+### Fixed
+- LocalBookmarksSaver now creates parent directory if it does not exist
+- Fixed bookmark markers functionality
+- Fixed shortcuts display in settings (now shows actual configured shortcuts instead of hardcoded values)
+- Use same file for @Storage annotations
+- Fixed vendor information
+
 ## [0.0.1-beta.1] - 2026-01-01
 
 ### Added
