@@ -31,7 +31,7 @@ public class DeleteBookmarkAction extends AbstractBookmarkAction  {
         boolean hasBookmarks = !bookmarks.isEmpty();
 
         event.getPresentation().setVisible(hasBookmarks && isFocusOnBookmarksTree() && !containsRemoteBookmarkFolder(event.getProject(), bookmarks));
-        event.getPresentation().setEnabled(canAllBeModified(event.getProject(), bookmarks));
+        event.getPresentation().setEnabled(hasBookmarks && canAllBeModified(event.getProject(), bookmarks));
     }
 
     @Override
