@@ -4,6 +4,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAware;
+import mesfavoris.internal.markers.BookmarksHighlightersUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -35,8 +36,7 @@ public class ShowBookmarksAction extends AnAction implements DumbAware {
     @Override
     public void actionPerformed(@NotNull AnActionEvent event) {
         // Try to select bookmark at caret first
-        selectBookmarkAction.update(event);
-        if (event.getPresentation().isEnabledAndVisible()) {
+        if (event.getProject() != null && !BookmarksHighlightersUtils.getBookmarksAtCaret(event.getProject()).isEmpty()) {
             selectBookmarkAction.actionPerformed(event);
         } else {
             // Fall back to showing the tool window
