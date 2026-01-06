@@ -2,6 +2,7 @@ package mesfavoris.internal.actions;
 
 import com.intellij.ide.ui.newItemPopup.NewItemPopupUtil;
 import com.intellij.ide.ui.newItemPopup.NewItemSimplePopupPanel;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -19,6 +20,11 @@ import javax.swing.*;
 
 public class NewBookmarkFolderAction extends AbstractBookmarkAction {
     private static final Logger LOG = Logger.getInstance(NewBookmarkFolderAction.class);
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
+    }
 
     @Override
     public void update(@NotNull AnActionEvent event) {

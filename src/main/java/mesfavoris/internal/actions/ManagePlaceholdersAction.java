@@ -1,5 +1,6 @@
 package mesfavoris.internal.actions;
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAware;
@@ -14,6 +15,11 @@ public class ManagePlaceholdersAction extends AnAction implements DumbAware {
 
     public ManagePlaceholdersAction() {
         super("Manage Placeholders", "Manage path placeholders with usage statistics", null);
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
     }
 
     @Override

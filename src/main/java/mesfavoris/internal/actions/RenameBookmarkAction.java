@@ -1,5 +1,6 @@
 package mesfavoris.internal.actions;
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import mesfavoris.internal.toolwindow.BookmarksTreeComponent;
@@ -9,6 +10,11 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 
 public class RenameBookmarkAction extends AbstractBookmarkAction {
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.EDT;
+    }
 
     @Override
     public void update(@NotNull AnActionEvent e) {

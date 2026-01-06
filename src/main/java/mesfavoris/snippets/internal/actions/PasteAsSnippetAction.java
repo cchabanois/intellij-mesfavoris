@@ -1,5 +1,6 @@
 package mesfavoris.snippets.internal.actions;
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -25,6 +26,11 @@ public class PasteAsSnippetAction extends AbstractAddBookmarkAction {
     // Constructor for testing
     public PasteAsSnippetAction(@NotNull IDisabledBookmarkTypesProvider disabledTypesProvider) {
         this.disabledTypesProvider = disabledTypesProvider;
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
     }
 
     @Override

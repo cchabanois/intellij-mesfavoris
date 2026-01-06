@@ -1,5 +1,6 @@
 package mesfavoris.internal.actions;
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogBuilder;
@@ -25,10 +26,15 @@ import java.util.Set;
 /**
  * Action to delete bookmark markers for selected bookmarks.
  * Only bookmarks that have associated markers will be processed.
- * 
+ *
  * @author cchabanois
  */
 public class DeleteBookmarkMarkerAction extends AbstractBookmarkAction {
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
+    }
 
     @Override
     public void update(@NotNull AnActionEvent event) {

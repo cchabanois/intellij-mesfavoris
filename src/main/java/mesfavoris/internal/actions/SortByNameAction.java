@@ -1,5 +1,6 @@
 package mesfavoris.internal.actions;
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbAware;
@@ -20,6 +21,11 @@ import java.util.List;
  * If no selection or a non-folder is selected, sorts the root folder.
  */
 public class SortByNameAction extends AbstractBookmarkAction implements DumbAware {
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
+    }
 
     @Override
     public void update(@NotNull AnActionEvent event) {

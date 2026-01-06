@@ -16,7 +16,7 @@ public class GotoBookmarkAction extends AbstractBookmarkAction  {
 
     @Override
     public @NotNull ActionUpdateThread getActionUpdateThread() {
-        return ActionUpdateThread.EDT;
+        return ActionUpdateThread.BGT;
     }
 
     @Override
