@@ -1,5 +1,6 @@
 package mesfavoris.internal.actions;
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ide.CopyPasteManager;
@@ -17,6 +18,11 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.datatransfer.Transferable;
 
 public class PasteBookmarkAction extends AbstractBookmarkAction {
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
+    }
 
     @Override
     public void update(@NotNull AnActionEvent event) {

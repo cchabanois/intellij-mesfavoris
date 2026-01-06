@@ -1,5 +1,6 @@
 package mesfavoris.internal.actions;
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import mesfavoris.internal.service.operations.CopyBookmarkOperation;
 import mesfavoris.model.Bookmark;
@@ -12,6 +13,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class CopyBookmarkAction extends AbstractBookmarkAction {
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
+    }
 
     @Override
     public void update(@NotNull AnActionEvent event) {
