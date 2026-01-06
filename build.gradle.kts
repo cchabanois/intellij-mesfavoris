@@ -148,10 +148,10 @@ tasks {
 
         // Skip Google Drive tests if credentials are not available
         // This allows Dependabot PRs to pass without access to secrets
-        val hasGDriveCredentials = System.getenv("USER1_GDRIVE_USERNAME") != null &&
-                                   System.getenv("USER1_GDRIVE_REFRESH_TOKEN") != null &&
-                                   System.getenv("USER2_GDRIVE_USERNAME") != null &&
-                                   System.getenv("USER2_GDRIVE_REFRESH_TOKEN") != null
+        val hasGDriveCredentials = !System.getenv("USER1_GDRIVE_USERNAME").isNullOrBlank() &&
+                                   !System.getenv("USER1_GDRIVE_REFRESH_TOKEN").isNullOrBlank() &&
+                                   !System.getenv("USER2_GDRIVE_USERNAME").isNullOrBlank() &&
+                                   !System.getenv("USER2_GDRIVE_REFRESH_TOKEN").isNullOrBlank()
 
         if (!hasGDriveCredentials) {
             exclude("**/gdrive/**")
