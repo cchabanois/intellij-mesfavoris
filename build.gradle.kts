@@ -145,6 +145,18 @@ tasks {
         testLogging {
             showStandardStreams = true
         }
+
+        // Skip Google Drive tests if credentials are not available
+        // This allows Dependabot PRs to pass without access to secrets
+        val hasGDriveCredentials = System.getenv("USER1_GDRIVE_USERNAME") != null &&
+                                   System.getenv("USER1_GDRIVE_REFRESH_TOKEN") != null &&
+                                   System.getenv("USER2_GDRIVE_USERNAME") != null &&
+                                   System.getenv("USER2_GDRIVE_REFRESH_TOKEN") != null
+
+        if (!hasGDriveCredentials) {
+            exclude("**/gdrive/**")
+            logger.warn("Google Drive credentials not available - skipping GDrive tests")
+        }
     }
 }
 
