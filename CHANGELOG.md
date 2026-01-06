@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+## [0.0.1-beta.4] - 2026-01-06
+
+### Fixed
+
+- Fixed ShowBookmarksAction to not use SelectBookmarkAtCaretAction.update which has @ApiStatus.OverrideOnly
+- Fixed DeleteBookmarkAction.update to check if bookmarks list is not empty before checking if they can be modified
+
 ## [0.0.1-beta.3] - 2026-01-04
 
 ### Added
@@ -80,6 +87,7 @@
   - Bookmark label providers for custom rendering
   - Bookmark properties providers for extracting metadata
 
-[Unreleased]: https://github.com/cchabanois/intellij-mesfavoris/compare/v0.0.1-beta.3...HEAD
+[Unreleased]: https://github.com/cchabanois/intellij-mesfavoris/compare/v0.0.1-beta.4...HEAD
+[0.0.1-beta.4]: https://github.com/cchabanois/intellij-mesfavoris/compare/v0.0.1-beta.3...v0.0.1-beta.4
 [0.0.1-beta.3]: https://github.com/cchabanois/intellij-mesfavoris/compare/v0.0.1-beta.1...v0.0.1-beta.3
 [0.0.1-beta.1]: https://github.com/cchabanois/intellij-mesfavoris/commits/v0.0.1-beta.1
