@@ -15,10 +15,13 @@ import mesfavoris.bookmarktype.IBookmarkLocationProvider;
 import mesfavoris.bookmarktype.IBookmarkPropertiesProvider;
 import mesfavoris.bookmarktype.IGotoBookmark;
 import mesfavoris.internal.bookmarktypes.BookmarkMarkerAttributesProvider;
+import mesfavoris.internal.bookmarktypes.NonUpdatablePropertiesProvider;
 import mesfavoris.internal.bookmarktypes.extension.ExtensionBookmarkLabelProvider;
 import mesfavoris.internal.bookmarktypes.extension.ExtensionBookmarkLocationProvider;
 import mesfavoris.internal.bookmarktypes.extension.ExtensionBookmarkPropertiesProvider;
+import mesfavoris.internal.bookmarktypes.extension.ExtensionBookmarkPropertyDescriptors;
 import mesfavoris.internal.bookmarktypes.extension.ExtensionGotoBookmark;
+import mesfavoris.internal.problems.NoBookmarkProblems;
 import mesfavoris.internal.markers.BookmarksMarkers;
 import mesfavoris.internal.markers.BookmarksMarkersStore;
 import mesfavoris.internal.persistence.BookmarksAutoSaver;
@@ -284,6 +287,13 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
         RefreshRemoteFolderOperation operation = new RefreshRemoteFolderOperation(bookmarkDatabase,
                 remoteBookmarksStoreManager, bookmarksDirtyStateTracker);
         operation.refresh(storeId, progress);
+    }
+
+    @Override
+    public void updateBookmark(BookmarkId bookmarkId, DataContext dataContext, ProgressIndicator progress) throws BookmarksException {
+        UpdateBookmarkOperation operation = new UpdateBookmarkOperation(bookmarkDatabase, new NoBookmarkProblems(),
+                bookmarkPropertiesProvider, new NonUpdatablePropertiesProvider(new ExtensionBookmarkPropertyDescriptors()));
+        operation.updateBookmark(bookmarkId, dataContext, progress);
     }
 
     @Override

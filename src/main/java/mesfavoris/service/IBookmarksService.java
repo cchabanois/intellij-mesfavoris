@@ -225,5 +225,15 @@ public interface IBookmarksService {
      */
     void refresh(String storeId, ProgressIndicator progress) throws BookmarksException;
 
+    /**
+     * Update a bookmark from the current context
+     *
+     * @param bookmarkId  the bookmark ID to update
+     * @param dataContext the data context
+     * @param progress    the progress indicator
+     * @throws BookmarksException if the bookmark cannot be updated
+     */
+    void updateBookmark(BookmarkId bookmarkId, DataContext dataContext, ProgressIndicator progress) throws BookmarksException;
+
 }
 
