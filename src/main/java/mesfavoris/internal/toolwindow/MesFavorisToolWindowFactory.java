@@ -11,7 +11,6 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
-import mesfavoris.icons.MesFavorisIcons;
 import mesfavoris.internal.actions.ConnectToRemoteBookmarksStoreAction;
 import mesfavoris.internal.actions.RefreshRemoteFoldersAction;
 import mesfavoris.internal.actions.SelectBookmarkAtCaretAction;
@@ -28,7 +27,6 @@ public class MesFavorisToolWindowFactory implements ToolWindowFactory, DumbAware
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         final ToolWindowEx toolWindowEx = (ToolWindowEx) toolWindow;
-        toolWindowEx.setIcon(MesFavorisIcons.toolWindowMesFavoris);
         toolWindowEx.setTitleActions(getTitleActions(project));
 
         MesFavorisPanel panel = new MesFavorisPanel(project);
