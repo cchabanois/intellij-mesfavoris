@@ -7,11 +7,6 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.java</depends>
 
-    <applicationListeners>
-        <listener class="mesfavoris.internal.actions.KeymapConfigurator$ApplicationListener"
-                  topic="com.intellij.ide.AppLifecycleListener"/>
-    </applicationListeners>
-
     <!-- Extension Points for Bookmark Types -->
     <extensionPoints>
         <!-- Bookmark Type Extension Point -->
