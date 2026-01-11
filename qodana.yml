@@ -10,3 +10,6 @@ exclude:
   - name: All
     paths:
       - .qodana
+      - build
+      - .gradle
+      - .idea
