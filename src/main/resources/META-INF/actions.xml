@@ -2,13 +2,18 @@
     <actions>
         <action id="mesfavoris.actions.AddBookmarkAction" class="mesfavoris.internal.actions.AddBookmarkAction"
                 text="Add Favori" description="Add a Bookmark">
-            <keyboard-shortcut keymap="$default" first-keystroke="alt B"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="alt EQUALS"/>
             <add-to-group group-id="EditorGutterPopupMenu" anchor="first"/>
         </action>
         <action id="mesfavoris.actions.ShowBookmarksAction"
                 class="mesfavoris.internal.actions.ShowBookmarksAction"
                 text="Show Bookmarks" description="Select bookmark at caret or show Mes Favoris tool window">
-            <keyboard-shortcut keymap="$default" first-keystroke="shift alt B"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="shift alt EQUALS"/>
+        </action>
+        <action id="mesfavoris.actions.SwapBookmarkShortcutsAction"
+                class="mesfavoris.internal.actions.SwapBookmarkShortcutsAction"
+                text="Swap Shortcuts with IntelliJ Bookmarks"
+                description="Exchange keyboard shortcuts between Mes Favoris and IntelliJ bookmark actions">
         </action>
         <action id="mesfavoris.actions.SelectBookmarkAtCaretAction"
                 class="mesfavoris.internal.actions.SelectBookmarkAtCaretAction"

@@ -4,13 +4,20 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.actions.CollapseAllAction;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.Shortcut;
+import com.intellij.openapi.keymap.Keymap;
+import com.intellij.openapi.keymap.KeymapManager;
+import com.intellij.openapi.keymap.KeymapManagerListener;
+import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
+import com.intellij.util.messages.MessageBusConnection;
 import mesfavoris.internal.actions.ConnectToRemoteBookmarksStoreAction;
 import mesfavoris.internal.actions.RefreshRemoteFoldersAction;
 import mesfavoris.internal.actions.SelectBookmarkAtCaretAction;
@@ -18,9 +25,12 @@ import mesfavoris.internal.actions.SettingsActionGroup;
 import mesfavoris.remote.IRemoteBookmarksStore;
 import mesfavoris.remote.RemoteBookmarksStoreExtensionManager;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MesFavorisToolWindowFactory implements ToolWindowFactory, DumbAware {
 
@@ -29,12 +39,52 @@ public class MesFavorisToolWindowFactory implements ToolWindowFactory, DumbAware
         final ToolWindowEx toolWindowEx = (ToolWindowEx) toolWindow;
         toolWindowEx.setTitleActions(getTitleActions(project));
 
+        // Customize stripe button tooltip to include shortcut
+        updateStripeButtonTooltip(toolWindow);
+
+        // Listen to keymap changes
+        MessageBusConnection connection = com.intellij.openapi.application.ApplicationManager.getApplication().getMessageBus().connect();
+        connection.subscribe(KeymapManagerListener.TOPIC, new KeymapManagerListener() {
+            @Override
+            public void activeKeymapChanged(@Nullable Keymap keymap) {
+                updateStripeButtonTooltip(toolWindow);
+            }
+
+            @Override
+            public void shortcutChanged(@NotNull Keymap keymap, @NotNull String actionId) {
+                if ("mesfavoris.actions.ShowBookmarksAction".equals(actionId)) {
+                    updateStripeButtonTooltip(toolWindow);
+                }
+            }
+        });
+
+        // Dispose connection when tool window content is removed
         MesFavorisPanel panel = new MesFavorisPanel(project);
+        Disposer.register(panel, connection);
 
         ContentManager contentManager = toolWindow.getContentManager();
         Content content = contentManager.getFactory().createContent(panel, null, false);
         contentManager.addContent(content);
         DataManager.registerDataProvider(panel, panel);
+    }
+
+    private void updateStripeButtonTooltip(@NotNull ToolWindow toolWindow) {
+        KeymapManager keymapManager = KeymapManager.getInstance();
+        if (keymapManager == null) {
+            return;
+        }
+
+        Keymap activeKeymap = keymapManager.getActiveKeymap();
+        Shortcut[] shortcuts = activeKeymap.getShortcuts("mesfavoris.actions.ShowBookmarksAction");
+
+        if (shortcuts.length > 0) {
+            String shortcutText = Arrays.stream(shortcuts)
+                .map(KeymapUtil::getShortcutText)
+                .collect(Collectors.joining(", "));
+            toolWindow.setStripeTitle("Mes Favoris (" + shortcutText + ")");
+        } else {
+            toolWindow.setStripeTitle("Mes Favoris");
+        }
     }
 
     private List<AnAction> getTitleActions(@NotNull Project project) {
