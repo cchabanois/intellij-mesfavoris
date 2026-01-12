@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
  * - Otherwise, shows/activates the Mes Favoris tool window
  */
 public class ShowBookmarksAction extends AnAction implements DumbAware {
+    public static final String ACTION_ID = "mesfavoris.actions.ShowBookmarksAction";
     private final SelectBookmarkAtCaretAction selectBookmarkAction;
     private final ShowMesFavorisToolWindowAction showToolWindowAction;
 
