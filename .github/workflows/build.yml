@@ -176,6 +176,14 @@ jobs:
         with:
           cache-default-branch-only: true
 
+      # Upload Qodana report as artifact
+      - name: Upload Qodana Report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: qodana-report
+          path: ${{ github.workspace }}/qodana/results
+
   # Run plugin structure verification along with IntelliJ Plugin Verifier
   verify:
     name: Verify plugin
