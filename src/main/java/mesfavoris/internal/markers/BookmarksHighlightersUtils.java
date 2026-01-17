@@ -5,10 +5,10 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.RangeHighlighterEx;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
+import mesfavoris.markers.IBookmarksHighlighters;
 import mesfavoris.model.BookmarkId;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class BookmarksHighlightersUtils {
@@ -18,20 +18,18 @@ public class BookmarksHighlightersUtils {
      * Multiple bookmarks can exist on the same line.
      */
     public static List<BookmarkId> findBookmarksAtLine(Project project, Document document, int lineNumber) {
-        List<BookmarkId> bookmarkIds = new ArrayList<>();
-        List<RangeHighlighterEx> highlighters = BookmarksHighlighters.getBookmarksHighlighters(project, document);
-
-        for (RangeHighlighterEx highlighter : highlighters) {
-            int highlighterLine = document.getLineNumber(highlighter.getStartOffset());
-            if (highlighterLine == lineNumber) {
-                BookmarkId bookmarkId = highlighter.getUserData(BookmarksHighlighters.BOOKMARK_ID_KEY);
-                if (bookmarkId != null) {
-                    bookmarkIds.add(bookmarkId);
-                }
-            }
+        IBookmarksHighlighters bookmarksHighlighters = project.getService(IBookmarksHighlighters.class);
+        if (bookmarksHighlighters == null) {
+            return List.of();
         }
 
-        return bookmarkIds;
+        RangeHighlighterEx highlighter = bookmarksHighlighters.findBookmarkHighlighterAtLine(document, lineNumber);
+        if (highlighter == null) {
+            return List.of();
+        }
+
+        List<BookmarkId> ids = highlighter.getUserData(BookmarksHighlighters.BOOKMARK_IDS_KEY);
+        return ids != null ? ids : List.of();
     }
 
     /**

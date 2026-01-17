@@ -122,24 +122,29 @@ public class BookmarksMarkers implements IBookmarksMarkers, Disposable {
     private class BookmarksHighlightersListenerImpl implements BookmarksHighlightersListener {
 
         @Override
-        public void bookmarkHighlighterDeleted(BookmarkId bookmarkId) {
-            deleteMarker(bookmarkId);
+        public void bookmarkHighlighterDeleted(List<BookmarkId> bookmarkIds) {
+            for (BookmarkId bookmarkId : bookmarkIds) {
+                deleteMarker(bookmarkId);
+            }
         }
 
         @Override
-        public void bookmarkHighlighterAdded(RangeHighlighterEx bookmarkHighlighter) {
-        }
-
-        @Override
-        public void bookmarkHighlighterUpdated(RangeHighlighterEx bookmarkHighlighter) {
+        public void bookmarkHighlighterMoved(RangeHighlighterEx bookmarkHighlighter) {
             int newLineNumber = bookmarkHighlighter.getDocument().getLineNumber(bookmarkHighlighter.getStartOffset());
-            BookmarkMarker previousBookmarkMarker = bookmarkMarkersStore.get(this.getBookmarkId(bookmarkHighlighter));
-            if (previousBookmarkMarker.getLineNumber() != newLineNumber) {
-                Map<String, String> newAttributes = new HashMap<>(previousBookmarkMarker.getAttributes());
-                newAttributes.put(BookmarkMarker.LINE_NUMBER, Integer.toString(newLineNumber));
-                BookmarkMarker newBookmarkMarker = new BookmarkMarker(previousBookmarkMarker.getResource(), previousBookmarkMarker.getBookmarkId(), newAttributes);
-                bookmarkMarkersStore.put(newBookmarkMarker);
-                project.getMessageBus().syncPublisher(BookmarksMarkersListener.TOPIC).bookmarkMarkerUpdated(previousBookmarkMarker, newBookmarkMarker);
+            List<BookmarkId> bookmarkIds = this.getBookmarkIds(bookmarkHighlighter);
+            if (bookmarkIds == null) {
+                return;
+            }
+            // Update all bookmarks on this line
+            for (BookmarkId bookmarkId : bookmarkIds) {
+                BookmarkMarker previousBookmarkMarker = bookmarkMarkersStore.get(bookmarkId);
+                if (previousBookmarkMarker != null && previousBookmarkMarker.getLineNumber() != newLineNumber) {
+                    Map<String, String> newAttributes = new HashMap<>(previousBookmarkMarker.getAttributes());
+                    newAttributes.put(BookmarkMarker.LINE_NUMBER, Integer.toString(newLineNumber));
+                    BookmarkMarker newBookmarkMarker = new BookmarkMarker(previousBookmarkMarker.getResource(), previousBookmarkMarker.getBookmarkId(), newAttributes);
+                    bookmarkMarkersStore.put(newBookmarkMarker);
+                    project.getMessageBus().syncPublisher(BookmarksMarkersListener.TOPIC).bookmarkMarkerUpdated(previousBookmarkMarker, newBookmarkMarker);
+                }
             }
         }
     }

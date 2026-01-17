@@ -3,19 +3,20 @@ package mesfavoris.internal.markers;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.editor.ex.RangeHighlighterEx;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import com.intellij.util.ui.UIUtil;
 import mesfavoris.BookmarksException;
 import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.BookmarkMarker;
-import mesfavoris.service.IBookmarksService;
+import mesfavoris.markers.IBookmarksHighlighters;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkFolder;
 import mesfavoris.model.BookmarkId;
+import mesfavoris.service.IBookmarksService;
+import mesfavoris.tests.commons.markers.BookmarkHighlightersTestUtils;
 
-import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 import static mesfavoris.tests.commons.waits.Waiter.waitUntil;
@@ -35,6 +36,9 @@ public class BookmarksMarkersTest extends BasePlatformTestCase {
         this.bookmarkDatabase = bookmarksService.getBookmarkDatabase();
         this.bookmarksMarkers = bookmarksService.getBookmarksMarkers();
         this.rootFolderId = bookmarkDatabase.getBookmarksTree().getRootFolder().getId();
+
+        // Ensure BookmarksHighlighters service is initialized
+        assertNotNull(getProject().getService(IBookmarksHighlighters.class));
     }
 
     @Override
@@ -196,19 +200,12 @@ public class BookmarksMarkersTest extends BasePlatformTestCase {
      }
 
      private void waitUntilBookmarkHighlighterAtLine(BookmarkId bookmarkId, int lineNumber) throws TimeoutException {
-         waitUntil("No bookmark highlighter found or highlighter not at expected line", () -> {
-             UIUtil.dispatchAllInvocationEvents();
-             List<RangeHighlighterEx> highlighters = BookmarksHighlighters.getBookmarksHighlighters(getProject(), myFixture.getEditor().getDocument());
-             return highlighters.stream().anyMatch(highlighter -> {
-                 BookmarkId highlighterBookmarkId = highlighter.getUserData(BookmarksHighlighters.BOOKMARK_ID_KEY);
-                 return highlighterBookmarkId != null && highlighterBookmarkId.equals(bookmarkId) && highlighter.getDocument().getLineNumber(highlighter.getStartOffset()) == lineNumber;
-             });
-         });
+         BookmarkHighlightersTestUtils.waitUntilBookmarkHighlighterAtLine(getProject(), myFixture.getEditor().getDocument(), bookmarkId, lineNumber);
      }
 
      private void waitUntilBookmarkMarkerAtLine(BookmarkId bookmarkId, int lineNumber) throws TimeoutException {
          waitUntil("No bookmark marker found or marker not at expected line", () -> {
-             UIUtil.dispatchAllInvocationEvents();
+             PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
              BookmarkMarker marker = findBookmarkMarker(bookmarkId);
              return marker != null && marker.getLineNumber() == lineNumber;
          });

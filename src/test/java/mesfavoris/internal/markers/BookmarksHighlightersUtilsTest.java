@@ -34,6 +34,9 @@ public class BookmarksHighlightersUtilsTest extends BasePlatformTestCase {
         bookmarksService = getProject().getService(IBookmarksService.class);
         bookmarkDatabase = bookmarksService.getBookmarkDatabase();
         rootFolderId = bookmarkDatabase.getBookmarksTree().getRootFolder().getId();
+
+        // Ensure BookmarksHighlighters service is initialized
+        getProject().getService(BookmarksHighlighters.class);
     }
 
     @Test
