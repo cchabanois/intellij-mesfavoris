@@ -7,6 +7,7 @@ import com.intellij.lang.Language;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.RangeHighlighterEx;
+import com.intellij.openapi.editor.ex.util.EditorUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -150,6 +151,7 @@ public class BookmarkCommentInlayHintsProvider implements InlayHintsProvider<NoS
                 }
 
                 int lineStartOffset = document.getLineStartOffset(lineNumber);
+                int indentWidth = calculateIndentWidth(editor, document, lineNumber);
 
                 // Process all bookmarks on this line
                 for (BookmarkId bookmarkId : bookmarkIds) {
@@ -164,7 +166,7 @@ public class BookmarkCommentInlayHintsProvider implements InlayHintsProvider<NoS
                         continue;
                     }
 
-                    addCommentInlayHints(factory, sink, lineStartOffset, comment);
+                    addCommentInlayHints(factory, sink, lineStartOffset, comment, indentWidth);
                 }
             }
 
@@ -172,17 +174,52 @@ public class BookmarkCommentInlayHintsProvider implements InlayHintsProvider<NoS
         }
 
         private void addCommentInlayHints(PresentationFactory factory, InlayHintsSink sink,
-                                          int lineStartOffset, String comment) {
+                                          int offset, String comment, int indentWidth) {
             String[] commentLines = comment.split("\\n");
 
             // Add a block inlay hint for each line of the comment
             for (int i = 0; i < commentLines.length; i++) {
                 String line = commentLines[i].trim();
                 String prefix = i == 0 ? "🔖 " : "   ";
-                InlayPresentation presentation = factory.smallText(prefix + line);
+                InlayPresentation textPresentation = factory.smallText(prefix + line);
+
+                // Add left padding to align with the code indentation
+                InlayPresentation presentation = factory.inset(textPresentation, indentWidth, 0, 0, 0);
+
                 // All lines are added at the same offset, they will stack vertically
-                sink.addBlockElement(lineStartOffset, true, true, i, presentation);
+                sink.addBlockElement(offset, true, true, i, presentation);
             }
+        }
+
+        private int calculateIndentWidth(Editor editor, Document document, int lineNumber) {
+            int lineStartOffset = document.getLineStartOffset(lineNumber);
+            int lineEndOffset = document.getLineEndOffset(lineNumber);
+            String lineText = document.getText().substring(lineStartOffset, lineEndOffset);
+
+            // Get the width of a single space character in the editor
+            int spaceWidth = EditorUtil.getPlainSpaceWidth(editor);
+            int tabSize = editor.getSettings().getTabSize(editor.getProject());
+
+            int totalWidth = 0;
+            int column = 0;
+
+            // Calculate width accounting for both spaces and tabs
+            for (char c : lineText.toCharArray()) {
+                if (c == ' ') {
+                    totalWidth += spaceWidth;
+                    column++;
+                } else if (c == '\t') {
+                    // Tab advances to the next tab stop
+                    int spacesToNextTabStop = tabSize - (column % tabSize);
+                    totalWidth += spacesToNextTabStop * spaceWidth;
+                    column += spacesToNextTabStop;
+                } else {
+                    // First non-whitespace character found
+                    break;
+                }
+            }
+
+            return totalWidth;
         }
     }
 }
