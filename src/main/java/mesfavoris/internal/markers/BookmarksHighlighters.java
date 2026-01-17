@@ -90,17 +90,20 @@ public class BookmarksHighlighters implements Disposable, IBookmarksHighlighters
         return new BookmarksMarkersListener() {
             @Override
             public void bookmarkMarkerDeleted(BookmarkMarker bookmarkMarker) {
-                AppUIUtil.invokeLaterIfProjectAlive(project, () -> removeBookmarkFromHighlighter(bookmarkMarker));
+                AppUIUtil.invokeLaterIfProjectAlive(project, () ->
+                    ReadAction.run(() -> removeBookmarkFromHighlighter(bookmarkMarker)));
             }
 
             @Override
             public void bookmarkMarkerAdded(BookmarkMarker bookmarkMarker) {
-                AppUIUtil.invokeLaterIfProjectAlive(project, () -> addBookmarkToHighlighter(bookmarkMarker));
+                AppUIUtil.invokeLaterIfProjectAlive(project, () ->
+                    ReadAction.run(() -> addBookmarkToHighlighter(bookmarkMarker)));
             }
 
             @Override
             public void bookmarkMarkerUpdated(BookmarkMarker previous, BookmarkMarker bookmarkMarker) {
-                AppUIUtil.invokeLaterIfProjectAlive(project, () -> updateHighlighterFromBookmark(previous, bookmarkMarker));
+                AppUIUtil.invokeLaterIfProjectAlive(project, () ->
+                    ReadAction.run(() -> updateHighlighterFromBookmark(previous, bookmarkMarker)));
             }
         };
     }
@@ -265,7 +268,7 @@ public class BookmarksHighlighters implements Disposable, IBookmarksHighlighters
         Document document = fileDocumentManager.getDocument(file);
         if (document != null) {
             MarkupModelEx markupModel = (MarkupModelEx) DocumentMarkupModel.forDocument(document, project, true);
-            return createHighlighter(markupModel, Arrays.asList(bookmarkMarker));
+            return createHighlighter(markupModel, List.of(bookmarkMarker));
         } else {
             return null;
         }
