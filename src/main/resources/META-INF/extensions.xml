@@ -23,6 +23,8 @@
         <projectService serviceImplementation="mesfavoris.internal.toolwindow.search.BookmarksSearchHistoryStore"/>
         <projectService serviceImplementation="mesfavoris.gdrive.connection.GDriveUserInfoStore"/>
         <projectService serviceImplementation="mesfavoris.gdrive.connection.GoogleOAuthClientConfigStore"/>
+        <projectService serviceInterface="mesfavoris.markers.IBookmarksHighlighters"
+                        serviceImplementation="mesfavoris.internal.markers.BookmarksHighlighters"/>
         <applicationService serviceImplementation="mesfavoris.internal.settings.placeholders.PathPlaceholdersStore"/>
         <applicationService serviceImplementation="mesfavoris.internal.settings.bookmarktypes.BookmarkTypesStore"/>
         <applicationConfigurable parentId="tools" instance="mesfavoris.internal.settings.MesFavorisConfigurable"

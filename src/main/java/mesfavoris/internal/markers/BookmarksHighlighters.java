@@ -17,8 +17,6 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.startup.StartupActivity;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentListener;
@@ -27,7 +25,7 @@ import com.intellij.ui.AppUIUtil;
 import com.intellij.util.messages.MessageBus;
 import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.BookmarkMarker;
-import mesfavoris.internal.service.BookmarksService;
+import mesfavoris.markers.IBookmarksHighlighters;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.service.IBookmarksService;
 import org.jetbrains.annotations.NotNull;
@@ -36,26 +34,24 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.Timer;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static mesfavoris.internal.markers.BookmarksMarkers.BookmarksMarkersListener;
 
-public class BookmarksHighlighters implements Disposable {
-    public static final Key<BookmarkId> BOOKMARK_ID_KEY = new Key<>("bookmarkId");
+public class BookmarksHighlighters implements Disposable, IBookmarksHighlighters {
     private final Project project;
+    private IBookmarksMarkers bookmarksMarkers;
     private BookmarksHighlightersDocumentListener documentListener;
 
     public BookmarksHighlighters(Project project) {
         this.project = project;
-    }
+        this.bookmarksMarkers = project.getService(IBookmarksService.class).getBookmarksMarkers();
 
-    public void init() {
         project.getMessageBus().connect(this).subscribe(PsiDocumentListener.TOPIC, this::documentCreated);
         project.getMessageBus().connect(this).subscribe(BookmarksMarkers.BookmarksMarkersListener.TOPIC, getBookmarksMarkersListener());
 
         EditorEventMulticaster multicaster = EditorFactory.getInstance().getEventMulticaster();
-        IBookmarksMarkers bookmarksMarkers = project.getService(IBookmarksService.class).getBookmarksMarkers();
-
-        this.documentListener = new BookmarksHighlightersDocumentListener(project, bookmarksMarkers);
+        this.documentListener = new BookmarksHighlightersDocumentListener(project, this, bookmarksMarkers);
         multicaster.addDocumentListener(documentListener, this);
 
         createHighlightersForOpenFiles();
@@ -70,15 +66,15 @@ public class BookmarksHighlighters implements Disposable {
         }
     }
 
-    public static List<RangeHighlighterEx> getBookmarksHighlighters(Project project, Document document) {
+    @Override
+    public List<RangeHighlighterEx> getBookmarksHighlighters(Document document) {
         MarkupModelEx markupModel = (MarkupModelEx) DocumentMarkupModel.forDocument(document, project, false);
         if (markupModel == null) {
             return Collections.emptyList();
         }
         List<RangeHighlighterEx> highlighters = new ArrayList<>();
         markupModel.processRangeHighlightersOverlappingWith(0, document.getTextLength(), highlighter -> {
-            BookmarkId bookmarkId = highlighter.getUserData(BOOKMARK_ID_KEY);
-            if (bookmarkId != null) {
+            if (isBookmarkHighlighter(highlighter)) {
                 highlighters.add(highlighter);
             }
             return true;
@@ -86,47 +82,142 @@ public class BookmarksHighlighters implements Disposable {
         return highlighters;
     }
 
+    private static boolean isBookmarkHighlighter(RangeHighlighterEx highlighter) {
+        return highlighter.getUserData(BOOKMARK_IDS_KEY) != null;
+    }
+
     private BookmarksMarkersListener getBookmarksMarkersListener() {
         return new BookmarksMarkersListener() {
             @Override
             public void bookmarkMarkerDeleted(BookmarkMarker bookmarkMarker) {
-                AppUIUtil.invokeLaterIfProjectAlive(project, () -> {
-                    RangeHighlighterEx highlighter = getHighlighter(project, bookmarkMarker);
-                    if (highlighter != null) {
-                        highlighter.dispose();
-                        project.getMessageBus().syncPublisher(BookmarksHighlightersListener.TOPIC).bookmarkHighlighterDeleted(bookmarkMarker.getBookmarkId());
-                    }
-                });
+                AppUIUtil.invokeLaterIfProjectAlive(project, () -> removeBookmarkFromHighlighter(bookmarkMarker));
             }
 
             @Override
             public void bookmarkMarkerAdded(BookmarkMarker bookmarkMarker) {
-                AppUIUtil.invokeLaterIfProjectAlive(project, () -> createOrUpdateHighlighter(bookmarkMarker));
+                AppUIUtil.invokeLaterIfProjectAlive(project, () -> addBookmarkToHighlighter(bookmarkMarker));
             }
 
             @Override
             public void bookmarkMarkerUpdated(BookmarkMarker previous, BookmarkMarker bookmarkMarker) {
-                AppUIUtil.invokeLaterIfProjectAlive(project, () -> createOrUpdateHighlighter(bookmarkMarker));
+                AppUIUtil.invokeLaterIfProjectAlive(project, () -> updateHighlighterFromBookmark(previous, bookmarkMarker));
             }
         };
     }
 
-    private void createOrUpdateHighlighter(BookmarkMarker bookmarkMarker) {
-        RangeHighlighterEx previous = getHighlighter(project, bookmarkMarker);
-        RangeHighlighterEx highlighter = createHighlighter(project, bookmarkMarker);
+    /**
+     * Removes a bookmark from its highlighter, or updates the highlighter if multiple bookmarks remain
+     */
+    private void removeBookmarkFromHighlighter(BookmarkMarker bookmarkMarker) {
+        VirtualFile file = bookmarkMarker.getResource();
+        Document document = FileDocumentManager.getInstance().getDocument(file);
+        if (document == null) {
+            return;
+        }
+
+        RangeHighlighterEx highlighter = getHighlighter(project, bookmarkMarker);
         if (highlighter == null) {
-            if (previous != null) {
-                previous.dispose();
-                project.getMessageBus().syncPublisher(BookmarksHighlightersListener.TOPIC).bookmarkHighlighterDeleted(bookmarkMarker.getBookmarkId());
+            return;
+        }
+
+        List<BookmarkId> bookmarkIds = highlighter.getUserData(BOOKMARK_IDS_KEY);
+        // Remove the bookmark ID from the list
+        List<BookmarkId> updatedIds = new ArrayList<>(bookmarkIds);
+        updatedIds.remove(bookmarkMarker.getBookmarkId());
+
+        if (updatedIds.isEmpty()) {
+            // No more bookmarks on this line, dispose the highlighter
+            highlighter.dispose();
+        } else {
+            updateHighlighter(highlighter, updatedIds);
+        }
+    }
+
+    private void updateHighlighter(RangeHighlighterEx highlighter, List<BookmarkId> bookmarkIds) {
+        List<BookmarkMarker> remainingMarkers = bookmarkIds.stream()
+                .map(bookmarksMarkers::getMarker)
+                .toList();
+        if (remainingMarkers.size() > 1) {
+            highlighter.setGutterIconRenderer(new GroupedBookmarkGutterIconRenderer(remainingMarkers));
+        } else {
+            highlighter.setGutterIconRenderer(new BookmarkGutterIconRenderer(remainingMarkers.get(0)));
+        }
+        highlighter.putUserData(BOOKMARK_IDS_KEY, bookmarkIds);
+    }
+
+    /**
+     * Adds a bookmark to an existing highlighter or creates a new one
+     */
+    private void addBookmarkToHighlighter(BookmarkMarker bookmarkMarker) {
+        VirtualFile file = bookmarkMarker.getResource();
+        Document document = FileDocumentManager.getInstance().getDocument(file);
+        if (document == null) {
+            return;
+        }
+
+        int lineNumber = bookmarkMarker.getLineNumber();
+
+        // Check if there's already a highlighter on this line
+        RangeHighlighterEx existingHighlighter = findBookmarkHighlighterAtLine(document, lineNumber);
+
+        if (existingHighlighter != null) {
+            // Add to existing highlighter
+            List<BookmarkId> bookmarkIds = existingHighlighter.getUserData(BOOKMARK_IDS_KEY);
+            if (bookmarkIds != null && !bookmarkIds.contains(bookmarkMarker.getBookmarkId())) {
+                List<BookmarkId> updatedIds = new ArrayList<>(bookmarkIds);
+                updatedIds.add(bookmarkMarker.getBookmarkId());
+
+                updateHighlighter(existingHighlighter, updatedIds);
             }
         } else {
-            if (previous != null) {
-                previous.dispose();
-                project.getMessageBus().syncPublisher(BookmarksHighlightersListener.TOPIC).bookmarkHighlighterUpdated(highlighter);
-            } else {
-                project.getMessageBus().syncPublisher(BookmarksHighlightersListener.TOPIC).bookmarkHighlighterAdded(highlighter);
-            }
+            // Create new highlighter
+            MarkupModelEx markupModel = (MarkupModelEx) DocumentMarkupModel.forDocument(document, project, true);
+            RangeHighlighterEx newHighlighter = createHighlighter(markupModel, Arrays.asList(bookmarkMarker));
         }
+    }
+
+    /**
+     * Updates a highlighter when a bookmark marker is updated (e.g., line number changed)
+     */
+    private void updateHighlighterFromBookmark(BookmarkMarker previous, BookmarkMarker updated) {
+        if (previous.getLineNumber() == updated.getLineNumber()) {
+            // Same line, just update the marker reference
+            VirtualFile file = updated.getResource();
+            Document document = FileDocumentManager.getInstance().getDocument(file);
+            if (document == null) {
+                return;
+            }
+
+            RangeHighlighterEx highlighter = getHighlighter(project, updated);
+        } else {
+            // Line changed, remove from old line and add to new line
+            removeBookmarkFromHighlighter(previous);
+            addBookmarkToHighlighter(updated);
+        }
+    }
+
+    /**
+     * Finds a highlighter at the specified line number
+     */
+    @Override
+    public RangeHighlighterEx findBookmarkHighlighterAtLine(Document document, int lineNumber) {
+        MarkupModelEx markupModel = (MarkupModelEx) DocumentMarkupModel.forDocument(document, project, false);
+        if (markupModel == null) {
+            return null;
+        }
+
+        int lineStartOffset = document.getLineStartOffset(lineNumber);
+        int lineEndOffset = document.getLineEndOffset(lineNumber);
+
+        Ref<RangeHighlighterEx> found = new Ref<>();
+        markupModel.processRangeHighlightersOverlappingWith(lineStartOffset, lineEndOffset, highlighter -> {
+            if (isBookmarkHighlighter(highlighter)) {
+                found.set(highlighter);
+                return false;
+            }
+            return true;
+        });
+        return found.get();
     }
 
     private void createHighlightersForOpenFiles() {
@@ -155,8 +246,15 @@ public class BookmarksHighlighters implements Disposable {
         List<BookmarkMarker> markers = getMarkers(project, file);
         AppUIUtil.invokeLaterIfProjectAlive(project, () -> {
             MarkupModelEx markupModel = (MarkupModelEx) DocumentMarkupModel.forDocument(document, project, true);
-            for (BookmarkMarker marker : markers) {
-                createHighlighter(markupModel, marker);
+
+            // Group markers by line number
+            Map<Integer, List<BookmarkMarker>> markersByLine = markers.stream()
+                    .collect(Collectors.groupingBy(BookmarkMarker::getLineNumber));
+
+            // Create highlighters
+            for (Map.Entry<Integer, List<BookmarkMarker>> entry : markersByLine.entrySet()) {
+                List<BookmarkMarker> lineMarkers = entry.getValue();
+                createHighlighter(markupModel, lineMarkers);
             }
         });
     }
@@ -167,23 +265,33 @@ public class BookmarksHighlighters implements Disposable {
         Document document = fileDocumentManager.getDocument(file);
         if (document != null) {
             MarkupModelEx markupModel = (MarkupModelEx) DocumentMarkupModel.forDocument(document, project, true);
-            return createHighlighter(markupModel, bookmarkMarker);
+            return createHighlighter(markupModel, Arrays.asList(bookmarkMarker));
         } else {
             return null;
         }
     }
 
-    private RangeHighlighterEx createHighlighter(MarkupModelEx markupModel, BookmarkMarker bookmarkMarker) {
-        String lineAsString = bookmarkMarker.getAttributes().get(BookmarkMarker.LINE_NUMBER);
-        if (lineAsString == null) {
+    /**
+     * Creates a highlighter for one or more bookmarks on the same line
+     */
+    private RangeHighlighterEx createHighlighter(MarkupModelEx markupModel, List<BookmarkMarker> bookmarkMarkers) {
+        if (bookmarkMarkers.isEmpty()) {
             return null;
         }
-        int line = Integer.parseInt(lineAsString);
-        RangeHighlighterEx highlighter = markupModel.addPersistentLineHighlighter(CodeInsightColors.BOOKMARKS_ATTRIBUTES, line, HighlighterLayer.ERROR + 1);
+
+        BookmarkMarker firstMarker = bookmarkMarkers.get(0);
+        int line = firstMarker.getLineNumber();
+
+        RangeHighlighterEx highlighter = markupModel.addPersistentLineHighlighter(
+                CodeInsightColors.BOOKMARKS_ATTRIBUTES, line, HighlighterLayer.ERROR + 1);
+
         if (highlighter != null) {
-            highlighter.setGutterIconRenderer(new BookmarkGutterIconRenderer(bookmarkMarker));
-            highlighter.putUserData(BOOKMARK_ID_KEY, bookmarkMarker.getBookmarkId());
+            List<BookmarkId> bookmarkIds = bookmarkMarkers.stream()
+                    .map(BookmarkMarker::getBookmarkId)
+                    .collect(Collectors.toList());
+            updateHighlighter(highlighter, bookmarkIds);
         }
+
         return highlighter;
     }
 
@@ -204,8 +312,8 @@ public class BookmarksHighlighters implements Disposable {
 
         final Ref<RangeHighlighterEx> found = new Ref<>();
         markup.processRangeHighlightersOverlappingWith(startOffset, endOffset, highlighter -> {
-            BookmarkId bookmarkId = highlighter.getUserData(BOOKMARK_ID_KEY);
-            if (bookmarkMarker.getBookmarkId().equals(bookmarkId)) {
+            List<BookmarkId> bookmarkIds = highlighter.getUserData(BOOKMARK_IDS_KEY);
+            if (bookmarkIds != null && bookmarkIds.contains(bookmarkMarker.getBookmarkId())) {
                 found.set(highlighter);
                 return false;
             }
@@ -220,10 +328,12 @@ public class BookmarksHighlighters implements Disposable {
         private final Map<Document, Timer> pendingProcessing = new ConcurrentHashMap<>();
         private final Project project;
         private final IBookmarksMarkers bookmarksMarkers;
+        private final IBookmarksHighlighters bookmarksHighlighters;
 
-        public BookmarksHighlightersDocumentListener(Project project, IBookmarksMarkers bookmarksMarkers) {
+        public BookmarksHighlightersDocumentListener(Project project, IBookmarksHighlighters bookmarksHighlighters, IBookmarksMarkers bookmarksMarkers) {
             this.project = project;
             this.bookmarksMarkers = bookmarksMarkers;
+            this.bookmarksHighlighters = bookmarksHighlighters;
         }
 
         /**
@@ -278,7 +388,7 @@ public class BookmarksHighlighters implements Disposable {
 
         private void processDocumentChange(Document document) {
             // Get current highlighters and markers for this document
-            List<RangeHighlighterEx> currentHighlighters = BookmarksHighlighters.getBookmarksHighlighters(project, document);
+            List<RangeHighlighterEx> currentHighlighters = bookmarksHighlighters.getBookmarksHighlighters(document);
 
             VirtualFile file = FileDocumentManager.getInstance().getFile(document);
             if (file == null) {
@@ -296,11 +406,15 @@ public class BookmarksHighlighters implements Disposable {
             // 1. Check existing highlighters for position changes
             Set<BookmarkId> processedMarkerIds = new HashSet<>();
             for (RangeHighlighterEx highlighter : currentHighlighters) {
-                BookmarkMarker bookmarkMarker = getBookmarkMarker(highlighter);
-                if (bookmarkMarker != null) {
-                    processedMarkerIds.add(bookmarkMarker.getBookmarkId());
-                    if (hasPositionChanged(highlighter, bookmarkMarker)) {
-                        messageBus.syncPublisher(BookmarksHighlightersListener.TOPIC).bookmarkHighlighterUpdated(highlighter);
+                List<BookmarkId> bookmarkIds = highlighter.getUserData(BOOKMARK_IDS_KEY);
+                if (bookmarkIds != null) {
+                    // Mark all bookmarks in this highlighter as processed
+                    processedMarkerIds.addAll(bookmarkIds);
+
+                    // Check position change using the first bookmark as reference
+                    BookmarkMarker firstMarker = bookmarksMarkers.getMarker(bookmarkIds.get(0));
+                    if (firstMarker != null && hasPositionChanged(highlighter, firstMarker)) {
+                        messageBus.syncPublisher(BookmarksHighlightersListener.TOPIC).bookmarkHighlighterMoved(highlighter);
                     }
                 }
             }
@@ -308,17 +422,9 @@ public class BookmarksHighlighters implements Disposable {
             // 2. Check for markers without corresponding highlighters (deleted highlighters)
             for (BookmarkMarker marker : documentMarkers) {
                 if (!processedMarkerIds.contains(marker.getBookmarkId())) {
-                    messageBus.syncPublisher(BookmarksHighlightersListener.TOPIC).bookmarkHighlighterDeleted(marker.getBookmarkId());
+                    messageBus.syncPublisher(BookmarksHighlightersListener.TOPIC).bookmarkHighlighterDeleted(List.of(marker.getBookmarkId()));
                 }
             }
-        }
-
-        private BookmarkMarker getBookmarkMarker(RangeHighlighterEx highlighter) {
-            BookmarkId bookmarkId = highlighter.getUserData(BOOKMARK_ID_KEY);
-            if (bookmarkId == null) {
-                return null;
-            }
-            return bookmarksMarkers.getMarker(bookmarkId);
         }
 
         private boolean hasPositionChanged(RangeHighlighterEx highlighter, BookmarkMarker marker) {
@@ -331,20 +437,17 @@ public class BookmarksHighlighters implements Disposable {
 
     }
 
-
+    /**
+     * StartupActivity to ensure the BookmarksHighlighters service is initialized at project startup.
+     * This triggers the service instantiation, which in turn registers all necessary listeners
+     * and creates highlighters for open files.
+     */
     public static class BookmarksHighlightersStartupActivity implements StartupActivity.DumbAware {
         @Override
         public void runActivity(@NotNull Project project) {
-            BookmarksHighlighters bookmarksHighlighters = new BookmarksHighlighters(project);
-            bookmarksHighlighters.init();
-
-            // Register with BookmarksService as disposable parent to avoid Project warning
-            IBookmarksService service = project.getService(IBookmarksService.class);
-            if (service instanceof BookmarksService bookmarksService) {
-                Disposer.register(bookmarksService, bookmarksHighlighters);
-            }
+            // Simply getting the service triggers its instantiation and initialization
+            project.getService(BookmarksHighlighters.class);
         }
     }
-
 
 }

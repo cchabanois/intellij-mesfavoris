@@ -3,27 +3,24 @@ package mesfavoris.internal.actions;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.ex.RangeHighlighterEx;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
-import mesfavoris.internal.markers.BookmarksHighlighters;
 import mesfavoris.internal.toolwindow.BookmarksTreeComponent;
 import mesfavoris.internal.toolwindow.MesFavorisToolWindowUtils;
+import mesfavoris.markers.IBookmarksHighlighters;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.service.IBookmarksService;
+import mesfavoris.tests.commons.markers.BookmarkHighlightersTestUtils;
 import mesfavoris.tests.commons.toolwindow.MesFavorisToolWindowTestUtils;
-import mesfavoris.tests.commons.waits.Waiter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.swing.tree.TreePath;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
@@ -37,6 +34,7 @@ public class SelectBookmarkAtCaretActionTest extends BasePlatformTestCase {
 
     private IBookmarksService bookmarksService;
     private BookmarkDatabase bookmarkDatabase;
+    private IBookmarksHighlighters bookmarksHighlighters;
     private SelectBookmarkAtCaretAction action;
     private ToolWindow toolWindow;
 
@@ -48,6 +46,7 @@ public class SelectBookmarkAtCaretActionTest extends BasePlatformTestCase {
         // Get the bookmarks service and database
         bookmarksService = getProject().getService(IBookmarksService.class);
         bookmarkDatabase = bookmarksService.getBookmarkDatabase();
+        bookmarksHighlighters = getProject().getService(IBookmarksHighlighters.class);
 
         // Create the action
         action = new SelectBookmarkAtCaretAction();
@@ -177,13 +176,6 @@ public class SelectBookmarkAtCaretActionTest extends BasePlatformTestCase {
     }
 
     private void waitUntilBookmarkHighlighterAtLine(BookmarkId bookmarkId, int lineNumber) throws TimeoutException {
-        Waiter.waitUntil("No bookmark highlighter found or highlighter not at expected line", () -> {
-            PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-            List<RangeHighlighterEx> highlighters = BookmarksHighlighters.getBookmarksHighlighters(getProject(), myFixture.getEditor().getDocument());
-            return highlighters.stream().anyMatch(highlighter -> {
-                BookmarkId highlighterBookmarkId = highlighter.getUserData(BookmarksHighlighters.BOOKMARK_ID_KEY);
-                return highlighterBookmarkId != null && highlighterBookmarkId.equals(bookmarkId) && highlighter.getDocument().getLineNumber(highlighter.getStartOffset()) == lineNumber;
-            });
-        });
+        BookmarkHighlightersTestUtils.waitUntilBookmarkHighlighterAtLine(getProject(), myFixture.getEditor().getDocument(), bookmarkId, lineNumber);
     }
 }
