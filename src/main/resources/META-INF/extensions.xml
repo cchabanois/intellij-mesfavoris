@@ -35,6 +35,8 @@
                                  id="mesfavoris.settings.bookmarktypes" displayName="Bookmark Types"/>
         <projectConfigurable parentId="mesfavoris.settings" instance="mesfavoris.gdrive.settings.GoogleDriveConfigurable"
                              id="mesfavoris.settings.googledrive" displayName="Google Drive"/>
+        <!-- Bookmark comment inlay hints for all languages -->
+        <codeInsight.inlayProviderFactory implementation="mesfavoris.internal.markers.BookmarkCommentInlayHintsProviderFactory"/>
     </extensions>
 
     <!-- Built-in Bookmark Types -->
