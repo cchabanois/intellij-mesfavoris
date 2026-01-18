@@ -2,14 +2,9 @@ package mesfavoris.internal.markers;
 
 import com.intellij.codeInsight.hints.*;
 import com.intellij.codeInsight.hints.presentation.InlayPresentation;
-import com.intellij.codeInsight.hints.presentation.InsetPresentation;
-import com.intellij.codeInsight.hints.presentation.TextInlayPresentation;
-import com.intellij.codeInsight.hints.presentation.WithAttributesPresentation;
 import com.intellij.lang.Language;
-import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.editor.ex.RangeHighlighterEx;
 import com.intellij.openapi.editor.ex.util.EditorUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -26,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -33,11 +29,6 @@ import java.util.List;
  */
 @SuppressWarnings("UnstableApiUsage")
 public class BookmarkCommentInlayHintsProvider implements InlayHintsProvider<NoSettings> {
-
-    private static final TextAttributesKey BOOKMARK_COMMENT_KEY = TextAttributesKey.createTextAttributesKey(
-            "BOOKMARK_COMMENT",
-            DefaultLanguageHighlighterColors.INLAY_DEFAULT
-    );
 
     @Override
     public boolean isVisibleInSettings() {
@@ -161,7 +152,9 @@ public class BookmarkCommentInlayHintsProvider implements InlayHintsProvider<NoS
                 int indentWidth = calculateIndentWidth(editor, document, lineNumber);
 
                 // Process all bookmarks on this line
-                for (BookmarkId bookmarkId : bookmarkIds) {
+                int priority = 0;
+                for (int i = 0; i < bookmarkIds.size(); i++) {
+                    BookmarkId bookmarkId = bookmarkIds.get(i);
                     Bookmark bookmark = bookmarksTree.getBookmark(bookmarkId);
 
                     if (bookmark == null) {
@@ -173,7 +166,9 @@ public class BookmarkCommentInlayHintsProvider implements InlayHintsProvider<NoS
                         continue;
                     }
 
-                    addCommentInlayHints(editor, sink, lineStartOffset, comment, indentWidth);
+                    boolean isLastBookmark = (i == bookmarkIds.size() - 1);
+                    addCommentInlayHints(editor, sink, lineStartOffset, comment, indentWidth, priority, isLastBookmark);
+                    priority++;
                 }
             }
 
@@ -181,50 +176,27 @@ public class BookmarkCommentInlayHintsProvider implements InlayHintsProvider<NoS
         }
 
         private void addCommentInlayHints(Editor editor, InlayHintsSink sink,
-                                          int offset, String comment, int indentWidth) {
-            String[] commentLines = comment.split("\\n");
-
-            // Add a block inlay hint for each line of the comment
-            for (int i = 0; i < commentLines.length; i++) {
-                String line = commentLines[i].trim();
-                String prefix = i == 0 ? "🔖 " : "   ";
-
-                // Create text presentation
-                InlayPresentation textPresentation = bookmarkCommentText(editor, prefix + line);
-
-                // Add vertical line on the left using folding presentation
-                InlayPresentation withVerticalLine = getFactory().folding(
-                        textPresentation,
-                        () -> textPresentation  // Placeholder when collapsed (not used here)
-                );
-
-                // Add left padding to align with the code indentation
-                InlayPresentation presentation = getFactory().inset(withVerticalLine, indentWidth, 0, 0, 0);
-
-                // All lines are added at the same offset, they will stack vertically
-                sink.addBlockElement(offset, true, true, i, presentation);
-            }
-        }
-
-        private InlayPresentation bookmarkCommentText(Editor editor, String text) {
-            // We don't use smallText() to avoid applying INLAY_DEFAULT
-            // This allows us to use our custom BOOKMARK_COMMENT_KEY color
-            var textMetricsStorage = InlayHintsUtils.INSTANCE.getTextMetricStorage(editor);
-            InlayPresentation textPresentation = new InsetPresentation(
-                    new TextInlayPresentation(textMetricsStorage, true, text),
-                    1, 0, 1, 0
+                                          int offset, String comment, int indentWidth, int priority, boolean isLastBookmark) {
+            String[] commentLines = Arrays.stream(comment.split("\\n"))
+                    .map(String::trim)
+                    .toArray(String[]::new);
+            var metricsStorage = InlayHintsUtils.INSTANCE.getTextMetricStorage(editor);
+            InlayPresentation commentPresentation = new BookmarkCommentInlayPresentation(
+                    metricsStorage,
+                    editor.getColorsScheme(),
+                    commentLines
             );
 
-            // Apply our custom orange color using BOOKMARK_COMMENT_KEY
-            // The color is defined in colorSchemes/BookmarkCommentDefault.xml and BookmarkCommentDarcula.xml
-            InlayPresentation coloredPresentation = new WithAttributesPresentation(
-                    textPresentation,
-                    BOOKMARK_COMMENT_KEY,
-                    editor,
-                    new WithAttributesPresentation.AttributesFlags()
-            );
-            return coloredPresentation;
+            // Add left padding for indentation and bottom padding to separate multiple bookmarks on the same line
+            // Only add bottom padding if this is not the last bookmark (to keep it close to the bookmarked line)
+            int bottomPadding = isLastBookmark ? 0 : 4;
+            InlayPresentation presentation = getFactory().inset(commentPresentation, indentWidth, 0, 0, bottomPadding);
+
+            // Add a single block element for all comment lines
+            sink.addBlockElement(offset, true, true, priority, presentation);
         }
+
+
 
         private int calculateIndentWidth(Editor editor, Document document, int lineNumber) {
             int lineStartOffset = document.getLineStartOffset(lineNumber);
