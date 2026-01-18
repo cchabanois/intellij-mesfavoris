@@ -37,6 +37,10 @@
                              id="mesfavoris.settings.googledrive" displayName="Google Drive"/>
         <!-- Bookmark comment inlay hints for all languages -->
         <codeInsight.inlayProviderFactory implementation="mesfavoris.internal.markers.BookmarkCommentInlayHintsProviderFactory"/>
+
+        <!-- Color scheme definitions for bookmark comments -->
+        <additionalTextAttributes scheme="Default" file="colorSchemes/BookmarkCommentDefault.xml"/>
+        <additionalTextAttributes scheme="Darcula" file="colorSchemes/BookmarkCommentDarcula.xml"/>
     </extensions>
 
     <!-- Built-in Bookmark Types -->
