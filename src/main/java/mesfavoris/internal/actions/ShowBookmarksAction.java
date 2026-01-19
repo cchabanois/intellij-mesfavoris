@@ -4,7 +4,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAware;
-import mesfavoris.internal.markers.BookmarksHighlightersUtils;
+import mesfavoris.internal.markers.highlighters.BookmarksHighlightersUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**

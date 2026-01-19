@@ -12,6 +12,7 @@ import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.BookmarkMarker;
 import mesfavoris.bookmarktype.IBookmarkMarkerAttributesProvider;
 import mesfavoris.internal.jobs.BackgroundBookmarksModificationsHandler;
+import mesfavoris.internal.markers.highlighters.BookmarksHighlightersListener;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;

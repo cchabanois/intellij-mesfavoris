@@ -8,6 +8,7 @@ import com.intellij.openapi.editor.Inlay;
 import com.intellij.openapi.editor.InlayModel;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
+import mesfavoris.internal.markers.highlighters.BookmarksHighlighters;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;

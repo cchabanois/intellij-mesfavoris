@@ -3,7 +3,7 @@ package mesfavoris.tests.commons.markers;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestUtil;
-import mesfavoris.internal.markers.BookmarksHighlightersUtils;
+import mesfavoris.internal.markers.highlighters.BookmarksHighlightersUtils;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.tests.commons.waits.Waiter;
 
