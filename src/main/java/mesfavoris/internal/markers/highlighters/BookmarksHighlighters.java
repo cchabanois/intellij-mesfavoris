@@ -1,4 +1,4 @@
-package mesfavoris.internal.markers;
+package mesfavoris.internal.markers.highlighters;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ReadAction;
@@ -25,6 +25,7 @@ import com.intellij.ui.AppUIUtil;
 import com.intellij.util.messages.MessageBus;
 import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.BookmarkMarker;
+import mesfavoris.internal.markers.BookmarksMarkers;
 import mesfavoris.markers.IBookmarksHighlighters;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.service.IBookmarksService;
@@ -40,8 +41,8 @@ import static mesfavoris.internal.markers.BookmarksMarkers.BookmarksMarkersListe
 
 public class BookmarksHighlighters implements Disposable, IBookmarksHighlighters {
     private final Project project;
-    private IBookmarksMarkers bookmarksMarkers;
-    private BookmarksHighlightersDocumentListener documentListener;
+    private final IBookmarksMarkers bookmarksMarkers;
+    private final BookmarksHighlightersDocumentListener documentListener;
 
     public BookmarksHighlighters(Project project) {
         this.project = project;
@@ -175,7 +176,7 @@ public class BookmarksHighlighters implements Disposable, IBookmarksHighlighters
         } else {
             // Create new highlighter
             MarkupModelEx markupModel = (MarkupModelEx) DocumentMarkupModel.forDocument(document, project, true);
-            RangeHighlighterEx newHighlighter = createHighlighter(markupModel, Arrays.asList(bookmarkMarker));
+            RangeHighlighterEx newHighlighter = createHighlighter(markupModel, List.of(bookmarkMarker));
         }
     }
 
@@ -260,18 +261,6 @@ public class BookmarksHighlighters implements Disposable, IBookmarksHighlighters
                 createHighlighter(markupModel, lineMarkers);
             }
         });
-    }
-
-    private RangeHighlighterEx createHighlighter(Project project, BookmarkMarker bookmarkMarker) {
-        VirtualFile file = bookmarkMarker.getResource();
-        FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
-        Document document = fileDocumentManager.getDocument(file);
-        if (document != null) {
-            MarkupModelEx markupModel = (MarkupModelEx) DocumentMarkupModel.forDocument(document, project, true);
-            return createHighlighter(markupModel, List.of(bookmarkMarker));
-        } else {
-            return null;
-        }
     }
 
     /**

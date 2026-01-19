@@ -3,6 +3,8 @@ package mesfavoris.internal.markers;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.editor.Document;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
+import mesfavoris.internal.markers.highlighters.BookmarksHighlighters;
+import mesfavoris.internal.markers.highlighters.BookmarksHighlightersUtils;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;

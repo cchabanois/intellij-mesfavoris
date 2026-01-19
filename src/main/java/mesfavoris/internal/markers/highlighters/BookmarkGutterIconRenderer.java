@@ -1,8 +1,7 @@
-package mesfavoris.internal.markers;
+package mesfavoris.internal.markers.highlighters;
 
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.project.DumbAware;
-import com.intellij.openapi.util.Comparing;
 import mesfavoris.bookmarktype.BookmarkMarker;
 import mesfavoris.icons.MesFavorisIcons;
 import org.jetbrains.annotations.NotNull;

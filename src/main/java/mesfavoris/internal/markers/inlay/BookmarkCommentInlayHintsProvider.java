@@ -1,4 +1,4 @@
-package mesfavoris.internal.markers;
+package mesfavoris.internal.markers.inlay;
 
 import com.intellij.codeInsight.hints.*;
 import com.intellij.lang.Language;

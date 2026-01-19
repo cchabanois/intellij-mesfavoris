@@ -2,7 +2,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow id="mesfavoris" secondary="true" icon="mesfavoris.icons.MesFavorisIcons.toolWindowMesFavoris" anchor="right"
                     factoryClass="mesfavoris.internal.toolwindow.MesFavorisToolWindowFactory"/>
-        <postStartupActivity implementation="mesfavoris.internal.markers.BookmarksHighlighters$BookmarksHighlightersStartupActivity"/>
+        <postStartupActivity implementation="mesfavoris.internal.markers.highlighters.BookmarksHighlighters$BookmarksHighlightersStartupActivity"/>
         <postStartupActivity implementation="mesfavoris.internal.actions.RemoteBookmarksStoreActionsRegistrar"/>
         <postStartupActivity implementation="mesfavoris.gdrive.mappings.BookmarkMappingsStore$Initializer"/>
         <searchEverywhereContributor implementation="mesfavoris.internal.search.BookmarksSearchEverywhereContributor$Factory"/>
@@ -24,7 +24,7 @@
         <projectService serviceImplementation="mesfavoris.gdrive.connection.GDriveUserInfoStore"/>
         <projectService serviceImplementation="mesfavoris.gdrive.connection.GoogleOAuthClientConfigStore"/>
         <projectService serviceInterface="mesfavoris.markers.IBookmarksHighlighters"
-                        serviceImplementation="mesfavoris.internal.markers.BookmarksHighlighters"/>
+                        serviceImplementation="mesfavoris.internal.markers.highlighters.BookmarksHighlighters"/>
         <applicationService serviceImplementation="mesfavoris.internal.settings.placeholders.PathPlaceholdersStore"/>
         <applicationService serviceImplementation="mesfavoris.internal.settings.bookmarktypes.BookmarkTypesStore"/>
         <applicationConfigurable parentId="tools" instance="mesfavoris.internal.settings.MesFavorisConfigurable"
@@ -36,7 +36,7 @@
         <projectConfigurable parentId="mesfavoris.settings" instance="mesfavoris.gdrive.settings.GoogleDriveConfigurable"
                              id="mesfavoris.settings.googledrive" displayName="Google Drive"/>
         <!-- Bookmark comment inlay hints for all languages -->
-        <codeInsight.inlayProviderFactory implementation="mesfavoris.internal.markers.BookmarkCommentInlayHintsProviderFactory"/>
+        <codeInsight.inlayProviderFactory implementation="mesfavoris.internal.markers.inlay.BookmarkCommentInlayHintsProviderFactory"/>
 
         <!-- Color scheme definitions for bookmark comments -->
         <additionalTextAttributes scheme="Default" file="colorSchemes/BookmarkCommentDefault.xml"/>

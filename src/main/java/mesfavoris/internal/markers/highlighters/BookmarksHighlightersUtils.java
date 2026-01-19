@@ -1,4 +1,4 @@
-package mesfavoris.internal.markers;
+package mesfavoris.internal.markers.highlighters;
 
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
