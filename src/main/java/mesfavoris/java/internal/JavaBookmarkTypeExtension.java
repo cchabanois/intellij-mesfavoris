@@ -57,6 +57,7 @@ public class JavaBookmarkTypeExtension extends AbstractBookmarkTypeExtension {
                 .build());
 
         // Add providers
+        addLabelProvider(new JavaBookmarkLabelProvider(), 5);
         addPropertiesProvider(new JavaEditorBookmarkPropertiesProvider(), 20);
         addLocationProvider(new JavaTypeMemberBookmarkLocationProvider(), 20);
         addGotoBookmarkHandler(new GotoInsideJavaElementBookmark(), 20);
