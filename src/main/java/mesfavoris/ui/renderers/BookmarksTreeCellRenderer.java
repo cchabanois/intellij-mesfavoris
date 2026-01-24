@@ -35,10 +35,11 @@ public class BookmarksTreeCellRenderer extends ColoredTreeCellRenderer implement
     private final IBookmarksDirtyStateTracker bookmarksDirtyStateTracker;
     private final Color commentColor = new JBColor(new Color(63, 127, 95), new Color(63, 127, 95));
     private final IBookmarksDirtyStateListener dirtyStateListener = dirtyBookmarks -> ApplicationManager.getApplication().invokeLater(() -> {
-        if (!getTree().isShowing()) {
+        JTree tree = getTree();
+        if (tree == null || !tree.isShowing()) {
             return;
         }
-        getTree().repaint();
+        tree.repaint();
     });
     private final RemoteBookmarksStoreManager remoteBookmarksStoreManager;
 
@@ -99,7 +100,6 @@ public class BookmarksTreeCellRenderer extends ColoredTreeCellRenderer implement
 
         if (hasComment) {
             Color color = commentColor;
-            Font font = null;
             if (isDisabled) {
                 color = UIUtil.getInactiveTextColor();
             }
