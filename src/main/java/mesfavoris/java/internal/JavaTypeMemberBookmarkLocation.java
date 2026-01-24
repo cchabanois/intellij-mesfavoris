@@ -1,9 +1,10 @@
 package mesfavoris.java.internal;
 
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiMember;
-import mesfavoris.bookmarktype.IBookmarkLocation;
+import mesfavoris.bookmarktype.IFileBookmarkLocation;
 
-public class JavaTypeMemberBookmarkLocation implements IBookmarkLocation {
+public class JavaTypeMemberBookmarkLocation implements IFileBookmarkLocation {
 	private final PsiMember member;
 	private final Integer lineNumber;
 	private final Integer lineOffset;
@@ -12,6 +13,11 @@ public class JavaTypeMemberBookmarkLocation implements IBookmarkLocation {
 		this.member = member;
 		this.lineNumber = lineNumber;
 		this.lineOffset = lineOffset;
+	}
+
+	@Override
+	public VirtualFile getFile() {
+		return member.getContainingFile().getVirtualFile();
 	}
 
 	public PsiMember getMember() {

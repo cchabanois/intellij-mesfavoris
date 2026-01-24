@@ -1,16 +1,8 @@
 package mesfavoris.texteditor.internal;
 
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.ScrollType;
-import com.intellij.openapi.editor.colors.CodeInsightColors;
-import com.intellij.openapi.editor.ex.MarkupModelEx;
-import com.intellij.openapi.editor.ex.RangeHighlighterEx;
-import com.intellij.openapi.editor.impl.DocumentMarkupModel;
-import com.intellij.openapi.editor.markup.GutterIconRenderer;
-import com.intellij.openapi.editor.markup.HighlighterLayer;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
@@ -18,21 +10,16 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFocusManager;
 import mesfavoris.bookmarktype.IBookmarkLocation;
 import mesfavoris.bookmarktype.IGotoBookmark;
-import mesfavoris.icons.MesFavorisIcons;
 import mesfavoris.model.Bookmark;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class GotoWorkspaceFileBookmark implements IGotoBookmark {
 
 	@Override
 	public boolean gotoBookmark(Project project, Bookmark bookmark, IBookmarkLocation bookmarkLocation) {
-		if (!(bookmarkLocation instanceof WorkspaceFileBookmarkLocation)) {
+		if (!(bookmarkLocation instanceof WorkspaceFileBookmarkLocation workspaceFileBookmarkLocation)) {
 			return false;
 		}
-		WorkspaceFileBookmarkLocation workspaceFileBookmarkLocation = (WorkspaceFileBookmarkLocation) bookmarkLocation;
-		VirtualFile file = workspaceFileBookmarkLocation.getWorkspaceFile();
+		VirtualFile file = workspaceFileBookmarkLocation.getFile();
 		Editor editor = openEditor(project, file);
 		if (editor == null) {
 			return false;
@@ -40,33 +27,6 @@ public class GotoWorkspaceFileBookmark implements IGotoBookmark {
 		if (workspaceFileBookmarkLocation.getLineNumber() != null) {
 			gotoLine(editor, workspaceFileBookmarkLocation.getLineNumber());
 		}
-
-/*
-
-		Document document = FileDocumentManager.getInstance().getDocument(file);
-		MarkupModelEx markup = (MarkupModelEx) DocumentMarkupModel.forDocument(document, project, true);
-
-		RangeHighlighterEx highlighter = markup.addPersistentLineHighlighter(CodeInsightColors.BOOKMARKS_ATTRIBUTES, workspaceFileBookmarkLocation.getLineNumber(), HighlighterLayer.ERROR + 1);
-		if (highlighter != null) {
-			highlighter.setGutterIconRenderer(new GutterIconRenderer() {
-				@Override
-				public boolean equals(Object obj) {
-					return false;
-				}
-
-				@Override
-				public int hashCode() {
-					return 0;
-				}
-
-				@Override
-				public @NotNull Icon getIcon() {
-					return MesFavorisIcons.bookmark;
-				}
-			});
-//			highlighter.setErrorStripeTooltip(getBookmarkTooltip());
-		}
-*/
 		return true;
 	}
 

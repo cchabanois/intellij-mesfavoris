@@ -11,6 +11,7 @@ import com.intellij.util.messages.Topic;
 import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.BookmarkMarker;
 import mesfavoris.bookmarktype.IBookmarkMarkerAttributesProvider;
+import mesfavoris.bookmarktype.IFileBookmarkLocation;
 import mesfavoris.internal.jobs.BackgroundBookmarksModificationsHandler;
 import mesfavoris.internal.markers.highlighters.BookmarksHighlightersListener;
 import mesfavoris.model.Bookmark;
@@ -24,6 +25,7 @@ import mesfavoris.model.modification.BookmarksModification;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class BookmarksMarkers implements IBookmarksMarkers, Disposable {
     private final Project project;
@@ -57,21 +59,17 @@ public class BookmarksMarkers implements IBookmarksMarkers, Disposable {
             List<Bookmark> deletedBookmarks = Lists.newArrayList(bookmarkDeletedModification.getDeletedBookmarks());
             deletedBookmarks.forEach(b -> deleteMarker(b.getId()));
         } else if (event instanceof BookmarksAddedModification bookmarksAddedModification) {
-            bookmarksAddedModification.getBookmarks().forEach(this::createOrUpdateMarker);
+            bookmarksAddedModification.getBookmarks().forEach(bookmark -> createOrUpdateMarker(bookmark, Optional.empty()));
         } else if (event instanceof BookmarkPropertiesModification bookmarkPropertiesModification) {
             createOrUpdateMarker(bookmarkPropertiesModification.getTargetTree()
-                    .getBookmark(bookmarkPropertiesModification.getBookmarkId()));
+                    .getBookmark(bookmarkPropertiesModification.getBookmarkId()), Optional.empty());
         }
     }
 
-    private void createOrUpdateMarker(Bookmark bookmarkAdded) {
-        BookmarkMarker bookmarkMarker = bookmarkMarkerAttributesProvider.getMarkerDescriptor(project, bookmarkAdded, new EmptyProgressIndicator());
-        if (bookmarkMarker == null) {
-            BookmarkMarker previous = bookmarkMarkersStore.remove(bookmarkAdded.getId());
-            if (previous != null) {
-                project.getMessageBus().syncPublisher(BookmarksMarkersListener.TOPIC).bookmarkMarkerDeleted(previous);
-            }
-        } else {
+    private void createOrUpdateMarker(Bookmark bookmark, Optional<IFileBookmarkLocation> fileBookmarkLocation) {
+        BookmarkMarker bookmarkMarker = bookmarkMarkerAttributesProvider.getMarkerDescriptor(project, bookmark, fileBookmarkLocation, new EmptyProgressIndicator());
+        // if bookmarkMarker is null, we keep the existing marker if there is one
+        if (bookmarkMarker != null) {
             BookmarkMarker previous = bookmarkMarkersStore.put(bookmarkMarker);
             if (previous != null) {
                 project.getMessageBus().syncPublisher(BookmarksMarkersListener.TOPIC).bookmarkMarkerUpdated(previous, bookmarkMarker);
@@ -100,12 +98,12 @@ public class BookmarksMarkers implements IBookmarksMarkers, Disposable {
     }
 
     @Override
-    public void refreshMarker(BookmarkId bookmarkId) {
+    public void refreshMarker(BookmarkId bookmarkId, Optional<IFileBookmarkLocation> fileBookmarkLocation) {
         Bookmark bookmark = bookmarkDatabase.getBookmarksTree().getBookmark(bookmarkId);
         if (bookmark == null) {
             deleteMarker(bookmarkId);
         } else {
-            createOrUpdateMarker(bookmark);
+            createOrUpdateMarker(bookmark, fileBookmarkLocation);
         }
     }
 

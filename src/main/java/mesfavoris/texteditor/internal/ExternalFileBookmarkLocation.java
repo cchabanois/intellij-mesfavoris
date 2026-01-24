@@ -1,10 +1,13 @@
 package mesfavoris.texteditor.internal;
 
-import mesfavoris.bookmarktype.IBookmarkLocation;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import mesfavoris.bookmarktype.IFileBookmarkLocation;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 
-public class ExternalFileBookmarkLocation implements IBookmarkLocation {
+public class ExternalFileBookmarkLocation implements IFileBookmarkLocation {
 	private final Path fileSystemPath;
 	private final Integer lineNumber;
 	private final Integer lineOffset;
@@ -17,6 +20,12 @@ public class ExternalFileBookmarkLocation implements IBookmarkLocation {
 
 	public Path getFileSystemPath() {
 		return fileSystemPath;
+	}
+
+	@Override
+	@Nullable
+	public VirtualFile getFile() {
+		return LocalFileSystem.getInstance().findFileByNioFile(fileSystemPath);
 	}
 
 	public Integer getLineNumber() {
