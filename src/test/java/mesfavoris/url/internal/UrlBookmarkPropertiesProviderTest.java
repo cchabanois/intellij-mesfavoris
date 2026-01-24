@@ -20,7 +20,7 @@ public class UrlBookmarkPropertiesProviderTest extends BasePlatformTestCase {
 	private final UrlBookmarkPropertiesProvider provider = new UrlBookmarkPropertiesProvider();
 
 	public void testUrlBookmarkPropertiesProvider() throws Exception {
-		assertTitleAndFavIcon("GitHub - cchabanois/intellij-mesfavoris", "github-32x32.png",
+		assertTitleAndFavIcon("cchabanois/intellij-mesfavoris", "github-32x32.png",
 				"https://github.com/cchabanois/intellij-mesfavoris");
 	}
 
