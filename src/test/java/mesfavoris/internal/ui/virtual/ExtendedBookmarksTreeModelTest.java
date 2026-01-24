@@ -5,6 +5,8 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import mesfavoris.BookmarksException;
+import mesfavoris.commons.Adapters;
+import mesfavoris.internal.toolwindow.BookmarkTreeNode;
 import mesfavoris.internal.toolwindow.BookmarksTreeModel;
 import mesfavoris.model.*;
 import org.junit.After;
@@ -70,37 +72,39 @@ public class ExtendedBookmarksTreeModelTest extends BasePlatformTestCase {
 
         // Then
         assertThat(root).isNotNull();
-        assertThat(root).isInstanceOf(BookmarkFolder.class);
-        BookmarkFolder rootFolder = (BookmarkFolder) root;
+        assertThat(root).isInstanceOf(BookmarkTreeNode.class);
+        BookmarkFolder rootFolder = Adapters.adapt(root, BookmarkFolder.class);
+        assertThat(rootFolder).isNotNull();
         assertThat(rootFolder.getId().toString()).isEqualTo("root");
     }
 
     @Test
     public void testGetChildrenWithRegularBookmarkFolder() {
         // Given
-        BookmarkFolder rootFolder = (BookmarkFolder) extendedTreeModel.getRoot();
+        Object rootNode = extendedTreeModel.getRoot();
 
         // When
-        List<Object> children = extendedTreeModel.getChildren(rootFolder);
+        List<Object> children = extendedTreeModel.getChildren(rootNode);
 
         // Then
         assertThat(children).hasSize(2);
-        assertThat(children.get(0)).isInstanceOf(Bookmark.class);
-        assertThat(children.get(1)).isInstanceOf(Bookmark.class);
+        assertThat(Adapters.adapt(children.get(0), Bookmark.class)).isNotNull();
+        assertThat(Adapters.adapt(children.get(1), Bookmark.class)).isNotNull();
     }
 
     @Test
     public void testGetChildrenIncludesVirtualFolder() {
         // Given
-        BookmarkFolder folder1 = (BookmarkFolder) bookmarkDatabase.getBookmarksTree()
-                .getBookmark(new BookmarkId("folder1"));
+        BookmarkId folder1Id = new BookmarkId("folder1");
+        Object folder1Node = bookmarksTreeModel.getTreePathForBookmark(folder1Id).get().getLastPathComponent();
 
         // When
-        List<Object> children = extendedTreeModel.getChildren(folder1);
+        List<Object> children = extendedTreeModel.getChildren(folder1Node);
 
         // Then
         assertThat(children).hasSize(2); // 1 regular bookmark + 1 virtual folder
-        assertThat(children.stream().filter(c -> c instanceof Bookmark).count()).isEqualTo(1);
+        // Count BookmarkTreeNodes (regular bookmarks/folders from the tree)
+        assertThat(children.stream().filter(c -> c instanceof BookmarkTreeNode).count()).isEqualTo(1);
         assertThat(children.stream().filter(c -> c instanceof VirtualBookmarkFolder).count()).isEqualTo(1);
     }
 
@@ -116,18 +120,19 @@ public class ExtendedBookmarksTreeModelTest extends BasePlatformTestCase {
 
         // Then
         assertThat(children).hasSize(1);
-        assertThat(children.get(0)).isInstanceOf(BookmarkLink.class);
-        BookmarkLink bookmarkLink = (BookmarkLink) children.get(0);
-        assertThat(bookmarkLink.getBookmark().getId()).isEqualTo(bookmark1.getId());
+        assertThat(children.get(0)).isInstanceOf(BookmarkLinkNode.class);
+        BookmarkLinkNode bookmarkLinkNode = (BookmarkLinkNode) children.get(0);
+        assertThat(bookmarkLinkNode.getBookmark().getId()).isEqualTo(bookmark1.getId());
     }
 
     @Test
     public void testIsLeafWithBookmark() {
         // Given
-        Bookmark bookmark = bookmarkDatabase.getBookmarksTree().getBookmark(new BookmarkId("bookmark1"));
+        BookmarkId bookmark1Id = new BookmarkId("bookmark1");
+        Object bookmarkNode = bookmarksTreeModel.getTreePathForBookmark(bookmark1Id).get().getLastPathComponent();
 
         // When
-        boolean isLeaf = extendedTreeModel.isLeaf(bookmark);
+        boolean isLeaf = extendedTreeModel.isLeaf(bookmarkNode);
 
         // Then
         assertThat(isLeaf).isTrue();
@@ -136,11 +141,11 @@ public class ExtendedBookmarksTreeModelTest extends BasePlatformTestCase {
     @Test
     public void testIsLeafWithBookmarkFolder() {
         // Given
-        BookmarkFolder folder = (BookmarkFolder) bookmarkDatabase.getBookmarksTree()
-                .getBookmark(new BookmarkId("folder1"));
+        BookmarkId folder1Id = new BookmarkId("folder1");
+        Object folderNode = bookmarksTreeModel.getTreePathForBookmark(folder1Id).get().getLastPathComponent();
 
         // When
-        boolean isLeaf = extendedTreeModel.isLeaf(folder);
+        boolean isLeaf = extendedTreeModel.isLeaf(folderNode);
 
         // Then
         assertThat(isLeaf).isFalse();
@@ -160,9 +165,24 @@ public class ExtendedBookmarksTreeModelTest extends BasePlatformTestCase {
         // Given
         Bookmark bookmark1 = bookmarkDatabase.getBookmarksTree().getBookmark(new BookmarkId("bookmark1"));
         BookmarkLink link = new BookmarkLink(virtualFolder.getBookmarkFolder().getId(), bookmark1);
+        BookmarkLinkNode linkNode = new BookmarkLinkNode(link);
 
         // When
-        boolean isLeaf = extendedTreeModel.isLeaf(link);
+        boolean isLeaf = extendedTreeModel.isLeaf(linkNode);
+
+        // Then
+        assertThat(isLeaf).isTrue();
+    }
+
+    @Test
+    public void testIsLeafWithBookmarkLinkNode() {
+        // Given
+        Bookmark bookmark1 = bookmarkDatabase.getBookmarksTree().getBookmark(new BookmarkId("bookmark1"));
+        BookmarkLink link = new BookmarkLink(virtualFolder.getBookmarkFolder().getId(), bookmark1);
+        BookmarkLinkNode linkNode = new BookmarkLinkNode(link);
+
+        // When
+        boolean isLeaf = extendedTreeModel.isLeaf(linkNode);
 
         // Then
         assertThat(isLeaf).isTrue();

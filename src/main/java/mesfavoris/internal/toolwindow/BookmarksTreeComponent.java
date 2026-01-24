@@ -53,7 +53,8 @@ public class BookmarksTreeComponent extends Tree implements Disposable {
 
     @Override
     public String convertValueToText(Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-        if (value instanceof Bookmark bookmark) {
+        Bookmark bookmark = Adapters.adapt(value, Bookmark.class);
+        if (bookmark != null) {
             String name = bookmark.getPropertyValue(Bookmark.PROPERTY_NAME);
             if (name == null) {
                 name = "unnamed";
@@ -82,6 +83,15 @@ public class BookmarksTreeComponent extends Tree implements Disposable {
     public Bookmark getBookmark(TreePath path) {
         Object object = path.getLastPathComponent();
         return Adapters.adapt(object, Bookmark.class);
+    }
+
+    /**
+     * Refresh the tree model. This is typically called when the filter changes.
+     */
+    public void refresh() {
+        if (getModel() instanceof ExtendedBookmarksTreeModel extendedModel) {
+            extendedModel.refresh();
+        }
     }
 
     @Override

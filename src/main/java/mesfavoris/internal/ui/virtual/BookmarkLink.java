@@ -5,7 +5,7 @@ import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkId;
 
 /**
- * Link to a bookmark. We cannot have the same Bookmark in a BookmarksTree
+ * Link to a bookmark.
  * 
  * @author cchabanois
  *
@@ -28,9 +28,9 @@ public class BookmarkLink implements IAdaptable {
 	}
 
 	@Override
-	public Object getAdapter(Class adapter) {
+	public <T> T getAdapter(Class<T> adapter) {
 		if (adapter == Bookmark.class) {
-			return getBookmark();
+			return (T)getBookmark();
 		}
 		return null;
 	}
