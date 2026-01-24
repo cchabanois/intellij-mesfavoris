@@ -1,9 +1,9 @@
 package mesfavoris.texteditor.internal;
 
 import com.intellij.openapi.vfs.VirtualFile;
-import mesfavoris.bookmarktype.IBookmarkLocation;
+import mesfavoris.bookmarktype.IFileBookmarkLocation;
 
-public class WorkspaceFileBookmarkLocation implements IBookmarkLocation {
+public class WorkspaceFileBookmarkLocation implements IFileBookmarkLocation {
 	private final VirtualFile file;
 	private final Integer lineNumber;
 	private final Integer lineOffset;
@@ -13,8 +13,9 @@ public class WorkspaceFileBookmarkLocation implements IBookmarkLocation {
 		this.lineNumber = lineNumber;
 		this.lineOffset = lineOffset;
 	}
-	
-	public VirtualFile getWorkspaceFile() {
+
+	@Override
+	public VirtualFile getFile() {
 		return file;
 	}
 	

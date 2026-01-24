@@ -8,10 +8,13 @@ import mesfavoris.BookmarksException;
 import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.IBookmarkLocation;
 import mesfavoris.bookmarktype.IBookmarkLocationProvider;
+import mesfavoris.bookmarktype.IFileBookmarkLocation;
 import mesfavoris.bookmarktype.IGotoBookmark;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
+
+import java.util.Optional;
 
 public class GotoBookmarkOperation {
 	private final Project project;
@@ -37,14 +40,16 @@ public class GotoBookmarkOperation {
 		}
 		ApplicationManager.getApplication().invokeLater(() -> {
 			if (gotoBookmark.gotoBookmark(project, bookmark, bookmarkLocation)) {
-				refreshMarker(bookmark);
+				if (bookmarkLocation instanceof IFileBookmarkLocation fileBookmarkLocation) {
+					refreshMarker(bookmark, fileBookmarkLocation);
+				}
 			}
 		});
 	}
 
-	private void refreshMarker(Bookmark bookmark) {
+	private void refreshMarker(Bookmark bookmark, IFileBookmarkLocation fileBookmarkLocation) {
 		AppExecutorUtil.getAppExecutorService().submit(() -> {
-			bookmarksMarkers.refreshMarker(bookmark.getId());
+			bookmarksMarkers.refreshMarker(bookmark.getId(), Optional.of(fileBookmarkLocation));
 		});
 	}
 
