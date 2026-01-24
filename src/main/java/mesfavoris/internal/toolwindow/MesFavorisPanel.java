@@ -63,7 +63,7 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         RecentBookmarksVirtualFolder recentBookmarksVirtualFolder = new RecentBookmarksVirtualFolder(project,
                 bookmarkDatabase, bookmarksService.getRecentBookmarksProvider(), rootId, 20);
 
-        tree = new BookmarksTreeComponent(bookmarkDatabase, treeFilter, Arrays.asList(recentBookmarksVirtualFolder),this);
+        tree = new BookmarksTreeComponent(bookmarkDatabase, treeFilter, List.of(recentBookmarksVirtualFolder),this);
         bookmarksTreeCellRenderer = new BookmarksTreeCellRenderer(project, bookmarkDatabase,
                 project.getService(RemoteBookmarksStoreManager.class),
                 bookmarksService.getBookmarksDirtyStateTracker(),
@@ -178,9 +178,7 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
                 treeFilter.setSearchText(searchText);
 
                 // Refresh the tree model
-                if (tree.getModel() instanceof FilteredBookmarksTreeModel filteredModel) {
-                    filteredModel.refresh();
-                }
+                tree.refresh();
 
                 // Expand all when filtering
                 if (treeFilter.isFiltering()) {

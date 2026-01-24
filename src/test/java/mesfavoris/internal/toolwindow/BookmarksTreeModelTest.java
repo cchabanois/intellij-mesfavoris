@@ -53,21 +53,22 @@ public class BookmarksTreeModelTest extends BasePlatformTestCase {
     @Test
     public void testGetRoot() {
         // When
-        BookmarkFolder root = treeModel.getRoot();
+        BookmarkTreeNode rootNode = treeModel.getRoot();
 
         // Then
-        assertThat(root).isNotNull();
-        assertThat(root.getId().toString()).isEqualTo("root");
-        assertThat(root.getPropertyValue(Bookmark.PROPERTY_NAME)).isEqualTo("root");
+        assertThat(rootNode).isNotNull();
+        assertThat(rootNode.getBookmark()).isInstanceOf(BookmarkFolder.class);
+        assertThat(rootNode.getId().toString()).isEqualTo("root");
+        assertThat(rootNode.getBookmark().getPropertyValue(Bookmark.PROPERTY_NAME)).isEqualTo("root");
     }
 
     @Test
     public void testGetChildrenWithBookmarkFolder() {
         // Given
-        BookmarkFolder rootFolder = treeModel.getRoot();
+        BookmarkTreeNode rootNode = treeModel.getRoot();
 
         // When
-        List<Bookmark> children = treeModel.getChildren(rootFolder);
+        List<BookmarkTreeNode> children = treeModel.getChildren(rootNode);
 
         // Then
         assertThat(children).hasSize(2);
@@ -78,10 +79,10 @@ public class BookmarksTreeModelTest extends BasePlatformTestCase {
     @Test
     public void testGetChildrenWithNonFolder() {
         // Given
-        Bookmark bookmark = bookmark("bookmark1").build();
+        BookmarkTreeNode bookmarkNode = new BookmarkTreeNode(bookmark("bookmark1").build());
 
         // When
-        List<Bookmark> children = treeModel.getChildren(bookmark);
+        List<BookmarkTreeNode> children = treeModel.getChildren(bookmarkNode);
 
         // Then
         assertThat(children).isEmpty();
@@ -90,10 +91,10 @@ public class BookmarksTreeModelTest extends BasePlatformTestCase {
     @Test
     public void testIsLeafWithBookmarkFolder() {
         // Given
-        BookmarkFolder folder = bookmarkFolder("folder").build();
+        BookmarkTreeNode folderNode = new BookmarkTreeNode(bookmarkFolder("folder").build());
 
         // When
-        boolean isLeaf = treeModel.isLeaf(folder);
+        boolean isLeaf = treeModel.isLeaf(folderNode);
 
         // Then
         assertThat(isLeaf).isFalse();
@@ -102,10 +103,10 @@ public class BookmarksTreeModelTest extends BasePlatformTestCase {
     @Test
     public void testIsLeafWithBookmark() {
         // Given
-        Bookmark bookmark = bookmark("bookmark").build();
+        BookmarkTreeNode bookmarkNode = new BookmarkTreeNode(bookmark("bookmark").build());
 
         // When
-        boolean isLeaf = treeModel.isLeaf(bookmark);
+        boolean isLeaf = treeModel.isLeaf(bookmarkNode);
 
         // Then
         assertThat(isLeaf).isTrue();
@@ -123,24 +124,8 @@ public class BookmarksTreeModelTest extends BasePlatformTestCase {
         assertThat(optionalTreePath).isPresent();
         TreePath treePath = optionalTreePath.get();
         assertThat(treePath.getPathCount()).isEqualTo(2);
-        assertThat(((Bookmark) treePath.getPathComponent(0)).getId().toString()).isEqualTo("root");
-        assertThat(((Bookmark) treePath.getPathComponent(1)).getId().toString()).isEqualTo("folder1");
-    }
-
-    @Test
-    public void testGetTreePathForBookmarkWithBookmark() {
-        // Given
-        Bookmark bookmark = bookmarkDatabase.getBookmarksTree().getBookmark(new BookmarkId("folder1"));
-
-        // When
-        Optional<TreePath> optionalTreePath = treeModel.getTreePathForBookmark(bookmark);
-
-        // Then
-        assertThat(optionalTreePath).isPresent();
-        TreePath treePath = optionalTreePath.get();
-        assertThat(treePath.getPathCount()).isEqualTo(2);
-        assertThat(((Bookmark) treePath.getPathComponent(0)).getId().toString()).isEqualTo("root");
-        assertThat(((Bookmark) treePath.getPathComponent(1)).getId().toString()).isEqualTo("folder1");
+        assertThat(((BookmarkTreeNode) treePath.getPathComponent(0)).getId().toString()).isEqualTo("root");
+        assertThat(((BookmarkTreeNode) treePath.getPathComponent(1)).getId().toString()).isEqualTo("folder1");
     }
 
     @Test
@@ -176,31 +161,33 @@ public class BookmarksTreeModelTest extends BasePlatformTestCase {
         // Given
         BookmarkId parentId = new BookmarkId("folder1");
         Bookmark newBookmark = bookmark("newBookmark").build();
-        int initialChildrenCount = treeModel.getChildren(bookmarkDatabase.getBookmarksTree().getBookmark(parentId)).size();
+        TreePath parentPath = treeModel.getTreePathForBookmark(parentId).get();
+        BookmarkTreeNode parentNode = treeModel.getBookmarkTreeNode(parentPath);
+        int initialChildrenCount = treeModel.getChildren(parentNode).size();
 
         // When
         addBookmarkToDatabase(parentId, newBookmark);
 
         // Then
-        List<Bookmark> children = treeModel.getChildren(bookmarkDatabase.getBookmarksTree().getBookmark(parentId));
+        List<BookmarkTreeNode> children = treeModel.getChildren(parentNode);
         assertThat(children).hasSize(initialChildrenCount + 1);
-        assertThat(children.stream().anyMatch(b -> b.getId().equals(newBookmark.getId()))).isTrue();
+        assertThat(children.stream().anyMatch(node -> node.getId().equals(newBookmark.getId()))).isTrue();
     }
 
     @Test
     public void testBookmarksListenerOnBookmarkDeleted() throws Exception {
         // Given
         BookmarkId bookmarkToDeleteId = new BookmarkId("folder2");
-        BookmarkFolder rootFolder = treeModel.getRoot();
-        int initialChildrenCount = treeModel.getChildren(rootFolder).size();
+        BookmarkTreeNode rootNode = treeModel.getRoot();
+        int initialChildrenCount = treeModel.getChildren(rootNode).size();
 
         // When
         deleteBookmarkFromDatabase(bookmarkToDeleteId);
 
         // Then
-        List<Bookmark> children = treeModel.getChildren(rootFolder);
+        List<BookmarkTreeNode> children = treeModel.getChildren(rootNode);
         assertThat(children).hasSize(initialChildrenCount - 1);
-        assertThat(children.stream().noneMatch(b -> b.getId().equals(bookmarkToDeleteId))).isTrue();
+        assertThat(children.stream().noneMatch(node -> node.getId().equals(bookmarkToDeleteId))).isTrue();
     }
 
     @Test

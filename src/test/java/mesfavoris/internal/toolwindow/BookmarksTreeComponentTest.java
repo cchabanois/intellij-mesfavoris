@@ -16,6 +16,7 @@ import javax.swing.tree.TreePath;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
 
+import static com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue;
 import static mesfavoris.tests.commons.bookmarks.BookmarkBuilder.bookmark;
 import static mesfavoris.tests.commons.bookmarks.BookmarksTreeBuilder.bookmarksTree;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -65,9 +66,10 @@ public class BookmarksTreeComponentTest extends BasePlatformTestCase {
 
         // Then: Wait for the tree model to process the change and verify the result
         String displayText = Waiter.waitUntil("convertValueToText should return the new name", () -> {
+            dispatchAllEventsInIdeEventQueue();
             TreePath updatedTreePath = treeComponent.getTreePathForBookmark(testBookmarkId).orElseThrow();
-            Bookmark updatedBookmark = treeComponent.getBookmark(updatedTreePath);
-            String result = treeComponent.convertValueToText(updatedBookmark, false, false, true, 0, false);
+            Object treeNode = updatedTreePath.getLastPathComponent();
+            String result = treeComponent.convertValueToText(treeNode, false, false, true, 0, false);
             return "New Name".equals(result) ? result : null;
         });
 

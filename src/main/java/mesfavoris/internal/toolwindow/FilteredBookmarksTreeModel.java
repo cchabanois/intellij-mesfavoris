@@ -2,7 +2,6 @@ package mesfavoris.internal.toolwindow;
 
 import com.intellij.openapi.Disposable;
 import mesfavoris.internal.toolwindow.search.BookmarksTreeFilter;
-import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 
 import javax.swing.tree.TreePath;
@@ -21,16 +20,16 @@ public class FilteredBookmarksTreeModel extends BookmarksTreeModel {
     }
 
     @Override
-    public List<Bookmark> getChildren(Object parent) {
-        List<Bookmark> children = super.getChildren(parent);
-        
+    public List<BookmarkTreeNode> getChildren(Object parent) {
+        List<BookmarkTreeNode> children = super.getChildren(parent);
+
         if (!filter.isFiltering()) {
             return children;
         }
 
         // Filter children to only show visible ones
         return children.stream()
-                .filter(filter::isVisible)
+                .filter(node -> filter.isVisible(node.getBookmark()))
                 .collect(Collectors.toList());
     }
 
