@@ -16,6 +16,7 @@ public class JavaBookmarkProperties {
 	public static final String KIND_METHOD = "method";
 	public static final String KIND_INTERFACE = "interface";
 	public static final String KIND_ENUM = "enum";
+	public static final String KIND_RECORD = "record";
 	public static final String KIND_ANNOTATION = "annotation";
 	public static final String KIND_CLASS = "class";
 	public static final String KIND_TYPE = "type";
