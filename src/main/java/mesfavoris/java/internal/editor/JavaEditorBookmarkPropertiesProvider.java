@@ -90,9 +90,10 @@ public class JavaEditorBookmarkPropertiesProvider extends AbstractBookmarkProper
 		putIfAbsent(bookmarkProperties, PROP_JAVA_ELEMENT_NAME, member.getName());
 
 		PsiClass containingClass = member.getContainingClass();
-		if (containingClass != null) {
-			String qualifiedName = containingClass.getQualifiedName();
-			putIfAbsent(bookmarkProperties, PROP_JAVA_DECLARING_TYPE, qualifiedName);
+		String declaringType = containingClass != null && containingClass.getQualifiedName() != null ? containingClass.getQualifiedName() : null;
+
+		if (declaringType != null) {
+			putIfAbsent(bookmarkProperties, PROP_JAVA_DECLARING_TYPE, declaringType);
 		}
 
 		putIfAbsent(bookmarkProperties, PROP_JAVA_ELEMENT_KIND, getKind(member));
@@ -100,8 +101,12 @@ public class JavaEditorBookmarkPropertiesProvider extends AbstractBookmarkProper
 		if (member instanceof PsiMethod method) {
             putIfAbsent(bookmarkProperties, PROP_JAVA_METHOD_SIGNATURE,
 					JavaEditorUtils.getMethodSimpleSignature(method));
-			putIfAbsent(bookmarkProperties, PROPERTY_NAME,
-					bookmarkProperties.get(PROP_JAVA_DECLARING_TYPE) + '.' + member.getName() + "()");
+			if (declaringType != null) {
+				putIfAbsent(bookmarkProperties, PROPERTY_NAME,
+						declaringType + '.' + member.getName() + "()");
+			} else {
+				putIfAbsent(bookmarkProperties, PROPERTY_NAME, member.getName() + "()");
+			}
 		}
 
 		if (member instanceof PsiClass type) {
@@ -111,8 +116,12 @@ public class JavaEditorBookmarkPropertiesProvider extends AbstractBookmarkProper
 		}
 
 		if (member instanceof PsiField) {
-			putIfAbsent(bookmarkProperties, PROPERTY_NAME,
-					bookmarkProperties.get(PROP_JAVA_DECLARING_TYPE) + '.' + member.getName());
+			if (declaringType != null) {
+				putIfAbsent(bookmarkProperties, PROPERTY_NAME,
+						declaringType + '.' + member.getName());
+			} else {
+				putIfAbsent(bookmarkProperties, PROPERTY_NAME, member.getName());
+			}
 		}
 
 		// Fallback name
@@ -135,6 +144,9 @@ public class JavaEditorBookmarkPropertiesProvider extends AbstractBookmarkProper
 			}
 			if (psiClass.isEnum()) {
 				return KIND_ENUM;
+			}
+			if (psiClass.isRecord()) {
+				return KIND_RECORD;
 			}
 			return KIND_CLASS;
 		}

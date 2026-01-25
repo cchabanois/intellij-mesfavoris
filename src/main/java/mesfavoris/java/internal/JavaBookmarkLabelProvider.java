@@ -37,6 +37,9 @@ public class JavaBookmarkLabelProvider extends AbstractBookmarkLabelProvider {
 		if (KIND_TYPE.equals(kind)) {
 			return AllIcons.Nodes.Class;
 		}
+		if (KIND_RECORD.equals(kind)) {
+			return AllIcons.Nodes.Record;
+		}
 		return null;
 	}
 
