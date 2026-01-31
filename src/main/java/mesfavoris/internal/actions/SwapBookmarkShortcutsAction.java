@@ -6,9 +6,12 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
+import com.intellij.openapi.keymap.KeymapUtil;
+import com.intellij.openapi.keymap.ex.KeymapManagerEx;
 import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
 
+import java.text.MessageFormat;
 import java.util.Arrays;
 
 /**
@@ -35,7 +38,10 @@ public class SwapBookmarkShortcutsAction extends AnAction {
             return;
         }
 
-        Keymap activeKeymap = keymapManager.getActiveKeymap();
+        Keymap activeKeymap = ensureModifiableKeymap(keymapManager);
+        if (activeKeymap == null) {
+            return;
+        }
 
         // Get current shortcuts
         Shortcut[] intellijToggleShortcuts = activeKeymap.getShortcuts(INTELLIJ_TOGGLE_BOOKMARK);
@@ -60,6 +66,32 @@ public class SwapBookmarkShortcutsAction extends AnAction {
         Messages.showInfoMessage(message, "Bookmark Shortcuts Swapped");
     }
 
+    private Keymap ensureModifiableKeymap(KeymapManager keymapManager) {
+        Keymap activeKeymap = keymapManager.getActiveKeymap();
+        if (activeKeymap.canModify()) {
+            return activeKeymap;
+        }
+
+        int result = Messages.showYesNoDialog(
+                MessageFormat.format("The current keymap ''{0}'' is read-only.\nWould you like to create a modifiable copy to swap the shortcuts?", activeKeymap.getPresentableName()),
+                "Create Keymap Copy",
+                Messages.getQuestionIcon()
+        );
+
+        if (result != Messages.YES) {
+            return null;
+        }
+
+        // Create a copy with a meaningful name
+        Keymap newKeymap = activeKeymap.deriveKeymap(activeKeymap.getName() + " (Mes Favoris)");
+        if (keymapManager instanceof KeymapManagerEx) {
+            KeymapManagerEx keymapManagerEx = (KeymapManagerEx) keymapManager;
+            keymapManagerEx.getSchemeManager().addScheme(newKeymap, true);
+            keymapManagerEx.setActiveKeymap(newKeymap);
+        }
+        return newKeymap;
+    }
+
     private void removeAllShortcuts(Keymap keymap, String actionId, Shortcut[] shortcuts) {
         for (Shortcut shortcut : shortcuts) {
             keymap.removeShortcut(actionId, shortcut);
@@ -77,9 +109,11 @@ public class SwapBookmarkShortcutsAction extends AnAction {
         String mesfavorisShortcutText = formatShortcuts(mesfavorisShortcuts);
 
         return String.format(
-            "Bookmark shortcuts have been swapped:\n\n" +
-            "IntelliJ Bookmarks now use: %s\n" +
-            "Mes Favoris now use: %s",
+                """
+                        Bookmark shortcuts have been swapped:
+                        
+                        IntelliJ Bookmarks now use: %s
+                        Mes Favoris now use: %s""",
             mesfavorisShortcutText.isEmpty() ? "(none)" : mesfavorisShortcutText,
             intellijShortcutText.isEmpty() ? "(none)" : intellijShortcutText
         );
@@ -90,7 +124,7 @@ public class SwapBookmarkShortcutsAction extends AnAction {
             return "";
         }
         return Arrays.stream(shortcuts)
-            .map(com.intellij.openapi.keymap.KeymapUtil::getShortcutText)
+            .map(KeymapUtil::getShortcutText)
             .reduce((a, b) -> a + ", " + b)
             .orElse("");
     }
