@@ -13,10 +13,12 @@ import java.util.List;
  */
 @SuppressWarnings("UnstableApiUsage")
 public class BookmarkCommentInlayHintsProviderFactory implements InlayHintsProviderFactory {
+    private final BookmarkCommentInlayHintsProvider bookmarkCommentInlayHintsProvider = new BookmarkCommentInlayHintsProvider();
 
     @Override
     public @NotNull List<InlayHintsProvider<?>> getProvidersInfoForLanguage(@NotNull Language language) {
-        return List.of(new BookmarkCommentInlayHintsProvider());
+        return List.of(bookmarkCommentInlayHintsProvider);
     }
+
 }
 
