@@ -11,6 +11,7 @@ import com.intellij.openapi.editor.ex.util.EditorUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.util.PsiUtilCore;
 import mesfavoris.markers.IBookmarksHighlighters;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkId;
@@ -41,7 +42,12 @@ class BookmarkCommentInlayHintsCollector extends FactoryInlayHintsCollector {
     @Override
     public boolean collect(@NotNull PsiElement element, @NotNull Editor editor, @NotNull InlayHintsSink sink) {
         // Only process the root element (PsiFile) to avoid processing highlighters multiple times
-        if (!(element instanceof PsiFile)) {
+        if (!(element instanceof PsiFile psiFile)) {
+            return true;
+        }
+
+        // Avoid duplication in case of injected languages (like in Markdown files)
+        if (PsiUtilCore.getTemplateLanguageFile(psiFile) != psiFile) {
             return true;
         }
 
