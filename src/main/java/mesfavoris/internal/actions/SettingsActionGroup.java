@@ -1,9 +1,6 @@
 package mesfavoris.internal.actions;
 
-import com.intellij.openapi.actionSystem.ActionUpdateThread;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import mesfavoris.remote.IRemoteBookmarksStore;
@@ -20,12 +17,14 @@ public class SettingsActionGroup extends DefaultActionGroup implements DumbAware
     private final SettingsAction settingsAction;
     private final ManagePlaceholdersAction managePlaceholdersAction;
     private final SwapBookmarkShortcutsAction swapShortcutsAction;
+    private final ToggleBookmarkCommentInlayHintsAction toggleInlayHintsAction;
 
     public SettingsActionGroup() {
         super("Settings", true);
         this.settingsAction = new SettingsAction();
         this.managePlaceholdersAction = new ManagePlaceholdersAction();
         this.swapShortcutsAction = new SwapBookmarkShortcutsAction();
+        this.toggleInlayHintsAction = new ToggleBookmarkCommentInlayHintsAction();
         getTemplatePresentation().setPopupGroup(true);
     }
 
@@ -40,6 +39,9 @@ public class SettingsActionGroup extends DefaultActionGroup implements DumbAware
         actions.add(settingsAction);
         actions.add(managePlaceholdersAction);
         actions.add(swapShortcutsAction);
+        actions.add(new Separator());
+        actions.add(toggleInlayHintsAction);
+        actions.add(new Separator());
 
         // Add delete credentials actions for each remote store
         Project project = event.getProject();
