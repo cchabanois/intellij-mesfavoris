@@ -20,17 +20,24 @@ import javax.swing.*;
  * Provides inlay hints that display bookmark comments above the bookmarked lines
  */
 @SuppressWarnings("UnstableApiUsage")
-public class BookmarkCommentInlayHintsProvider implements InlayHintsProvider<NoSettings> {
+public class BookmarkCommentInlayHintsProvider implements InlayHintsProvider<BookmarkCommentInlayHintsSettings> {
+
+    public static final SettingsKey<BookmarkCommentInlayHintsSettings> KEY = new SettingsKey<>("mesfavoris.bookmark.comments.hints");
 
     @Override
     public boolean isVisibleInSettings() {
-        return true;
+        return false;
     }
 
     @NotNull
     @Override
-    public SettingsKey<NoSettings> getKey() {
-        return new SettingsKey<>("bookmark.comments.hints");
+    public SettingsKey<BookmarkCommentInlayHintsSettings> getKey() {
+        return KEY;
+    }
+
+    @Override
+    public @NotNull Language getSettingsLanguage(@NotNull Language language) {
+        return Language.ANY;
     }
 
     @NotNull
@@ -52,7 +59,7 @@ public class BookmarkCommentInlayHintsProvider implements InlayHintsProvider<NoS
 
     @NotNull
     @Override
-    public ImmediateConfigurable createConfigurable(@NotNull NoSettings settings) {
+    public ImmediateConfigurable createConfigurable(@NotNull BookmarkCommentInlayHintsSettings settings) {
         return new ImmediateConfigurable() {
             @NotNull
             @Override
@@ -70,16 +77,19 @@ public class BookmarkCommentInlayHintsProvider implements InlayHintsProvider<NoS
 
     @NotNull
     @Override
-    public NoSettings createSettings() {
-        return new NoSettings();
+    public BookmarkCommentInlayHintsSettings createSettings() {
+        return new BookmarkCommentInlayHintsSettings(true);
     }
 
     @Nullable
     @Override
     public InlayHintsCollector getCollectorFor(@NotNull PsiFile file,
                                                 @NotNull Editor editor,
-                                                @NotNull NoSettings settings,
+                                                @NotNull BookmarkCommentInlayHintsSettings settings,
                                                 @NotNull InlayHintsSink sink) {
+        if (!settings.enabled()) {
+            return null;
+        }
         Project project = file.getProject();
         Document document = editor.getDocument();
         VirtualFile virtualFile = FileDocumentManager.getInstance().getFile(document);

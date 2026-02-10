@@ -5,6 +5,11 @@
             <keyboard-shortcut keymap="$default" first-keystroke="alt EQUALS"/>
             <add-to-group group-id="EditorGutterPopupMenu" anchor="first"/>
         </action>
+        <action id="mesfavoris.actions.ToggleBookmarkCommentInlayHintsAction"
+                class="mesfavoris.internal.actions.ToggleBookmarkCommentInlayHintsAction"
+                text="Toggle Bookmark Comment Hints" description="Show/Hide bookmark comment inlay hints">
+            <add-to-group group-id="EditorGutterPopupMenu" anchor="after" relative-to-action="mesfavoris.actions.AddBookmarkAction"/>
+        </action>
         <action id="mesfavoris.actions.ShowBookmarksAction"
                 class="mesfavoris.internal.actions.ShowBookmarksAction"
                 text="Show Bookmarks" description="Select bookmark at caret or show Mes Favoris tool window">
