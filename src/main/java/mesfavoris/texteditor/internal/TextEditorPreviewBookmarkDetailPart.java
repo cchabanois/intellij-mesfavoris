@@ -2,6 +2,9 @@ package mesfavoris.texteditor.internal;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.*;
+import com.intellij.openapi.editor.ex.EditorEx;
+import com.intellij.openapi.editor.highlighter.EditorHighlighter;
+import com.intellij.openapi.editor.highlighter.EditorHighlighterFactory;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -113,6 +116,10 @@ public class TextEditorPreviewBookmarkDetailPart extends AbstractBookmarkDetailP
         if (document != null) {
             // Create a read-only viewer
             currentEditor = EditorFactory.getInstance().createViewer(document, project);
+            if (currentEditor instanceof EditorEx currentEditorEx) {
+                EditorHighlighter highlighter = EditorHighlighterFactory.getInstance().createEditorHighlighter(project, file);
+                currentEditorEx.setHighlighter(highlighter);
+            }
             applyEditorSettings(currentEditor.getSettings());
             
             mainPanel.add(currentEditor.getComponent(), BorderLayout.CENTER);
