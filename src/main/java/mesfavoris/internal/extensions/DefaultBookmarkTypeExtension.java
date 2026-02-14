@@ -4,6 +4,7 @@ import mesfavoris.extensions.AbstractBookmarkTypeExtension;
 import mesfavoris.internal.ui.details.CommentBookmarkDetailPart;
 import mesfavoris.internal.ui.details.BookmarkPropertiesDetailPart;
 import mesfavoris.internal.ui.details.MarkerBookmarkDetailPart;
+import mesfavoris.internal.ui.details.PreviewBookmarkDetailPart;
 import mesfavoris.model.Bookmark;
 import mesfavoris.ui.renderers.BookmarkFolderLabelProvider;
 
@@ -45,6 +46,7 @@ public class DefaultBookmarkTypeExtension extends AbstractBookmarkTypeExtension 
         addDetailPartProvider(CommentBookmarkDetailPart::new);
         addDetailPartProvider(BookmarkPropertiesDetailPart::new);
         addDetailPartProvider(MarkerBookmarkDetailPart::new);
+        addDetailPartProvider(PreviewBookmarkDetailPart::new);
 
     }
 }
