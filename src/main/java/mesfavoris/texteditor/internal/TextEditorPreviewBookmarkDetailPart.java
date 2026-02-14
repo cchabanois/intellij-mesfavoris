@@ -1,4 +1,4 @@
-package mesfavoris.internal.ui.details;
+package mesfavoris.texteditor.internal;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.*;
@@ -10,6 +10,7 @@ import mesfavoris.bookmarktype.IBookmarkLocation;
 import mesfavoris.bookmarktype.IBookmarkLocationProvider;
 import mesfavoris.bookmarktype.IFileBookmarkLocation;
 import mesfavoris.internal.bookmarktypes.extension.ExtensionBookmarkLocationProvider;
+import mesfavoris.internal.ui.details.AbstractBookmarkDetailPart;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.service.IBookmarksService;
@@ -18,16 +19,20 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
-public class PreviewBookmarkDetailPart extends AbstractBookmarkDetailPart {
+import static mesfavoris.java.JavaBookmarkProperties.PROP_JAVA_ELEMENT_NAME;
+import static mesfavoris.texteditor.TextEditorBookmarkProperties.PROP_FILE_PATH;
+import static mesfavoris.texteditor.TextEditorBookmarkProperties.PROP_WORKSPACE_PATH;
+
+public class TextEditorPreviewBookmarkDetailPart extends AbstractBookmarkDetailPart {
     private JPanel mainPanel;
     private Editor currentEditor;
     private final IBookmarkLocationProvider locationProvider;
 
-    public PreviewBookmarkDetailPart(Project project) {
+    public TextEditorPreviewBookmarkDetailPart(Project project) {
         this(project, project.getService(IBookmarksService.class).getBookmarkDatabase());
     }
 
-    public PreviewBookmarkDetailPart(Project project, BookmarkDatabase bookmarkDatabase) {
+    public TextEditorPreviewBookmarkDetailPart(Project project, BookmarkDatabase bookmarkDatabase) {
         super(project, bookmarkDatabase);
         this.locationProvider = new ExtensionBookmarkLocationProvider();
     }
@@ -152,7 +157,12 @@ public class PreviewBookmarkDetailPart extends AbstractBookmarkDetailPart {
 
     @Override
     public boolean canHandle(@Nullable Bookmark bookmark) {
-        return true;
+        if (bookmark == null) {
+            return false;
+        }
+        return bookmark.getPropertyValue(PROP_WORKSPACE_PATH) != null ||
+               bookmark.getPropertyValue(PROP_FILE_PATH) != null ||
+               bookmark.getPropertyValue(PROP_JAVA_ELEMENT_NAME) != null;
     }
 
     @Override

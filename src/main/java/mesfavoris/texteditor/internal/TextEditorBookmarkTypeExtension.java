@@ -53,5 +53,6 @@ public class TextEditorBookmarkTypeExtension extends AbstractBookmarkTypeExtensi
         addLocationProvider(new ExternalFileBookmarkLocationProvider(pathPlaceholderResolver), 100);
         addGotoBookmarkHandler(new GotoWorkspaceFileBookmark(), 100);
         addGotoBookmarkHandler(new GotoExternalFileBookmark(), 100);
+        addDetailPartProvider(TextEditorPreviewBookmarkDetailPart::new);
     }
 }
