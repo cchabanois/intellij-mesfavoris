@@ -5,6 +5,8 @@ import com.intellij.openapi.editor.*;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.highlighter.EditorHighlighter;
 import com.intellij.openapi.editor.highlighter.EditorHighlighterFactory;
+import com.intellij.openapi.editor.markup.MarkupModel;
+import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -22,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
+import static com.intellij.openapi.editor.markup.HighlighterLayer.SELECTION;
 import static mesfavoris.java.JavaBookmarkProperties.PROP_JAVA_ELEMENT_NAME;
 import static mesfavoris.texteditor.TextEditorBookmarkProperties.PROP_FILE_PATH;
 import static mesfavoris.texteditor.TextEditorBookmarkProperties.PROP_WORKSPACE_PATH;
@@ -132,6 +135,12 @@ public class TextEditorPreviewBookmarkDetailPart extends AbstractBookmarkDetailP
                         if (currentEditor != null && !currentEditor.isDisposed()) {
                             currentEditor.getCaretModel().moveToLogicalPosition(new LogicalPosition(lineIndex, 0));
                             currentEditor.getScrollingModel().scrollToCaret(ScrollType.CENTER);
+                            
+                            // Highlight the line
+                            MarkupModel markupModel = currentEditor.getMarkupModel();
+                            TextAttributes attributes = new TextAttributes();
+                            attributes.setBackgroundColor(new Color(255, 220, 180)); // Light orange
+                            markupModel.addLineHighlighter(lineIndex, SELECTION - 1, attributes);
                         }
                     });
                 }
