@@ -1,6 +1,8 @@
 package mesfavoris.texteditor.internal;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.*;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.highlighter.EditorHighlighter;
@@ -8,10 +10,11 @@ import com.intellij.openapi.editor.highlighter.EditorHighlighterFactory;
 import com.intellij.openapi.editor.markup.MarkupModel;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import mesfavoris.bookmarktype.IBookmarkLocation;
+import com.intellij.ui.JBColor;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import mesfavoris.bookmarktype.IBookmarkLocationProvider;
 import mesfavoris.bookmarktype.IFileBookmarkLocation;
 import mesfavoris.internal.bookmarktypes.extension.ExtensionBookmarkLocationProvider;
@@ -86,30 +89,30 @@ public class TextEditorPreviewBookmarkDetailPart extends AbstractBookmarkDetailP
             return;
         }
 
-        ApplicationManager.getApplication().executeOnPooledThread(() -> {
-            IBookmarkLocation location;
+        ReadAction.nonBlocking(() -> {
             try {
-                location = locationProvider.getBookmarkLocation(project, bookmark, new EmptyProgressIndicator());
+                return locationProvider.getBookmarkLocation(project, bookmark, ProgressManager.getInstance().getProgressIndicator());
             } catch (Exception e) {
-                location = null;
+                return null;
             }
+        })
+        .coalesceBy(this)
+        .expireWith(this)
+        .finishOnUiThread(ModalityState.defaultModalityState(), location -> {
+            if (location instanceof IFileBookmarkLocation fileBookmarkLocation) {
+                VirtualFile file = fileBookmarkLocation.getFile();
+                Integer line = fileBookmarkLocation.getLineNumber();
 
-            final IBookmarkLocation finalLocation = location;
-            ApplicationManager.getApplication().invokeLater(() -> {
-                if (finalLocation instanceof IFileBookmarkLocation fileBookmarkLocation) {
-                    VirtualFile file = fileBookmarkLocation.getFile();
-                    Integer line = fileBookmarkLocation.getLineNumber();
-
-                    if (file != null && file.isValid()) {
-                        showFilePreview(file, line);
-                    } else {
-                        clearPreview();
-                    }
+                if (file != null && file.isValid()) {
+                    showFilePreview(file, line);
                 } else {
                     clearPreview();
                 }
-            });
-        });
+            } else {
+                clearPreview();
+            }
+        })
+        .submit(AppExecutorUtil.getAppExecutorService());
     }
 
     private void showFilePreview(VirtualFile file, @Nullable Integer line) {
@@ -139,7 +142,8 @@ public class TextEditorPreviewBookmarkDetailPart extends AbstractBookmarkDetailP
                             // Highlight the line
                             MarkupModel markupModel = currentEditor.getMarkupModel();
                             TextAttributes attributes = new TextAttributes();
-                            attributes.setBackgroundColor(new Color(255, 220, 180)); // Light orange
+                            // Light orange for light theme, Dark Brownish-Orange for dark theme
+                            attributes.setBackgroundColor(new JBColor(new Color(255, 220, 180), new Color(85, 55, 20))); 
                             markupModel.addLineHighlighter(lineIndex, SELECTION - 1, attributes);
                         }
                     });
