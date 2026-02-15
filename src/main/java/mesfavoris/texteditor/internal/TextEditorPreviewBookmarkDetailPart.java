@@ -57,9 +57,11 @@ public class TextEditorPreviewBookmarkDetailPart extends AbstractBookmarkDetailP
             EditorFactory.getInstance().releaseEditor(currentEditor);
             currentEditor = null;
         }
-        mainPanel.removeAll();
-        mainPanel.revalidate();
-        mainPanel.repaint();
+        if (mainPanel != null) {
+            mainPanel.removeAll();
+            mainPanel.revalidate();
+            mainPanel.repaint();
+        }
     }
 
     private void applyEditorSettings(EditorSettings settings) {
