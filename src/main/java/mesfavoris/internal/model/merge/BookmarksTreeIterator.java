@@ -1,30 +1,27 @@
 package mesfavoris.internal.model.merge;
 
-import java.util.ArrayDeque;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkFolder;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.BookmarksTree;
 
+import java.util.*;
+
 public class BookmarksTreeIterator implements Iterator<Bookmark> {
 	private final BookmarksTree bookmarksTree;
 	private final Algorithm algorithm;
-	private final Deque<BookmarkIterator> stack = new ArrayDeque<BookmarkIterator>();
+	private final Deque<BookmarkIterator> stack = new ArrayDeque<>();
 
-	public static enum Algorithm {
+	public enum Algorithm {
 		PRE_ORDER, POST_ORDER
 	}
 
 	public BookmarksTreeIterator(BookmarksTree bookmarksTree, BookmarkId bookmarkId, Algorithm algorithm) {
 		this.bookmarksTree = bookmarksTree;
 		this.algorithm = algorithm;
-		stack.push(new BookmarkIterator(bookmarksTree.getBookmark(bookmarkId), true));
+		if (bookmarksTree.getBookmark(bookmarkId) != null) {
+			stack.push(new BookmarkIterator(bookmarksTree.getBookmark(bookmarkId), true));
+		}
 	}
 
 	@Override
@@ -33,7 +30,7 @@ public class BookmarksTreeIterator implements Iterator<Bookmark> {
 	}
 
 	private Optional<BookmarkIterator> getCurrentIterator() {
-		BookmarkIterator currentIterator  = null;
+		BookmarkIterator currentIterator;
 		do {
 			if (stack.isEmpty()) {
 				return Optional.empty();
@@ -50,7 +47,7 @@ public class BookmarksTreeIterator implements Iterator<Bookmark> {
 	public Bookmark next() {
 		Bookmark nextBookmark = null;
 		while (nextBookmark == null) {
-			Bookmark bookmark = null;
+			Bookmark bookmark;
 			BookmarkIterator currentIterator  = getCurrentIterator().orElseThrow(NoSuchElementException::new);
 			bookmark = currentIterator.next();
 			if (bookmark instanceof BookmarkFolder && currentIterator.goInside) {

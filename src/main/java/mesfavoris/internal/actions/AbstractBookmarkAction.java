@@ -94,6 +94,10 @@ public abstract class AbstractBookmarkAction extends AnAction implements DumbAwa
         return true;
     }
 
+    protected boolean canBeModified(Project project, final Bookmark bookmark) {
+        return canAllBeModified(project, Collections.singletonList(bookmark));
+    }
+
     protected boolean containsRemoteBookmarkFolder(Project project, final List<Bookmark> bookmarks) {
         RemoteBookmarksStoreManager remoteBookmarksStoreManager = project.getService(RemoteBookmarksStoreManager.class);
         for (Bookmark bookmark : bookmarks) {
