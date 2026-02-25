@@ -12,7 +12,6 @@ import com.intellij.util.Consumer;
 import mesfavoris.BookmarksException;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkFolder;
-import mesfavoris.model.BookmarkId;
 import mesfavoris.service.IBookmarksService;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,20 +27,20 @@ public class NewBookmarkFolderAction extends AbstractBookmarkAction {
 
     @Override
     public void update(@NotNull AnActionEvent event) {
-        BookmarkId parentId = getParentId(event);
-        event.getPresentation().setEnabledAndVisible(parentId != null);
+        BookmarkFolder parentBookmarkFolder = getParentBookmarkFolder(event);
+        event.getPresentation().setEnabledAndVisible(parentBookmarkFolder != null && canBeModified(event.getProject(), parentBookmarkFolder));
     }
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent event) {
         IBookmarksService bookmarksService = getBookmarksService(event);
-        BookmarkId parentId = getParentId(event);
-        if (parentId == null) {
+        BookmarkFolder parentBookmarkFolder = getParentBookmarkFolder(event);
+        if (parentBookmarkFolder == null) {
             return;
         }
         askBookmarkFolderName(event.getProject(), (folderName) -> {
             try {
-                bookmarksService.addBookmarkFolder(parentId, folderName);
+                bookmarksService.addBookmarkFolder(parentBookmarkFolder.getId(), folderName);
             } catch (BookmarksException e) {
                 LOG.error("Could not add bookmark folder", e);
                 Messages.showErrorDialog(
@@ -54,7 +53,7 @@ public class NewBookmarkFolderAction extends AbstractBookmarkAction {
         });
     }
 
-    private BookmarkId  getParentId(@NotNull AnActionEvent event) {
+    private BookmarkFolder  getParentBookmarkFolder(@NotNull AnActionEvent event) {
         IBookmarksService bookmarksService = getBookmarksService(event);
         Bookmark bookmark = getSelectedBookmark(event);
         BookmarkFolder parent;
@@ -66,7 +65,7 @@ public class NewBookmarkFolderAction extends AbstractBookmarkAction {
             }
             parent = (BookmarkFolder) bookmark;
         }
-        return parent.getId();
+        return parent;
     }
 
     private void askBookmarkFolderName(Project project, Consumer<String> applyAction) {
