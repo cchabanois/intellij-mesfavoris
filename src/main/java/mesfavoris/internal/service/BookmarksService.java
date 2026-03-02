@@ -192,6 +192,12 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
         return operation.addBookmark(dataContext, progress);
     }
 
+    @Override
+    public BookmarkId addBookmark(Map<String, String> properties) throws BookmarksException {
+        AddBookmarkFromPropertiesOperation operation = new AddBookmarkFromPropertiesOperation(bookmarkDatabase, newBookmarkPositionProvider);
+        return operation.addBookmark(properties);
+    }
+
     public BookmarkId addBookmarkFolder(BookmarkId parentFolderId, String folderName) throws BookmarksException {
         AddBookmarkFolderOperation operation = new AddBookmarkFolderOperation(bookmarkDatabase);
 		return operation.addBookmarkFolder(parentFolderId, folderName);

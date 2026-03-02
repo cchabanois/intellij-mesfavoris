@@ -58,6 +58,7 @@
                 <keyboard-shortcut keymap="$default" first-keystroke="control V"/>
                 <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta V"/>
             </action>
+            <action id="mesfavoris.notes.internal.actions.AddNoteAction" class="mesfavoris.notes.internal.actions.AddNoteAction" text="Add Note" description="Add a new note bookmark"/>
             <group id="mesfavoris.CopyPasteSpecial" text="Copy/Paste Special" description="Copy/Paste Special" popup="true">
                 <action id="mesfavoris.actions.PasteAsSnippetAction" class="mesfavoris.snippets.internal.actions.PasteAsSnippetAction" text="Paste As Snippet" description="Paste clipboard content as a snippet bookmark">
                 </action>

@@ -63,6 +63,9 @@
         <!-- GDrive Bookmark Type -->
         <bookmarkType implementation="mesfavoris.gdrive.GDriveBookmarkTypeExtension"/>
 
+        <!-- Note Bookmark Type -->
+        <bookmarkType implementation="mesfavoris.notes.internal.NoteBookmarkTypeExtension"/>
+
         <!-- Remote Bookmarks Stores -->
         <remoteBookmarksStore implementation="mesfavoris.gdrive.GDriveRemoteBookmarksStoreExtension"/>
     </extensions>

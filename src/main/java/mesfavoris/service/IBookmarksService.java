@@ -74,6 +74,14 @@ public interface IBookmarksService {
     BookmarkId addBookmark(DataContext dataContext, ProgressIndicator progress) throws BookmarksException;
 
     /**
+     * Add a bookmark from properties
+     * @param properties the properties of the bookmark to create
+     * @return the ID of the created bookmark
+     * @throws BookmarksException if the bookmark cannot be created
+     */
+    BookmarkId addBookmark(Map<String, String> properties) throws BookmarksException;
+
+    /**
      * Add a bookmark folder
      *
      * @param parentFolderId the parent folder ID
