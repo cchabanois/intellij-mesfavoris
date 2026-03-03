@@ -65,8 +65,10 @@
 
         <!-- Note Bookmark Type -->
         <bookmarkType implementation="mesfavoris.notes.internal.NoteBookmarkTypeExtension"/>
+        <bookmarkType implementation="mesfavoris.intellij.internal.IntellijBookmarkTypeExtension"/>
 
         <!-- Remote Bookmarks Stores -->
         <remoteBookmarksStore implementation="mesfavoris.gdrive.GDriveRemoteBookmarksStoreExtension"/>
+
     </extensions>
 </idea-plugin>
