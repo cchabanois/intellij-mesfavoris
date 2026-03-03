@@ -80,7 +80,7 @@ public class NoteBookmarkDetailsPart extends AbstractBookmarkDetailPart {
 
     @Override
     public boolean canHandle(Bookmark bookmark) {
-        return bookmark.getPropertyValue(NoteBookmarkProperties.PROP_NOTES) != null;
+        return bookmark != null && bookmark.getPropertyValue(NoteBookmarkProperties.PROP_NOTES) != null;
     }
 
     @Override
