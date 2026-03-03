@@ -8,6 +8,7 @@ import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.fileEditor.TextEditorWithPreview;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.LightVirtualFile;
 import mesfavoris.BookmarksException;
 import mesfavoris.internal.ui.details.AbstractBookmarkDetailPart;
@@ -24,7 +25,7 @@ import java.util.Objects;
 public class NoteBookmarkDetailsPart extends AbstractBookmarkDetailPart {
 
     private TextEditorWithPreview textEditorWithPreview;
-    private DocumentListener documentListener;
+
     private boolean updatingText = false;
 
     public NoteBookmarkDetailsPart(Project project) {
@@ -40,9 +41,10 @@ public class NoteBookmarkDetailsPart extends AbstractBookmarkDetailPart {
         LightVirtualFile virtualFile = new LightVirtualFile("note.md", "");
         MarkdownSplitEditorProvider provider = FileEditorProvider.EP_FILE_EDITOR_PROVIDER.findExtension(MarkdownSplitEditorProvider.class);
         textEditorWithPreview = (TextEditorWithPreview) provider.createEditor(project, virtualFile);
+        Disposer.register(this, textEditorWithPreview);
 
         TextEditor textEditor = textEditorWithPreview.getTextEditor();
-        documentListener = new DocumentListener() {
+        textEditor.getEditor().getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void documentChanged(@NotNull DocumentEvent event) {
                 if (updatingText) {
@@ -56,8 +58,7 @@ public class NoteBookmarkDetailsPart extends AbstractBookmarkDetailPart {
                     // never happen
                 }
             }
-        };
-        textEditor.getEditor().getDocument().addDocumentListener(documentListener);
+        }, textEditorWithPreview);
         return textEditorWithPreview.getComponent();
     }
 
@@ -73,13 +74,7 @@ public class NoteBookmarkDetailsPart extends AbstractBookmarkDetailPart {
 
     @Override
     public void dispose() {
-        if (textEditorWithPreview != null) {
-            TextEditor textEditor = textEditorWithPreview.getTextEditor();
-            textEditor.getEditor().getDocument().removeDocumentListener(documentListener);
-            textEditorWithPreview.dispose();
-            textEditorWithPreview = null;
-            documentListener = null;
-        }
+        textEditorWithPreview = null;
         super.dispose();
     }
 
