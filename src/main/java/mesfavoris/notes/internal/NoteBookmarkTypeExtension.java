@@ -2,8 +2,7 @@ package mesfavoris.notes.internal;
 
 import mesfavoris.extensions.AbstractBookmarkTypeExtension;
 import mesfavoris.notes.NoteBookmarkProperties;
-import mesfavoris.notes.ui.NoteDetailsPart;
-import mesfavoris.service.IBookmarksService;
+import mesfavoris.notes.ui.NoteBookmarkDetailsPart;
 
 import static mesfavoris.bookmarktype.BookmarkPropertyDescriptor.BookmarkPropertyType.STRING;
 import static mesfavoris.bookmarktype.BookmarkPropertyDescriptor.bookmarkPropertyDescriptor;
@@ -23,6 +22,6 @@ public class NoteBookmarkTypeExtension extends AbstractBookmarkTypeExtension {
         addLabelProvider(new NoteBookmarkLabelProvider());
         
         // Add detail part providers
-        addDetailPartProvider(NoteDetailsPart::new, 0);
+        addDetailPartProvider(NoteBookmarkDetailsPart::new, 0);
     }
 }

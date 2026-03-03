@@ -12,9 +12,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.*;
 import com.intellij.util.ui.UIUtil;
 import mesfavoris.BookmarksException;
-import mesfavoris.service.IBookmarksService;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
+import mesfavoris.service.IBookmarksService;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -37,7 +37,7 @@ public class CommentBookmarkDetailPart extends AbstractBookmarkDetailPart {
 
     private static final @NotNull EditorCustomization COLOR_SCHEME_FOR_CURRENT_UI_THEME_CUSTOMIZATION = editor -> {
         editor.setBackgroundColor(null); // to use background from set color scheme
-        editor.setColorsScheme(getBookmarkCommentColorScheme(editor));
+        editor.setColorsScheme(getEditorColorsScheme(editor));
     };
 
     public CommentBookmarkDetailPart(Project project) {
@@ -86,7 +86,7 @@ public class CommentBookmarkDetailPart extends AbstractBookmarkDetailPart {
     }
 
     @NotNull
-    private static EditorColorsScheme getBookmarkCommentColorScheme(EditorEx editor) {
+    private static EditorColorsScheme getEditorColorsScheme(EditorEx editor) {
         boolean isLaFDark = ColorUtil.isDark(UIUtil.getPanelBackground());
         boolean isEditorDark = EditorColorsManager.getInstance().isDarkEditor();
         EditorColorsScheme colorsScheme = isLaFDark == isEditorDark
