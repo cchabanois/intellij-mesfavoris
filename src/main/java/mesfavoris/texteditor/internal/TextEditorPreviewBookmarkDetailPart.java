@@ -125,6 +125,7 @@ public class TextEditorPreviewBookmarkDetailPart extends AbstractBookmarkDetailP
             // Create a read-only viewer
             currentEditor = EditorFactory.getInstance().createViewer(document, project);
             if (currentEditor instanceof EditorEx currentEditorEx) {
+                currentEditorEx.setFile(file);
                 EditorHighlighter highlighter = EditorHighlighterFactory.getInstance().createEditorHighlighter(project, file);
                 currentEditorEx.setHighlighter(highlighter);
             }
