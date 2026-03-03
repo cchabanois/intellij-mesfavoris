@@ -74,13 +74,8 @@ public class NoteBookmarkDetailsPart extends AbstractBookmarkDetailPart {
     @Override
     public void dispose() {
         if (textEditorWithPreview != null) {
-            if (documentListener != null && textEditorWithPreview instanceof TextEditorWithPreview) {
-                try {
-                    TextEditor textEditor = ((TextEditorWithPreview) textEditorWithPreview).getTextEditor();
-                    textEditor.getEditor().getDocument().removeDocumentListener(documentListener);
-                } catch (Exception ignored) {
-                }
-            }
+            TextEditor textEditor = textEditorWithPreview.getTextEditor();
+            textEditor.getEditor().getDocument().removeDocumentListener(documentListener);
             textEditorWithPreview.dispose();
             textEditorWithPreview = null;
             documentListener = null;
