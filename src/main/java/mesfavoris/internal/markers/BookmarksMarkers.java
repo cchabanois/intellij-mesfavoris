@@ -4,7 +4,9 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.editor.ex.RangeHighlighterEx;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
@@ -21,6 +23,7 @@ import mesfavoris.model.modification.BookmarkDeletedModification;
 import mesfavoris.model.modification.BookmarkPropertiesModification;
 import mesfavoris.model.modification.BookmarksAddedModification;
 import mesfavoris.model.modification.BookmarksModification;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
@@ -39,19 +42,19 @@ public class BookmarksMarkers implements IBookmarksMarkers, Disposable {
         this.project = project;
         this.bookmarkDatabase = bookmarkDatabase;
         this.bookmarkMarkerAttributesProvider = bookmarkMarkerAttributesProvider;
-        this.backgroundBookmarksModificationsHandler = new BackgroundBookmarksModificationsHandler(bookmarkDatabase, new BookmarksModificationsHandler(), 200);
+        this.backgroundBookmarksModificationsHandler = new BackgroundBookmarksModificationsHandler(project, bookmarkDatabase, new BookmarksModificationsHandler(), 200);
         this.bookmarkMarkersStore = bookmarksMarkersStore;
-    }
-
-    public void init() {
-        backgroundBookmarksModificationsHandler.init();
         MessageBusConnection messageBusConnection = project.getMessageBus().connect(this);
         messageBusConnection.subscribe(BookmarksHighlightersListener.TOPIC, new BookmarksHighlightersListenerImpl());
     }
 
+    public void init() {
+        this.backgroundBookmarksModificationsHandler.init();
+        Disposer.register(this, backgroundBookmarksModificationsHandler);
+    }
+
     @Override
     public void dispose() {
-        backgroundBookmarksModificationsHandler.close();
     }
 
     private void handleBookmarksModificationEvent(BookmarksModification event) {
@@ -110,7 +113,7 @@ public class BookmarksMarkers implements IBookmarksMarkers, Disposable {
     private class BookmarksModificationsHandler implements BackgroundBookmarksModificationsHandler.IBookmarksModificationsHandler {
 
         @Override
-        public void handle(List<BookmarksModification> modifications) {
+        public void handle(List<BookmarksModification> modifications, @NotNull ProgressIndicator progressIndicator) {
             for (BookmarksModification modification : modifications) {
                 handleBookmarksModificationEvent(modification);
             }

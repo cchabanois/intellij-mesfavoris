@@ -26,6 +26,7 @@ import mesfavoris.internal.markers.BookmarksMarkers;
 import mesfavoris.internal.markers.BookmarksMarkersStore;
 import mesfavoris.internal.persistence.BookmarksAutoSaver;
 import mesfavoris.internal.persistence.LocalBookmarksSaver;
+import mesfavoris.internal.persistence.RemoteBookmarksSaver;
 import mesfavoris.internal.recent.RecentBookmarksDatabase;
 import mesfavoris.internal.service.operations.*;
 import mesfavoris.internal.service.operations.utils.INewBookmarkPositionProvider;
@@ -98,12 +99,15 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
         BookmarksMarkersStore bookmarksMarkersStore = project.getService(BookmarksMarkersStore.class);
         this.bookmarksMarkers = new BookmarksMarkers(project, bookmarkDatabase, bookmarksMarkersStore,
                 new BookmarkMarkerAttributesProvider(Arrays.asList(new WorkspaceFileBookmarkMarkerAttributesProvider())));
-        this.bookmarksMarkers.init();
+        bookmarksMarkers.init();
+
         Disposer.register(this, bookmarksMarkers);
 
         LocalBookmarksSaver localBookmarksSaver = new LocalBookmarksSaver(getBookmarksFilePath(project).toFile(),
                 new BookmarksTreeJsonSerializer(true));
-        bookmarksSaver = new BookmarksAutoSaver(bookmarkDatabase, localBookmarksSaver);
+        RemoteBookmarksSaver remoteBookmarksSaver = new RemoteBookmarksSaver(remoteBookmarksStoreManager);
+        bookmarksSaver = new BookmarksAutoSaver(project, bookmarkDatabase, localBookmarksSaver, remoteBookmarksSaver);
+        Disposer.register(this, bookmarksSaver);
         bookmarksSaver.init();
         this.bookmarksDirtyStateTracker = bookmarksSaver;
         this.recentBookmarksDatabase = new RecentBookmarksDatabase(project, bookmarkDatabase, DEFAULT_RECENT_DURATION);
@@ -307,7 +311,7 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
         if (recentBookmarksDatabase != null) {
             recentBookmarksDatabase.close();
         }
-        bookmarksSaver.close();
+
     }
 
     @Override
