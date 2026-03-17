@@ -1,6 +1,7 @@
 package mesfavoris.internal.persistence;
 
 import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
@@ -33,6 +34,7 @@ public class BookmarksAutoSaverTest extends BasePlatformTestCase {
 
     @Override
     public void tearDown() throws Exception {
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
         Disposer.dispose(bookmarksAutoSaver);
         super.tearDown();
     }
