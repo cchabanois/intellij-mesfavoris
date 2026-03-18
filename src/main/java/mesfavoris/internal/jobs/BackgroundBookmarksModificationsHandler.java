@@ -4,6 +4,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import mesfavoris.BookmarksException;
@@ -15,10 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -35,14 +33,14 @@ public class BackgroundBookmarksModificationsHandler implements Disposable {
 	private final Project project;
 	private final BookmarkDatabase bookmarkDatabase;
 	private final IBookmarksModificationsHandler bookmarksModificationsHandler;
-	private final Queue<BookmarksModification> eventsQueue = new ConcurrentLinkedQueue<BookmarksModification>();
+	private final Queue<BookmarksModification> eventsQueue = new ConcurrentLinkedQueue<>();
 	private final IBookmarksListener bookmarksListener;
 	private final long scheduleDelay;
 	private final AtomicInteger previousSize = new AtomicInteger(0);
 	private final AtomicInteger unhandledEventsCount = new AtomicInteger(0);
 	private final ScheduledExecutorService scheduledExecutorService;
 	private final BookmarksModificationBatchHandlerJob job = new BookmarksModificationBatchHandlerJob();
-	private ScheduledFuture scheduledFuture;
+	private ScheduledFuture<?> scheduledFuture;
 
 	public BackgroundBookmarksModificationsHandler(Project project, BookmarkDatabase bookmarkDatabase,
 			IBookmarksModificationsHandler bookmarksModificationsHandler, long delay) {
@@ -50,7 +48,7 @@ public class BackgroundBookmarksModificationsHandler implements Disposable {
 		this.bookmarkDatabase = bookmarkDatabase;
 		this.bookmarksModificationsHandler = bookmarksModificationsHandler;
 		this.scheduleDelay = delay;
-		this.scheduledExecutorService = AppExecutorUtil.getAppScheduledExecutorService();
+		this.scheduledExecutorService = AppExecutorUtil.createBoundedScheduledExecutorService("BackgroundBookmarksModificationsHandler", 1);
 
 		this.bookmarksListener = modifications -> {
 			eventsQueue.addAll(modifications);
@@ -66,17 +64,19 @@ public class BackgroundBookmarksModificationsHandler implements Disposable {
 	@Override
 	public void dispose() {
 		bookmarkDatabase.removeListener(bookmarksListener);
-		synchronized (this) {
-			if (scheduledFuture != null) {
-				scheduledFuture.cancel(false);
-			}
-			List<BookmarksModification> modifications = getBookmarksModifications();
-			if (!modifications.isEmpty()) {
-				try {
-					bookmarksModificationsHandler.handle(modifications, new EmptyProgressIndicator());
-				} catch (BookmarksException e) {
-					LOG.error("Cannot handle bookmarks modification while disposing", e);
-				}
+		scheduledExecutorService.shutdown();
+		try {
+			scheduledExecutorService.awaitTermination(10, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+		// Handle remaining modifications that were not processed yet
+		List<BookmarksModification> modifications = getBookmarksModifications();
+		if (!modifications.isEmpty()) {
+			try {
+				bookmarksModificationsHandler.handle(modifications, new EmptyProgressIndicator());
+			} catch (BookmarksException e) {
+				LOG.error("Cannot handle bookmarks modification while disposing", e);
 			}
 		}
 	}
@@ -97,7 +97,7 @@ public class BackgroundBookmarksModificationsHandler implements Disposable {
 	}
 
 	public List<BookmarksModification> getUnhandledEvents() {
-		return new ArrayList<BookmarksModification>(eventsQueue);
+		return new ArrayList<>(eventsQueue);
 	}
 
 	private List<BookmarksModification> getBookmarksModifications() {
@@ -112,28 +112,36 @@ public class BackgroundBookmarksModificationsHandler implements Disposable {
 	private class BookmarksModificationBatchHandlerJob implements Runnable {
 
 		public void run() {
-			synchronized (BackgroundBookmarksModificationsHandler.this) {
-				if (previousSize.get() != eventsQueue.size()) {
-					// don't handle modifications yet if there are new events
-					previousSize.set(eventsQueue.size());
-					schedule();
-					return;
-				}
-				try {
-					List<BookmarksModification> modifications = getBookmarksModifications();
-					previousSize.set(0);
-					if (modifications.isEmpty()) {
-						return;
-					}
-					bookmarksModificationsHandler.handle(modifications, new EmptyProgressIndicator());
-				} catch (BookmarksException e) {
-					LOG.error("Cannot handle bookmarks modification", e);
-					return;
-				} finally {
-					unhandledEventsCount.set(eventsQueue.size());
-				}
+			if (previousSize.get() != eventsQueue.size()) {
+				// don't handle modifications yet if there are new events
+				previousSize.set(eventsQueue.size());
+				schedule();
+				return;
 			}
-
+			List<BookmarksModification> modifications = getBookmarksModifications();
+			previousSize.set(0);
+			if (modifications.isEmpty()) {
+				return;
+			}
+			final CountDownLatch latch = new CountDownLatch(1);
+			new Task.Backgroundable(project, "Handling Bookmarks Modifications", false) {
+				@Override
+				public void run(@NotNull ProgressIndicator indicator) {
+					try {
+						bookmarksModificationsHandler.handle(modifications, indicator);
+					} catch (BookmarksException e) {
+						LOG.error("Cannot handle bookmarks modification", e);
+					} finally {
+						unhandledEventsCount.set(eventsQueue.size());
+						latch.countDown();
+					}
+				}
+			}.queue();
+			try {
+				latch.await();
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
 		}
 	}
 
