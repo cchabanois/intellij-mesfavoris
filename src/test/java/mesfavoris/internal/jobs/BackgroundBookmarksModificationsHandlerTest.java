@@ -2,6 +2,7 @@ package mesfavoris.internal.jobs;
 
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import mesfavoris.internal.jobs.BackgroundBookmarksModificationsHandler.IBookmarksModificationsHandler;
 import mesfavoris.model.BookmarkDatabase;
@@ -33,6 +34,7 @@ public class BackgroundBookmarksModificationsHandlerTest extends BasePlatformTes
 
     @Override
     protected void tearDown() throws Exception {
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
         Disposer.dispose(backgroundBookmarksModificationsHandler);
         super.tearDown();
     }
