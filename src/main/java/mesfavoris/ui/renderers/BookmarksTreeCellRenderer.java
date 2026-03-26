@@ -11,6 +11,8 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.UIUtil;
 import mesfavoris.bookmarktype.IBookmarkLabelProvider;
 import mesfavoris.commons.Adapters;
+import mesfavoris.icons.MesFavorisIcons;
+import mesfavoris.internal.ui.virtual.VirtualBookmarkFolder;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
@@ -125,6 +127,11 @@ public class BookmarksTreeCellRenderer extends ColoredTreeCellRenderer implement
         Bookmark bookmark = Adapters.adapt(element, Bookmark.class);
         if (bookmark == null) {
             return;
+        }
+
+        // Add virtual folder overlay icon (top-left position)
+        if (element instanceof VirtualBookmarkFolder) {
+            layeredIcon.setIcon(MesFavorisIcons.VIRTUAL_OVERLAY, 2, SwingConstants.NORTH_WEST);
         }
 
         // Add remote bookmark store overlay icon (top-right position)
