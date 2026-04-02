@@ -1,0 +1,61 @@
+package mesfavoris.internal.visited;
+
+import com.intellij.openapi.project.Project;
+import com.intellij.util.messages.MessageBusConnection;
+import mesfavoris.internal.ui.virtual.BookmarkLink;
+import mesfavoris.internal.ui.virtual.VirtualBookmarkFolder;
+import mesfavoris.model.BookmarkDatabase;
+import mesfavoris.model.BookmarkId;
+import mesfavoris.model.BookmarksTree;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+public class MostVisitedBookmarksVirtualFolder extends VirtualBookmarkFolder implements VisitedBookmarksListener {
+	private final Project project;
+	private final BookmarkDatabase bookmarkDatabase;
+	private final IVisitedBookmarksProvider visitedBookmarksProvider;
+	private final int count;
+	private MessageBusConnection messageBusConnection;
+
+	public MostVisitedBookmarksVirtualFolder(Project project, BookmarkDatabase bookmarkDatabase,
+			IVisitedBookmarksProvider visitedBookmarksProvider, BookmarkId parentId, int count) {
+		super(parentId, "Most visited");
+		this.project = project;
+		this.bookmarkDatabase = bookmarkDatabase;
+		this.visitedBookmarksProvider = visitedBookmarksProvider;
+		this.count = count;
+	}
+
+	@Override
+	public void visitedBookmarksChanged(VisitedBookmarks previousVisitedBookmarks, VisitedBookmarks newVisitedBookmarks) {
+		if (!previousVisitedBookmarks.getMostVisitedBookmarks(count).equals(newVisitedBookmarks.getMostVisitedBookmarks(count))) {
+			fireChildrenChanged();
+		}
+	}
+
+	@Override
+	public List<BookmarkLink> getChildren() {
+		BookmarksTree bookmarksTree = bookmarkDatabase.getBookmarksTree();
+		return visitedBookmarksProvider.getVisitedBookmarks().getMostVisitedBookmarks(count).stream()
+				.map(bookmarksTree::getBookmark)
+				.filter(Objects::nonNull)
+				.map(bookmark -> new BookmarkLink(bookmarkFolder.getId(), bookmark)).collect(Collectors.toList());
+	}
+
+	@Override
+	protected void initListening() {
+		messageBusConnection = project.getMessageBus().connect();
+		messageBusConnection.subscribe(VisitedBookmarksListener.TOPIC, this);
+	}
+
+	@Override
+	protected void stopListening() {
+		if (messageBusConnection != null) {
+			messageBusConnection.disconnect();
+			messageBusConnection = null;
+		}
+	}
+
+}

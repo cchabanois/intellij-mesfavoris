@@ -1,0 +1,10 @@
+package mesfavoris.internal.visited;
+
+import com.intellij.util.messages.Topic;
+
+public interface VisitedBookmarksListener {
+
+	Topic<VisitedBookmarksListener> TOPIC = Topic.create("Visited Bookmarks", VisitedBookmarksListener.class);
+
+	void visitedBookmarksChanged(VisitedBookmarks previousVisitedBookmarks, VisitedBookmarks newVisitedBookmarks);
+}

@@ -55,6 +55,11 @@ public interface IBookmarksService {
     IRecentBookmarksProvider getRecentBookmarksProvider();
 
     /**
+     * Get the visited bookmarks provider
+     */
+    mesfavoris.internal.visited.IVisitedBookmarksProvider getVisitedBookmarksProvider();
+
+    /**
      * Navigate to a bookmark
      *
      * @param bookmarkId the bookmark ID
