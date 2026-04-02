@@ -9,6 +9,7 @@ import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.IBookmarkLocation;
 import mesfavoris.bookmarktype.IBookmarkLocationProvider;
 import mesfavoris.bookmarktype.IFileBookmarkLocation;
+import mesfavoris.topics.BookmarksActivityListener;
 import mesfavoris.bookmarktype.IGotoBookmark;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
@@ -43,6 +44,7 @@ public class GotoBookmarkOperation {
 				if (bookmarkLocation instanceof IFileBookmarkLocation fileBookmarkLocation) {
 					refreshMarker(bookmark, fileBookmarkLocation);
 				}
+				project.getMessageBus().syncPublisher(BookmarksActivityListener.TOPIC).bookmarkVisited(bookmarkId);
 			}
 		});
 	}

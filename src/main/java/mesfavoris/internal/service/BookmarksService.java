@@ -16,22 +16,20 @@ import mesfavoris.bookmarktype.IBookmarkPropertiesProvider;
 import mesfavoris.bookmarktype.IGotoBookmark;
 import mesfavoris.internal.bookmarktypes.BookmarkMarkerAttributesProvider;
 import mesfavoris.internal.bookmarktypes.NonUpdatablePropertiesProvider;
-import mesfavoris.internal.bookmarktypes.extension.ExtensionBookmarkLabelProvider;
-import mesfavoris.internal.bookmarktypes.extension.ExtensionBookmarkLocationProvider;
-import mesfavoris.internal.bookmarktypes.extension.ExtensionBookmarkPropertiesProvider;
-import mesfavoris.internal.bookmarktypes.extension.ExtensionBookmarkPropertyDescriptors;
-import mesfavoris.internal.bookmarktypes.extension.ExtensionGotoBookmark;
-import mesfavoris.internal.problems.NoBookmarkProblems;
+import mesfavoris.internal.bookmarktypes.extension.*;
 import mesfavoris.internal.markers.BookmarksMarkers;
 import mesfavoris.internal.markers.BookmarksMarkersStore;
 import mesfavoris.internal.persistence.BookmarksAutoSaver;
 import mesfavoris.internal.persistence.LocalBookmarksSaver;
 import mesfavoris.internal.persistence.RemoteBookmarksSaver;
+import mesfavoris.internal.problems.NoBookmarkProblems;
 import mesfavoris.internal.recent.RecentBookmarksDatabase;
 import mesfavoris.internal.service.operations.*;
 import mesfavoris.internal.service.operations.utils.INewBookmarkPositionProvider;
 import mesfavoris.internal.service.operations.utils.NewBookmarkPositionProvider;
 import mesfavoris.internal.validation.BookmarksModificationValidator;
+import mesfavoris.internal.visited.IVisitedBookmarksProvider;
+import mesfavoris.internal.visited.VisitedBookmarksDatabase;
 import mesfavoris.internal.workspace.BookmarksWorkspaceFactory;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
@@ -78,6 +76,7 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
     private IBookmarkLabelProvider bookmarkLabelProvider;
     private RemoteBookmarksStoreManager remoteBookmarksStoreManager;
     private RecentBookmarksDatabase recentBookmarksDatabase;
+    private VisitedBookmarksDatabase visitedBookmarksDatabase;
     private IBookmarksDirtyStateTracker bookmarksDirtyStateTracker;
 
     public BookmarksService(Project project) throws IOException {
@@ -112,6 +111,8 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
         this.bookmarksDirtyStateTracker = bookmarksSaver;
         this.recentBookmarksDatabase = new RecentBookmarksDatabase(project, bookmarkDatabase, DEFAULT_RECENT_DURATION);
         this.recentBookmarksDatabase.init();
+        this.visitedBookmarksDatabase = new VisitedBookmarksDatabase(project, bookmarkDatabase);
+        this.visitedBookmarksDatabase.init();
     }
 
 
@@ -176,8 +177,9 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
         return recentBookmarksDatabase;
     }
 
-    public RecentBookmarksDatabase getRecentBookmarksDatabase() {
-        return recentBookmarksDatabase;
+    @Override
+    public IVisitedBookmarksProvider getVisitedBookmarksProvider() {
+        return visitedBookmarksDatabase;
     }
 
     private GotoBookmarkOperation getGotoBookmarkOperation() {
@@ -311,7 +313,9 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
         if (recentBookmarksDatabase != null) {
             recentBookmarksDatabase.close();
         }
-
+        if (visitedBookmarksDatabase != null) {
+            visitedBookmarksDatabase.close();
+        }
     }
 
     @Override
@@ -323,6 +327,14 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
             Element recentBookmarksState = recentBookmarksDatabase.getState();
             if (recentBookmarksState != null) {
                 root.addContent(recentBookmarksState);
+            }
+        }
+
+        // Save visited bookmarks state
+        if (visitedBookmarksDatabase != null) {
+            Element visitedBookmarksState = visitedBookmarksDatabase.getState();
+            if (visitedBookmarksState != null) {
+                root.addContent(visitedBookmarksState);
             }
         }
 
@@ -338,7 +350,14 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
                 recentBookmarksDatabase.loadState(recentBookmarksState);
             }
         }
-    }
+
+        // Load visited bookmarks state
+        if (visitedBookmarksDatabase != null) {
+            Element visitedBookmarksState = state.getChild("VisitedBookmarks");
+            if (visitedBookmarksState != null) {
+                visitedBookmarksDatabase.loadState(visitedBookmarksState);
+            }
+        }    }
 
     @Override
     public void noStateLoaded() {

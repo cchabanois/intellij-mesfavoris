@@ -17,6 +17,9 @@ import mesfavoris.internal.toolwindow.search.BookmarksSearchHistoryStore;
 import mesfavoris.internal.toolwindow.search.BookmarksSearchTextField;
 import mesfavoris.internal.toolwindow.search.BookmarksTreeFilter;
 import mesfavoris.internal.ui.details.BookmarkDetailsPart;
+import mesfavoris.internal.visited.IVisitedBookmarksProvider;
+import mesfavoris.internal.visited.LatestVisitedBookmarksVirtualFolder;
+import mesfavoris.internal.visited.MostVisitedBookmarksVirtualFolder;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkFolder;
@@ -54,6 +57,7 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         super(new BorderLayout());
         this.project = project;
         this.bookmarksService = project.getService(IBookmarksService.class);
+        IVisitedBookmarksProvider visitedBookmarksProvider = bookmarksService.getVisitedBookmarksProvider();
         BookmarkDatabase bookmarkDatabase = bookmarksService.getBookmarkDatabase();
 
         // Create tree filter
@@ -62,8 +66,13 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
         BookmarkId rootId = bookmarkDatabase.getBookmarksTree().getRootFolder().getId();
         RecentBookmarksVirtualFolder recentBookmarksVirtualFolder = new RecentBookmarksVirtualFolder(project,
                 bookmarkDatabase, bookmarksService.getRecentBookmarksProvider(), rootId, 20);
+        LatestVisitedBookmarksVirtualFolder latestVisitedBookmarksVirtualFolder = new LatestVisitedBookmarksVirtualFolder(project,
+                bookmarkDatabase, visitedBookmarksProvider, rootId, 20);
+        MostVisitedBookmarksVirtualFolder mostVisitedBookmarksVirtualFolder = new MostVisitedBookmarksVirtualFolder(project,
+                bookmarkDatabase, visitedBookmarksProvider, rootId, 20);
 
-        tree = new BookmarksTreeComponent(bookmarkDatabase, treeFilter, List.of(recentBookmarksVirtualFolder),this);
+        tree = new BookmarksTreeComponent(bookmarkDatabase, treeFilter, List.of(recentBookmarksVirtualFolder,
+                latestVisitedBookmarksVirtualFolder, mostVisitedBookmarksVirtualFolder),this);
         bookmarksTreeCellRenderer = new BookmarksTreeCellRenderer(project, bookmarkDatabase,
                 project.getService(RemoteBookmarksStoreManager.class),
                 bookmarksService.getBookmarksDirtyStateTracker(),
