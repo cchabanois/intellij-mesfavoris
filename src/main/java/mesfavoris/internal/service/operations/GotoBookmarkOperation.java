@@ -9,11 +9,11 @@ import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.IBookmarkLocation;
 import mesfavoris.bookmarktype.IBookmarkLocationProvider;
 import mesfavoris.bookmarktype.IFileBookmarkLocation;
-import mesfavoris.topics.BookmarksActivityListener;
 import mesfavoris.bookmarktype.IGotoBookmark;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
+import mesfavoris.topics.BookmarksActivityListener;
 
 import java.util.Optional;
 
@@ -50,9 +50,7 @@ public class GotoBookmarkOperation {
 	}
 
 	private void refreshMarker(Bookmark bookmark, IFileBookmarkLocation fileBookmarkLocation) {
-		AppExecutorUtil.getAppExecutorService().submit(() -> {
-			bookmarksMarkers.refreshMarker(bookmark.getId(), Optional.of(fileBookmarkLocation));
-		});
+		AppExecutorUtil.getAppExecutorService().submit(() -> bookmarksMarkers.refreshMarker(bookmark.getId(), Optional.of(fileBookmarkLocation)));
 	}
 
 }

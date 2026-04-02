@@ -7,10 +7,6 @@ import mesfavoris.internal.ui.virtual.VirtualBookmarkFolder;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.BookmarksTree;
-import mesfavoris.internal.visited.VisitedBookmarks;
-import mesfavoris.internal.visited.IVisitedBookmarksProvider;
-import mesfavoris.internal.visited.VisitedBookmarksListener;
-
 
 import java.util.List;
 import java.util.Objects;

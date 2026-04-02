@@ -25,8 +25,8 @@ public class VisitedBookmarksDatabase implements PersistentStateComponent<Elemen
 	private static final String NAME_LATEST_VISIT = "latestVisit";
 	private static final String NAME_VISIT_COUNT = "visitCount";
 	private static final String NAME_BOOKMARK_ID = "bookmarkId";
-	private final AtomicReference<VisitedBookmarks> visitedBookmarksMapReference = new AtomicReference<VisitedBookmarks>(
-			new VisitedBookmarks());
+	private final AtomicReference<VisitedBookmarks> visitedBookmarksMapReference = new AtomicReference<>(
+            new VisitedBookmarks());
 	private final IBookmarksListener bookmarksListener;
 	private final BookmarkDatabase bookmarkDatabase;
 	private final Project project;

@@ -1,13 +1,12 @@
 package mesfavoris.internal.visited;
 
-import com.google.common.collect.ImmutableMap;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.BookmarksTree;
-import mesfavoris.topics.BookmarksActivityListener;
 import mesfavoris.tests.commons.bookmarks.BookmarksTreeGenerator;
 import mesfavoris.tests.commons.bookmarks.IncrementalIDGenerator;
+import mesfavoris.topics.BookmarksActivityListener;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
