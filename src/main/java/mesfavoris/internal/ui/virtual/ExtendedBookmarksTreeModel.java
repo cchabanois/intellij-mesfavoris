@@ -182,7 +182,11 @@ public class ExtendedBookmarksTreeModel extends BaseTreeModel<Object> implements
     @Override
     public void valueForPathChanged(TreePath path, Object newValue) {
         // Delegate to bookmarksTreeModel for bookmark renaming
-        bookmarksTreeModel.valueForPathChanged(path, newValue);
+        if (path.getLastPathComponent() instanceof BookmarkLinkNode bookmarkLinkNode) {
+            bookmarksTreeModel.getTreePathForBookmark(bookmarkLinkNode.getBookmarkId()).ifPresent(treePath -> bookmarksTreeModel.valueForPathChanged(treePath, newValue));
+        }  else {
+            bookmarksTreeModel.valueForPathChanged(path, newValue);
+        }
     }
 
     /**

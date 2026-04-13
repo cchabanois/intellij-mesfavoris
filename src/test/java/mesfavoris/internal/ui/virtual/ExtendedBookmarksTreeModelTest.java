@@ -15,9 +15,11 @@ import org.junit.Test;
 
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
+import javax.swing.tree.TreePath;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static mesfavoris.tests.commons.bookmarks.BookmarkBuilder.bookmark;
 import static mesfavoris.tests.commons.bookmarks.BookmarkBuilder.bookmarkFolder;
@@ -271,6 +273,47 @@ public class ExtendedBookmarksTreeModelTest extends BasePlatformTestCase {
             return event.getTreePath() != null &&
                    event.getTreePath().getLastPathComponent() == virtualFolder;
         }));
+    }
+
+    @Test
+    public void testValueForPathChangedRenameBookmark() throws BookmarksException {
+        // Given
+        BookmarkId bookmarkId = new BookmarkId("bookmark1");
+        Optional<TreePath> optionalTreePath = bookmarksTreeModel.getTreePathForBookmark(bookmarkId);
+        assertThat(optionalTreePath).isPresent();
+        TreePath treePath = optionalTreePath.get();
+        String newName = "Renamed Bookmark";
+
+        // When
+        extendedTreeModel.valueForPathChanged(treePath, newName);
+
+        // Then
+        verifyBookmarkRenamed(bookmarkId, newName);
+    }
+
+    @Test
+    public void testValueForPathChangedRenameBookmarkLink() throws BookmarksException {
+        // Given
+        Bookmark bookmark1 = bookmarkDatabase.getBookmarksTree().getBookmark(new BookmarkId("bookmark1"));
+        BookmarkLink link = new BookmarkLink(virtualFolder.getBookmarkFolder().getId(), bookmark1);
+        virtualFolder.addChild(link);
+
+        Object rootNode = extendedTreeModel.getRoot();
+        Object folder1Node = bookmarksTreeModel.getTreePathForBookmark(new BookmarkId("folder1")).get().getLastPathComponent();
+        BookmarkLinkNode bookmarkLinkNode = (BookmarkLinkNode) extendedTreeModel.getChildren(virtualFolder).get(0);
+        TreePath treePath = new TreePath(new Object[]{rootNode, folder1Node, virtualFolder, bookmarkLinkNode});
+        String newName = "Renamed Via Link";
+
+        // When
+        extendedTreeModel.valueForPathChanged(treePath, newName);
+
+        // Then
+        verifyBookmarkRenamed(bookmark1.getId(), newName);
+    }
+
+    private void verifyBookmarkRenamed(BookmarkId bookmarkId, String expectedName) {
+        Bookmark renamedBookmark = bookmarkDatabase.getBookmarksTree().getBookmark(bookmarkId);
+        assertThat(renamedBookmark.getPropertyValue(Bookmark.PROPERTY_NAME)).isEqualTo(expectedName);
     }
 
     private BookmarksTree createInitialBookmarksTree() {
