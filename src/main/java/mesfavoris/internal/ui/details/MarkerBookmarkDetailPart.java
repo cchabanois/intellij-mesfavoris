@@ -1,6 +1,8 @@
 package mesfavoris.internal.ui.details;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
@@ -10,6 +12,7 @@ import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.IconUtil;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.JBUI;
 import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.BookmarkMarker;
@@ -96,14 +99,19 @@ public class MarkerBookmarkDetailPart extends AbstractBookmarkDetailPart {
     }
 
     private void updateMarkerInfo() {
-        // Check if we have a marker for this bookmark
         BookmarkMarker marker = bookmarksMarkers.getMarker(bookmark.getId());
-
-        // Update the renderer first (while currentMarker still has the old value)
-        markerInfoRenderer.setMarker(marker);
-
-        // Then update currentMarker
         currentMarker = marker;
+
+        if (marker == null) {
+            markerInfoRenderer.setMarker(null, null);
+            return;
+        }
+
+        // computeRelativePath is slow, don't do it on EDT
+        VirtualFile file = marker.getResource();
+        ReadAction.nonBlocking(() -> MarkerInfoRenderer.computeRelativePath(project, file))
+                .finishOnUiThread(ModalityState.any(), relativePath -> markerInfoRenderer.setMarker(marker, relativePath))
+                .submit(AppExecutorUtil.getAppExecutorService());
     }
 
     private void openFileAtMarker() {
@@ -145,7 +153,7 @@ public class MarkerBookmarkDetailPart extends AbstractBookmarkDetailPart {
             this.project = project;
         }
 
-        public void setMarker(BookmarkMarker marker) {
+        public void setMarker(BookmarkMarker marker, String relativePath) {
             clear();
 
             if (marker == null) {
@@ -158,7 +166,6 @@ public class MarkerBookmarkDetailPart extends AbstractBookmarkDetailPart {
             VirtualFile file = marker.getResource();
             int lineNumber = marker.getLineNumber();
 
-            // Set file icon
             Icon icon = IconUtil.getIcon(file, 0, project);
             setIcon(icon);
 
@@ -167,7 +174,6 @@ public class MarkerBookmarkDetailPart extends AbstractBookmarkDetailPart {
             append(String.format("%s (line %d)", fileName, lineNumber + 1), SimpleTextAttributes.LINK_ATTRIBUTES);
 
             // Relative path in gray
-            String relativePath = getRelativePath(file);
             if (relativePath != null && !relativePath.equals(fileName)) {
                 append(" - " + relativePath, SimpleTextAttributes.GRAYED_ATTRIBUTES);
             }
@@ -183,7 +189,7 @@ public class MarkerBookmarkDetailPart extends AbstractBookmarkDetailPart {
             setToolTipText(null);
         }
 
-        private String getRelativePath(VirtualFile file) {
+        private static String computeRelativePath(Project project, VirtualFile file) {
             ProjectFileIndex projectFileIndex = ProjectFileIndex.getInstance(project);
             VirtualFile contentRoot = projectFileIndex.getContentRootForFile(file);
 
