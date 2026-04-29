@@ -2,7 +2,6 @@ package mesfavoris.internal.markers.inlay;
 
 import com.intellij.codeInsight.hints.FactoryInlayHintsCollector;
 import com.intellij.codeInsight.hints.InlayHintsSink;
-import com.intellij.codeInsight.hints.InlayHintsUtils;
 import com.intellij.codeInsight.hints.presentation.InlayPresentation;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -96,10 +95,8 @@ class BookmarkCommentInlayHintsCollector extends FactoryInlayHintsCollector {
         String[] commentLines = Arrays.stream(comment.split("\\n"))
                 .map(String::trim)
                 .toArray(String[]::new);
-        var metricsStorage = InlayHintsUtils.INSTANCE.getTextMetricStorage(editor);
         InlayPresentation commentPresentation = new BookmarkCommentInlayPresentation(
-                metricsStorage,
-                editor.getColorsScheme(),
+                editor,
                 commentLines
         );
 
