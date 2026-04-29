@@ -16,14 +16,15 @@ import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.notes.NoteBookmarkProperties;
 import mesfavoris.service.IBookmarksService;
-import org.intellij.plugins.markdown.ui.preview.MarkdownSplitEditorProvider;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.util.Objects;
+import java.util.Optional;
 
 public class NoteBookmarkDetailsPart extends AbstractBookmarkDetailPart {
 
+    private static final String SPLIT_PROVIDER_TEXT_EDITOR_MARKDOWN_PREVIEW_EDITOR = "split-provider[text-editor;markdown-preview-editor]";
     private TextEditorWithPreview textEditorWithPreview;
 
     private boolean updatingText = false;
@@ -38,28 +39,29 @@ public class NoteBookmarkDetailsPart extends AbstractBookmarkDetailPart {
 
     @Override
     public JComponent createComponent() {
-        LightVirtualFile virtualFile = new LightVirtualFile("note.md", "");
-        MarkdownSplitEditorProvider provider = FileEditorProvider.EP_FILE_EDITOR_PROVIDER.findExtension(MarkdownSplitEditorProvider.class);
-        textEditorWithPreview = (TextEditorWithPreview) provider.createEditor(project, virtualFile);
-        Disposer.register(this, textEditorWithPreview);
+        return getMarkdownFileEditorProvider().map(provider -> {
+            LightVirtualFile virtualFile = new LightVirtualFile("note.md", "");
+            textEditorWithPreview = (TextEditorWithPreview) provider.createEditor(project, virtualFile);
+            Disposer.register(this, textEditorWithPreview);
 
-        TextEditor textEditor = textEditorWithPreview.getTextEditor();
-        textEditor.getEditor().getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void documentChanged(@NotNull DocumentEvent event) {
-                if (updatingText) {
-                    return;
+            TextEditor textEditor = textEditorWithPreview.getTextEditor();
+            textEditor.getEditor().getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void documentChanged(@NotNull DocumentEvent event) {
+                    if (updatingText) {
+                        return;
+                    }
+                    try {
+                        TextEditor textEditor = textEditorWithPreview.getTextEditor();
+                        String newContent = textEditor.getEditor().getDocument().getText();
+                        bookmarkDatabase.modify(modifier -> modifier.setPropertyValue(bookmark.getId(), NoteBookmarkProperties.PROP_NOTES, newContent));
+                    } catch (BookmarksException e) {
+                        // never happen
+                    }
                 }
-                try {
-                    TextEditor textEditor = textEditorWithPreview.getTextEditor();
-                    String newContent = textEditor.getEditor().getDocument().getText();
-                    bookmarkDatabase.modify(modifier -> modifier.setPropertyValue(bookmark.getId(), NoteBookmarkProperties.PROP_NOTES, newContent));
-                } catch (BookmarksException e) {
-                    // never happen
-                }
-            }
-        }, textEditorWithPreview);
-        return textEditorWithPreview.getComponent();
+            }, textEditorWithPreview);
+            return textEditorWithPreview.getComponent();
+        }).orElseGet(() -> new JLabel("Markdown editor provider not found."));
     }
 
     @Override
@@ -106,5 +108,11 @@ public class NoteBookmarkDetailsPart extends AbstractBookmarkDetailPart {
         if (!Objects.equals(oldContent, newContent)) {
             setText(newContent);
         }
+    }
+
+    private Optional<FileEditorProvider> getMarkdownFileEditorProvider() {
+        return java.util.Arrays.stream(FileEditorProvider.EP_FILE_EDITOR_PROVIDER.getExtensions())
+            .filter(p -> SPLIT_PROVIDER_TEXT_EDITOR_MARKDOWN_PREVIEW_EDITOR.equals(p.getEditorTypeId()))
+            .findFirst();
     }
 }
