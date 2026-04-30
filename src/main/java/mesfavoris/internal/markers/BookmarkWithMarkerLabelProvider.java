@@ -3,7 +3,7 @@ package mesfavoris.internal.markers;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.LayeredIcon;
-import com.intellij.util.ui.ImageUtil;
+import com.intellij.util.ui.JBUI;
 import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.BookmarkMarker;
 import mesfavoris.bookmarktype.IBookmarkLabelProvider;
@@ -15,7 +15,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 
 public class BookmarkWithMarkerLabelProvider implements IBookmarkLabelProvider {
     private final IBookmarksMarkers bookmarksMarkers;
@@ -54,27 +53,43 @@ public class BookmarkWithMarkerLabelProvider implements IBookmarkLabelProvider {
     }
 
     /**
-     * Creates a small orange dot icon to indicate the presence of a marker
+     * Creates a small orange dot icon that scales correctly on all displays (including HiDPI).
      */
     private Icon createMarkerIndicator() {
-        int size = 6; // Small dot size
-        BufferedImage image = ImageUtil.createImage(size, size, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2d = image.createGraphics();
+        return new Icon() {
+            private final int logicalSize = 6;
 
-        // Enable antialiasing for smooth circle
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            @Override
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                try {
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        // Draw orange circle
-        g2d.setColor(new JBColor(new Color(255, 165, 0), new Color(255, 165, 0))); // Orange color
-        g2d.fillOval(0, 0, size - 1, size - 1);
+                    // The actual size to draw is scaled from the logical size
+                    int actualSize = getIconWidth();
 
-        // Add a subtle border
-        g2d.setColor(new JBColor(new Color(200, 120, 0), new Color(200, 120, 0))); // Darker orange for border
-        g2d.drawOval(0, 0, size - 1, size - 1);
+                    g2d.setColor(new JBColor(new Color(255, 165, 0), new Color(255, 165, 0))); // Orange color
+                    g2d.fillOval(x, y, actualSize - 1, actualSize - 1);
 
-        g2d.dispose();
+                    g2d.setColor(new JBColor(new Color(200, 120, 0), new Color(200, 120, 0))); // Darker orange for border
+                    g2d.drawOval(x, y, actualSize - 1, actualSize - 1);
+                } finally {
+                    g2d.dispose();
+                }
+            }
 
-        return new ImageIcon(image);
+            @Override
+            public int getIconWidth() {
+                // The icon's logical size is 6, scaled by the UI toolkit for the current display
+                return JBUI.scale(logicalSize);
+            }
+
+            @Override
+            public int getIconHeight() {
+                // The icon's logical size is 6, scaled by the UI toolkit for the current display
+                return JBUI.scale(logicalSize);
+            }
+        };
     }
 
     @Override
