@@ -6,6 +6,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointListener;
 import com.intellij.openapi.extensions.PluginDescriptor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -60,6 +61,7 @@ public final class RemoteBookmarksStoreExtensionManager implements Disposable {
     private void createStoreForExtension(@NotNull RemoteBookmarksStoreExtension extension) {
         try {
             AbstractRemoteBookmarksStore store = extension.createStore(project);
+            Disposer.register(this, store);
             // Initialize the store with its descriptor
             RemoteBookmarksStoreDescriptor descriptor = new RemoteBookmarksStoreDescriptor(
                     extension.getId(),

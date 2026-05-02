@@ -44,11 +44,17 @@ public class MarkerBookmarkDetailPart extends AbstractBookmarkDetailPart {
     public MarkerBookmarkDetailPart(Project project, BookmarkDatabase bookmarkDatabase, IBookmarksMarkers bookmarksMarkers) {
         super(project, bookmarkDatabase);
         this.bookmarksMarkers = bookmarksMarkers;
+    }
+
+    @Override
+    public void init() {
+        super.init();
         project.getMessageBus().connect(this).subscribe(BookmarksMarkersListener.TOPIC, new BookmarksMarkersListener() {
             @Override
             public void bookmarkMarkerDeleted(BookmarkMarker bookmarkMarker) {
                 if (currentMarker != null && currentMarker.equals(bookmarkMarker)) {
-                    ApplicationManager.getApplication().invokeLater(() -> updateMarkerInfo());                }
+                    ApplicationManager.getApplication().invokeLater(() -> updateMarkerInfo());
+                }
             }
 
             @Override
