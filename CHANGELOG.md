@@ -4,6 +4,31 @@
 
 ## [Unreleased]
 
+### Added
+- Virtual folders for latest and most visited bookmarks.
+- Support for "action", "markdown note", and "shortcut" bookmark types.
+- Action to open all selected bookmarks.
+- Action to show/hide inlay hints for bookmark comments.
+- Visual inlay hints for bookmark comments.
+- Preview detail part for "file" bookmarks.
+- Update bookmark action.
+
+### Changed
+- No longer use internal APIs.
+- Improved keymap handling when switching shortcut configurations.
+- Bookmark markers are now added to files even if they are not in project sources.
+- Improvements for Java bookmarks.
+- Various UI and UX improvements (icons, tooltips, inlay hints styling).
+
+### Fixed
+- Fixed several memory leaks related to component and service disposal.
+- Fixed a warning about redundant DataProvider registration in the tool window.
+- Fixed an issue with a marker indicator icon.
+- Fixed automatic saving of remote bookmarks.
+- Fixed an issue in the bookmarks tree model (`ExtendedBookmarksTreeModel`).
+- Prevented duplicated inlay hints in certain file types.
+- Corrected minor issues in several actions.
+
 ## [0.0.1-beta.4] - 2026-01-06
 
 ### Fixed
