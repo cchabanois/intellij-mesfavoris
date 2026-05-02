@@ -1,7 +1,6 @@
 package mesfavoris.internal.toolwindow;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.DataManager;
 import com.intellij.ide.actions.CollapseAllAction;
 import com.intellij.ide.ui.LafManagerListener;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -66,7 +65,6 @@ public class MesFavorisToolWindowFactory implements ToolWindowFactory, DumbAware
         ContentManager contentManager = toolWindow.getContentManager();
         Content content = contentManager.getFactory().createContent(panel, null, false);
         contentManager.addContent(content);
-        DataManager.registerDataProvider(panel, panel);
     }
 
     private void updateStripeButtonTooltip(@NotNull ToolWindow toolWindow) {
