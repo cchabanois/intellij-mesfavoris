@@ -1,0 +1,5 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.cchabanois.mesfavoris">
+        <bookmarkType implementation="mesfavoris.notes.internal.NoteBookmarkTypeExtension"/>
+    </extensions>
+</idea-plugin>

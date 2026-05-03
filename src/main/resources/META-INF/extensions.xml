@@ -51,8 +51,7 @@
         <!-- Text Editor Bookmark Type -->
         <bookmarkType implementation="mesfavoris.texteditor.internal.TextEditorBookmarkTypeExtension"/>
 
-        <!-- Java Bookmark Type -->
-        <bookmarkType implementation="mesfavoris.java.internal.JavaBookmarkTypeExtension"/>
+
 
         <!-- URL Bookmark Type -->
         <bookmarkType implementation="mesfavoris.url.internal.UrlBookmarkTypeExtension"/>
@@ -63,8 +62,7 @@
         <!-- GDrive Bookmark Type -->
         <bookmarkType implementation="mesfavoris.gdrive.GDriveBookmarkTypeExtension"/>
 
-        <!-- Note Bookmark Type -->
-        <bookmarkType implementation="mesfavoris.notes.internal.NoteBookmarkTypeExtension"/>
+
         <bookmarkType implementation="mesfavoris.intellij.internal.IntellijBookmarkTypeExtension"/>
         <bookmarkType implementation="mesfavoris.internal.shortcuts.ShortcutBookmarkTypeExtension"/>
 

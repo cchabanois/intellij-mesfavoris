@@ -1,0 +1,5 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.cchabanois.mesfavoris">
+        <bookmarkType implementation="mesfavoris.java.internal.JavaBookmarkTypeExtension"/>
+    </extensions>
+</idea-plugin>
