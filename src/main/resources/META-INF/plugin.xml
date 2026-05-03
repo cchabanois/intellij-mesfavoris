@@ -5,8 +5,8 @@
     <vendor email="cchabanois@gmail.com" url="https://github.com/cchabanois">Cédric Chabanois</vendor>
 
     <depends>com.intellij.modules.platform</depends>
-    <depends>com.intellij.java</depends>
-    <depends>org.intellij.plugins.markdown</depends>
+    <depends optional="true" config-file="mesfavoris-java.xml">com.intellij.java</depends>
+    <depends optional="true" config-file="mesfavoris-markdown.xml">org.intellij.plugins.markdown</depends>
 
     <!-- Extension Points for Bookmark Types -->
     <extensionPoints>
