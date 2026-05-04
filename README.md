@@ -7,15 +7,18 @@
 <!-- Plugin description -->
 Mes Favoris is an advanced bookmark management plugin for IntelliJ IDEA that provides a powerful alternative to the built-in bookmark system.
 
+![logo](docs/mesfavoris-1280x1520.png)
+
 ## Features
 
 - **Hierarchical Bookmarks**: Organize bookmarks in folders and subfolders
 - **Path Placeholders**: Use variables like `${WORKSPACE_LOC}` for portable bookmarks across different environments
 - **Remote Synchronization**: Share bookmarks with your team via Google Drive
+- **bookmark files and urls**
 - **Code Snippets**: Save code snippets as bookmarks for quick reference
 - **Search Everywhere Integration**: Find bookmarks quickly using IntelliJ's Search Everywhere (double Shift)
 - **Keyboard Shortcuts**: Optional replacement of IntelliJ's default bookmark shortcuts (F11, Shift+F11)
-- **Import/Export**: Share bookmark collections with colleagues
+- **bookmarks can resist changes in the files** thanks to Bitap algorithm
 
 <!-- Plugin description end -->
 
