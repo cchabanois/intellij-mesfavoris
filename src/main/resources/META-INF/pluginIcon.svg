@@ -1,0 +1,29 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Open book structure -->
+  <path d="M20 33V10M20 33C15 33 7 31 7 31V10C7 10 15 12 20 12M20 33C25 33 33 31 33 31V10C33 10 25 12 20 12" 
+        fill="white" stroke="#333" stroke-width="1.2" stroke-linejoin="round"/>
+  
+  <!-- The green Gutter -->
+  <path d="M8.5 11.2C10.5 11.5 12.5 11.9 13.5 12V30.5C12.5 30.4 10.5 30 8.5 29.7V11.2Z" fill="#A7D08C"/>
+
+  <!-- The orange bookmark icon -->
+  <path d="M10 15V20L11.5 19L13 20V15H10Z" fill="#FFA500" stroke="#CC8400" stroke-width="0.2"/>
+
+  <!-- Code Symbols: Java Braces (Right page) -->
+  <g stroke="#9876AA" stroke-width="1.2" stroke-linecap="round">
+    <path d="M23 15C22 15 22.5 16 22.5 17C22 17.5 21.5 18 21.5 18C21.5 18 22 18.5 22.5 19C22.5 20 22 21 23 21" />
+    <path d="M29 15C30 15 29.5 16 29.5 17C30 17.5 30.5 18 30.5 18C30.5 18 30 18.5 29.5 19C29.5 20 30 21 29 21" />
+  </g>
+
+  <!-- Colored syntax lines (Right page) -->
+  <rect x="23" y="24" width="6" height="1" rx="0.5" fill="#6AAB73" opacity="0.6"/>
+  <rect x="23" y="28" width="4" height="1" rx="0.5" fill="#333" opacity="0.1"/>
+
+  <!-- the ribbon -->
+  <path d="M20 10C24 10 32 14 20 19C12 21.5 16 30 18 36" 
+        stroke="#FFC107" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Drop shadow under the ribbon -->
+  <path d="M20.5 10.5C24.5 10.5 32.5 14.5 20.5 19.5C12.5 22 16.5 30.5 18.5 36.5" 
+        stroke="black" stroke-opacity="0.1" stroke-width="3.2" stroke-linecap="round"/>
+</svg>
