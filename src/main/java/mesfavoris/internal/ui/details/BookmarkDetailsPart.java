@@ -1,6 +1,7 @@
 package mesfavoris.internal.ui.details;
 
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -81,7 +82,7 @@ public class BookmarkDetailsPart implements IBookmarkDetailPart {
 		for (IBookmarkDetailPart bookmarkDetailPart : bookmarkDetailParts) {
 			if (bookmarkDetailPart.canHandle(bookmark)) {
 				TabInfo tabInfo = createTabInfo(bookmarkDetailPart);
-				tabs.addTab(tabInfo);
+				ReadAction.run(() -> tabs.addTab(tabInfo));
 				tabItem2BookmarkDetailPart.put(tabInfo, bookmarkDetailPart);
 				bookmarkDetailPart.setBookmark(bookmark);
 				if (previouslySelectedBookmarkDetailsPart == bookmarkDetailPart) {
