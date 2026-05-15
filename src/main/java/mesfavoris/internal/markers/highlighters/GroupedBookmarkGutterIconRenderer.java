@@ -2,14 +2,12 @@ package mesfavoris.internal.markers.highlighters;
 
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.project.DumbAware;
-import com.intellij.util.ui.ImageUtil;
 import mesfavoris.bookmarktype.BookmarkMarker;
 import mesfavoris.icons.MesFavorisIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Objects;
 
@@ -56,41 +54,45 @@ public class GroupedBookmarkGutterIconRenderer extends GutterIconRenderer implem
     }
 
     /**
-     * Creates a stacked icon by drawing the base icon multiple times with slight offsets
+     * Creates a stacked icon: a slightly offset semi-transparent copy peeks out from
+     * behind the main icon, giving a clear "multiple pages" look.
      */
     private Icon createStackedIcon(Icon baseIcon) {
         int iconWidth = baseIcon.getIconWidth();
         int iconHeight = baseIcon.getIconHeight();
-        int offset = 2; // Offset for stacking effect
+        int offset = 3;
+        int totalWidth = iconWidth + offset;
+        int totalHeight = iconHeight + offset;
 
-        // Create image large enough for stacked icons
-        int totalWidth = iconWidth + offset * 2;
-        int totalHeight = iconHeight + offset * 2;
+        return new Icon() {
+            @Override
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                try {
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        BufferedImage image = ImageUtil.createImage(totalWidth, totalHeight, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2d = image.createGraphics();
+                    // Back copy shifted down-right — clearly visible behind the front icon
+                    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.65f));
+                    baseIcon.paintIcon(c, g2d, x + offset, y + offset);
 
-        try {
-            // Enable antialiasing
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    // Front icon fully opaque
+                    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+                    baseIcon.paintIcon(c, g2d, x, y);
+                } finally {
+                    g2d.dispose();
+                }
+            }
 
-            // Draw base icon three times with offsets to create stacked effect
-            // Back layer (most transparent)
-            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
-            baseIcon.paintIcon(null, g2d, offset * 2, offset * 2);
+            @Override
+            public int getIconWidth() {
+                return totalWidth;
+            }
 
-            // Middle layer
-            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
-            baseIcon.paintIcon(null, g2d, offset, offset);
-
-            // Front layer (fully opaque)
-            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
-            baseIcon.paintIcon(null, g2d, 0, 0);
-        } finally {
-            g2d.dispose();
-        }
-
-        return new ImageIcon(image);
+            @Override
+            public int getIconHeight() {
+                return totalHeight;
+            }
+        };
     }
 
     @Override
