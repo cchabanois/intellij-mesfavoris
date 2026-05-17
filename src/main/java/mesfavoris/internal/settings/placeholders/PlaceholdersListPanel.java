@@ -10,7 +10,6 @@ import com.intellij.util.ui.JBUI;
 import mesfavoris.BookmarksException;
 import mesfavoris.bookmarktype.IBookmarkLabelProvider;
 import mesfavoris.internal.placeholders.PathPlaceholderResolver;
-import mesfavoris.service.IBookmarksService;
 import mesfavoris.internal.service.operations.CollapseBookmarksOperation;
 import mesfavoris.internal.service.operations.ExpandBookmarksOperation;
 import mesfavoris.model.Bookmark;
@@ -20,6 +19,7 @@ import mesfavoris.model.BookmarksTree;
 import mesfavoris.path.PathBookmarkProperties;
 import mesfavoris.placeholders.IPathPlaceholderResolver;
 import mesfavoris.placeholders.PathPlaceholder;
+import mesfavoris.service.IBookmarksService;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -180,12 +180,15 @@ public class PlaceholdersListPanel extends JPanel {
 
         add(contentPanel, BorderLayout.CENTER);
 
-        // Add explanatory label
-        String helpText = "Placeholders allow you to define shortcuts for frequently used paths. " +
-            "For example, a 'HOME' placeholder pointing to '/home/user' will allow you to use '${HOME}/documents' " +
-            "in bookmarks. Usage statistics are shown for the current project.";
-
-        JLabel helpLabel = new JLabel("<html><body style='width: 400px'>" + helpText + "</body></html>");
+        JTextArea helpLabel = new JTextArea(
+            "Placeholders allow you to define shortcuts for frequently used paths.\n" +
+            "For example, a 'HOME' placeholder pointing to '/home/user' will allow you to use '${HOME}/documents' in bookmarks.\n" +
+            "Usage statistics are shown for the current project.");
+        helpLabel.setLineWrap(true);
+        helpLabel.setWrapStyleWord(true);
+        helpLabel.setEditable(false);
+        helpLabel.setOpaque(false);
+        helpLabel.setFont(UIManager.getFont("Label.font"));
         helpLabel.setBorder(JBUI.Borders.emptyBottom(10));
         add(helpLabel, BorderLayout.NORTH);
     }
