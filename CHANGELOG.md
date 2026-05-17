@@ -4,6 +4,23 @@
 
 ## [Unreleased]
 
+### Added
+
+- "Open in browser" action group for URL bookmarks.
+- PRIVACY.md and TERMS.md documents.
+
+### Changed
+
+- Better help text presentation for path placeholders settings.
+- Java and Markdown plugin dependencies are now optional.
+
+### Fixed
+
+- Fixed "WriteIntentReadAction can not be called from ReadAction" error.
+- Fixed "Read access is allowed from inside read-action only" error.
+- Fixed `GroupedBookmarkGutterIconRenderer` rendering issue.
+- No more Google security warning for Google Drive integration.
+
 ## [0.0.1-beta.5] - 2026-05-02
 
 ### Added
