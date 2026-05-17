@@ -9,6 +9,39 @@
 
 ![logo](docs/mesfavoris-1280x1520.png)
 
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Getting Started](#getting-started)
+- [Tool Window](#tool-window)
+  - [Toolbar actions](#toolbar-actions)
+  - [Bookmark tree](#bookmark-tree)
+  - [Details panel](#details-panel)
+- [Bookmark Types](#bookmark-types)
+  - [File](#file)
+  - [URL](#url)
+  - [Snippet](#snippet)
+  - [Java Member](#java-member)
+  - [Note](#note)
+  - [Shortcut](#shortcut)
+  - [Action](#action)
+- [Markers](#markers)
+- [Search Everywhere](#search-everywhere)
+- [Comments in the editor](#comments-in-the-editor)
+- [Keyboard Shortcuts](#keyboard-shortcuts)
+- [Local Storage](#local-storage)
+- [Path Placeholders](#path-placeholders)
+- [Remote Sync (Google Drive)](#remote-sync-google-drive)
+  - [Connecting](#connecting)
+  - [Sharing a bookmark folder to Google Drive](#sharing-a-bookmark-folder-to-google-drive)
+  - [Importing a bookmark folder from Google Drive](#importing-a-bookmark-folder-from-google-drive)
+  - [Refreshing](#refreshing)
+- [Settings](#settings)
+- [License](#license)
+
+---
+
 ## Features
 
 - **Hierarchical bookmarks** — organize in folders and subfolders with drag-and-drop
