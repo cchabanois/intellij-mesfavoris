@@ -50,14 +50,6 @@ public class GoogleDriveCredentialsPanel extends JPanel {
         group.add(useDefaultCredentialsRadio);
         mainPanel.add(useDefaultCredentialsRadio);
 
-        JBLabel warningLabel = new JBLabel(
-                "<html><i>⚠ You will see a Google security warning because the app is not verified.</i></html>",
-                UIUtil.ComponentStyle.SMALL,
-                UIUtil.FontColor.BRIGHTER
-        );
-        warningLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        warningLabel.setBorder(JBUI.Borders.emptyLeft(25));
-        mainPanel.add(warningLabel);
         mainPanel.add(Box.createVerticalStrut(15));
 
         useCustomCredentialsRadio = new JRadioButton("Use custom credentials");
