@@ -9,6 +9,39 @@
 
 ![logo](docs/mesfavoris-1280x1520.png)
 
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Getting Started](#getting-started)
+- [Tool Window](#tool-window)
+  - [Toolbar actions](#toolbar-actions)
+  - [Bookmark tree](#bookmark-tree)
+  - [Details panel](#details-panel)
+- [Bookmark Types](#bookmark-types)
+  - [File](#file)
+  - [URL](#url)
+  - [Snippet](#snippet)
+  - [Java Member](#java-member)
+  - [Note](#note)
+  - [Shortcut](#shortcut)
+  - [Action](#action)
+- [Markers](#markers)
+- [Search Everywhere](#search-everywhere)
+- [Comments in the editor](#comments-in-the-editor)
+- [Keyboard Shortcuts](#keyboard-shortcuts)
+- [Local Storage](#local-storage)
+- [Path Placeholders](#path-placeholders)
+- [Remote Sync (Google Drive)](#remote-sync-google-drive)
+  - [Connecting](#connecting)
+  - [Sharing a bookmark folder to Google Drive](#sharing-a-bookmark-folder-to-google-drive)
+  - [Importing a bookmark folder from Google Drive](#importing-a-bookmark-folder-from-google-drive)
+  - [Refreshing](#refreshing)
+- [Settings](#settings)
+- [License](#license)
+
+---
+
 ## Features
 
 - **Hierarchical bookmarks** — organize in folders and subfolders with drag-and-drop
@@ -67,6 +100,7 @@ The tool window has three areas: a **toolbar** at the top, the **bookmark tree**
 | Icon | Action | Description |
 |------|--------|-------------|
 | Target | Select Bookmark at Caret | Highlights the bookmark matching the current editor position |
+| Drive | Connect to Google Drive | Opens the Google Drive authentication flow to enable remote sync |
 | Refresh | Refresh Remote Folders | Pulls latest changes from Google Drive and other remote stores |
 | Collapse | Collapse All | Collapses all expanded folder nodes |
 | Gear | Settings menu | Access settings, manage placeholders, swap shortcuts, delete credentials |
@@ -94,6 +128,12 @@ Three read-only virtual folders are automatically maintained at the root:
 - **Add Shortcut** — create a shortcut bookmark pointing to the selected bookmark
 - **Add Note** — create a new Markdown note bookmark
 - **Copy/Paste Special > Paste as Snippet** — create a snippet bookmark from the clipboard
+- **Open In** — open a URL bookmark in a specific browser (visible on URL bookmarks only)
+- **Add to Google Drive** — sync a bookmark folder to Google Drive (visible on folders, requires connection)
+- **Remove from Google Drive** — stop syncing a folder, move the Drive file to trash, but keep the folder locally
+- **Delete Shared Bookmark Folder** — delete a synced folder locally, with an option to also delete it from Google Drive
+- **Import bookmarks...** — import a bookmark folder from Google Drive
+- **View in Google Drive** — open the corresponding Drive file in the browser (visible on synced folders)
 
 ### Details panel
 
@@ -142,7 +182,7 @@ A shortcut is a pointer to another bookmark. Select a bookmark in the tree, righ
 
 ### Action
 
-An action bookmark wraps an IntelliJ IDE action. Double-clicking it in the tree runs the action directly. Useful for keeping frequently used but hard-to-find actions at hand.
+An action bookmark wraps an IntelliJ IDE action. To create one, open Search Everywhere (<kbd>Shift</kbd>+<kbd>Shift</kbd>), switch to the **Actions** tab, find the action you want to bookmark, and press <kbd>F11</kbd>. Double-clicking the bookmark in the tree runs the action directly. Useful for keeping frequently used but hard-to-find actions at hand.
 
 ---
 
@@ -150,15 +190,21 @@ An action bookmark wraps an IntelliJ IDE action. Double-clicking it in the tree 
 
 A **marker** is a small icon displayed in the editor gutter at the exact line where a file bookmark points. It gives you a visual reminder that the line is bookmarked without having to open the tool window.
 
-> **Screenshot suggestion:** `docs/screenshot-marker.png` — editor gutter showing a bookmark marker icon next to a bookmarked line
+![Marker in editor gutter](docs/marker-gutter.png)
 
 Markers are added automatically when you create a file bookmark. If the bookmarked file is outside the project sources, markers are still shown. You can remove all markers from selected bookmarks via the context menu **Delete Markers**, which removes the gutter indicator without deleting the bookmark itself.
+
+## Search Everywhere
+
+Press <kbd>Shift</kbd>+<kbd>Shift</kbd> to open the Search Everywhere dialog, then switch to the **Mes Favoris** tab to search across all your bookmarks. Selecting a result navigates directly to the bookmark.
+
+![Search Everywhere](docs/search-everywhere.png)
 
 ## Comments in the editor
 
 If a bookmark has a comment, it can be displayed as an **inlay hint** directly above the bookmarked line in the editor — without opening the tool window.
 
-> **Screenshot suggestion:** `docs/screenshot-inlay-hint.png` — editor showing a bookmark comment as an inlay hint above a bookmarked line
+![Comments as inlay hints](docs/comments-inlay-hints.png)
 
 To toggle inlay hints: right-click the editor gutter and select **Show Favori Comments in Editor**. You can also use the gear icon in the tool window > **Show/Hide Bookmark Comment Hints**. The setting takes effect immediately without restarting the IDE.
 
@@ -175,6 +221,10 @@ Switch between the two schemes via the gear icon > **Swap Shortcuts with Intelli
 
 ---
 
+## Local Storage
+
+Bookmarks are stored per project in `.idea/mesfavoris/bookmarks.json`. You can commit this file to version control to share bookmarks with your team — as an alternative to Google Drive sync.
+
 ## Path Placeholders
 
 Path placeholders make bookmarks portable across machines and team members. Instead of storing absolute paths like `/home/alice/projects/myapp/src/Main.java`, Mes Favoris stores `${HOME}/projects/myapp/src/Main.java`.
@@ -185,7 +235,7 @@ The `${HOME}` placeholder is predefined and always points to the current user's 
 
 Go to <kbd>Settings</kbd> > <kbd>Tools</kbd> > <kbd>Mes Favoris</kbd> > <kbd>Placeholders</kbd> (or use the gear icon > **Manage Placeholders**).
 
-> **Screenshot suggestion:** `docs/screenshot-placeholders.png` — the Placeholders settings panel with usage statistics
+![Manage placeholders](docs/manage-placeholders.png)
 
 From this panel you can:
 - Add, edit, or delete placeholders
@@ -198,17 +248,36 @@ From this panel you can:
 
 Mes Favoris can sync bookmarks to Google Drive, letting you share them across machines or with your team.
 
-> **Screenshot suggestion:** `docs/screenshot-gdrive.png` — the bookmark tree showing a Google Drive-synced folder with the Drive overlay icon
 
 ### Connecting
 
-1. Open <kbd>Settings</kbd> > <kbd>Tools</kbd> > <kbd>Mes Favoris</kbd> > <kbd>Google Drive</kbd>
-2. Click **Connect** and authenticate via OAuth 2.0
-3. The plugin only requests the `drive.file` scope — it can only access files it created itself
+Click the **Connect to Google Drive** icon in the tool window toolbar and authenticate via OAuth 2.0. The plugin only requests the `drive.file` scope — it can only access files it created itself.
 
-### Using remote bookmarks
+![Google sign-in](docs/google-signin.png)
 
-Once connected, remote bookmark folders appear in the tree with a Google Drive overlay icon. Changes are synced automatically. To force a refresh, click the **Refresh Remote Folders** button in the toolbar.
+### Sharing a bookmark folder to Google Drive
+
+Right-click any bookmark folder in the tree and select **Add to Google Drive**. The folder and all its contents are uploaded to Google Drive and kept in sync automatically. The folder icon shows a Google Drive overlay to indicate it is remote.
+
+| Connected | Disconnected |
+|-----------|--------------|
+| ![Shared folder - connected](docs/shared-folder-connected.png) | ![Shared folder - disconnected](docs/shared-folder-disconnected.png) |
+
+When not connected to Google Drive, shared folders are **read-only** — bookmarks inside cannot be added, edited, or deleted.
+
+To stop syncing a folder, right-click it and select **Remove from Google Drive**. The corresponding file is moved to the Google Drive trash, but the folder is kept locally.
+
+### Importing a bookmark folder from Google Drive
+
+Right-click a folder in the tree and select **Import bookmarks...**. A dialog lists all bookmark files previously created by Mes Favoris in your Google Drive. Select one and click **OK** to import it as a new subfolder.
+
+![Import Bookmarks File](docs/import-bookmark-file.png)
+
+If you want to import a folder shared by someone else, click **Add link...** in the dialog and paste the Google Drive file URL. The file is then listed and can be imported.
+
+### Refreshing
+
+Changes are pulled automatically in the background. To force an immediate refresh, click the **Refresh Remote Folders** button in the toolbar.
 
 To disconnect or remove stored credentials, use the gear icon > **Delete Credentials**.
 
@@ -222,7 +291,9 @@ To disconnect or remove stored credentials, use the gear icon > **Delete Credent
 |------|-------|-------------|
 | **Placeholders** | IDE-wide | Create and manage path placeholders; view usage statistics |
 | **Bookmark Types** | IDE-wide | Enable or disable individual bookmark types |
-| **Google Drive** | Per project | Connect/disconnect Google account; view authentication status |
+| **Google Drive** | IDE-wide | Configure OAuth credentials — use the built-in credentials or provide your own Client ID and Client Secret |
+
+![Google Drive settings](docs/gdrive-settings.png)
 
 ---
 
