@@ -43,6 +43,7 @@ import mesfavoris.remote.IRemoteBookmarksStore;
 import mesfavoris.remote.RemoteBookmarkFolder;
 import mesfavoris.remote.RemoteBookmarksStoreManager;
 import mesfavoris.service.IBookmarksService;
+import mesfavoris.service.MoveLocation;
 import mesfavoris.texteditor.internal.WorkspaceFileBookmarkMarkerAttributesProvider;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
@@ -193,15 +194,32 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
 
     public BookmarkId addBookmark(DataContext dataContext, ProgressIndicator progress)
             throws BookmarksException {
+        return addBookmark(dataContext, null, progress);
+    }
+
+    @Override
+    public BookmarkId addBookmark(DataContext dataContext, @Nullable BookmarkId parentFolderId, ProgressIndicator progress)
+            throws BookmarksException {
         AddBookmarkOperation operation = new AddBookmarkOperation(bookmarkDatabase, bookmarkPropertiesProvider,
                 newBookmarkPositionProvider);
-        return operation.addBookmark(dataContext, progress);
+        return operation.addBookmark(dataContext, parentFolderId, progress);
     }
 
     @Override
     public BookmarkId addBookmark(Map<String, String> properties) throws BookmarksException {
+        return addBookmark(properties, null);
+    }
+
+    @Override
+    public BookmarkId addBookmark(Map<String, String> properties, @Nullable BookmarkId parentFolderId) throws BookmarksException {
         AddBookmarkFromPropertiesOperation operation = new AddBookmarkFromPropertiesOperation(bookmarkDatabase, newBookmarkPositionProvider);
-        return operation.addBookmark(properties);
+        return operation.addBookmark(properties, parentFolderId);
+    }
+
+    @Override
+    public void moveBookmarks(List<BookmarkId> ids, BookmarkId targetId, MoveLocation location) throws BookmarksException {
+        MoveBookmarksOperation operation = new MoveBookmarksOperation(bookmarkDatabase);
+        operation.moveBookmarks(ids, targetId, location);
     }
 
     public BookmarkId addBookmarkFolder(BookmarkId parentFolderId, String folderName) throws BookmarksException {

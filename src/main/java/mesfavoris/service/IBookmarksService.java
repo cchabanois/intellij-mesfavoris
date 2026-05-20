@@ -5,6 +5,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import mesfavoris.BookmarksException;
 import mesfavoris.IBookmarksMarkers;
 import mesfavoris.bookmarktype.IBookmarkLabelProvider;
+import mesfavoris.internal.visited.IVisitedBookmarksProvider;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.BookmarksTree;
@@ -12,6 +13,8 @@ import mesfavoris.persistence.IBookmarksDirtyStateTracker;
 import mesfavoris.recent.IRecentBookmarksProvider;
 import mesfavoris.remote.IRemoteBookmarksStore;
 import mesfavoris.remote.RemoteBookmarkFolder;
+
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -57,7 +60,7 @@ public interface IBookmarksService {
     /**
      * Get the visited bookmarks provider
      */
-    mesfavoris.internal.visited.IVisitedBookmarksProvider getVisitedBookmarksProvider();
+    IVisitedBookmarksProvider getVisitedBookmarksProvider();
 
     /**
      * Navigate to a bookmark
@@ -79,12 +82,43 @@ public interface IBookmarksService {
     BookmarkId addBookmark(DataContext dataContext, ProgressIndicator progress) throws BookmarksException;
 
     /**
+     * Add a bookmark from the current context into a specific parent folder
+     *
+     * @param dataContext    the data context
+     * @param progress       the progress indicator
+     * @param parentFolderId the parent folder ID, or empty to use the default position
+     * @return the ID of the created bookmark
+     * @throws BookmarksException if the bookmark cannot be created
+     */
+    BookmarkId addBookmark(DataContext dataContext, @Nullable BookmarkId parentFolderId, ProgressIndicator progress) throws BookmarksException;
+
+    /**
      * Add a bookmark from properties
      * @param properties the properties of the bookmark to create
      * @return the ID of the created bookmark
      * @throws BookmarksException if the bookmark cannot be created
      */
     BookmarkId addBookmark(Map<String, String> properties) throws BookmarksException;
+
+    /**
+     * Add a bookmark from properties into a specific parent folder
+     *
+     * @param properties     the properties of the bookmark to create
+     * @param parentFolderId the parent folder ID, or empty to use the default position
+     * @return the ID of the created bookmark
+     * @throws BookmarksException if the bookmark cannot be created
+     */
+    BookmarkId addBookmark(Map<String, String> properties, @Nullable BookmarkId parentFolderId) throws BookmarksException;
+
+    /**
+     * Move bookmarks to a new location
+     *
+     * @param ids      the IDs of the bookmarks to move
+     * @param targetId the target bookmark ID
+     * @param location INTO to move into a folder, BEFORE or AFTER relative to the target
+     * @throws BookmarksException if the bookmarks cannot be moved
+     */
+    void moveBookmarks(List<BookmarkId> ids, BookmarkId targetId, MoveLocation location) throws BookmarksException;
 
     /**
      * Add a bookmark folder

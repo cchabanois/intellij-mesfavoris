@@ -1,5 +1,23 @@
 package mesfavoris.internal.service.operations;
 
+import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.util.ProgressIndicatorBase;
+import mesfavoris.bookmarktype.IBookmarkPropertiesProvider;
+import mesfavoris.internal.service.operations.utils.INewBookmarkPositionProvider;
+import mesfavoris.internal.service.operations.utils.NewBookmarkPosition;
+import mesfavoris.model.*;
+import mesfavoris.tests.commons.bookmarks.BookmarksTreeBuilder;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.stubbing.Answer;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import static mesfavoris.tests.commons.bookmarks.BookmarkBuilder.bookmark;
 import static mesfavoris.tests.commons.bookmarks.BookmarkBuilder.bookmarkFolder;
 import static mesfavoris.tests.commons.bookmarks.BookmarksTreeBuilder.bookmarksTree;
@@ -7,33 +25,6 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.progress.DumbProgressIndicator;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.util.ProgressIndicatorBase;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
-import com.google.common.collect.ImmutableMap;
-
-import mesfavoris.bookmarktype.IBookmarkPropertiesProvider;
-import mesfavoris.internal.service.operations.utils.INewBookmarkPositionProvider;
-import mesfavoris.internal.service.operations.utils.NewBookmarkPosition;
-import mesfavoris.model.Bookmark;
-import mesfavoris.model.BookmarkDatabase;
-import mesfavoris.model.BookmarkFolder;
-import mesfavoris.model.BookmarkId;
-import mesfavoris.model.BookmarksTree;
-import mesfavoris.tests.commons.bookmarks.BookmarksTreeBuilder;
 
 public class AddBookmarkOperationTest {
 	private AddBookmarkOperation operation;
@@ -88,6 +79,21 @@ public class AddBookmarkOperationTest {
 		assertEquals("comment for bookmark13", bookmark.getPropertyValue(Bookmark.PROPERTY_COMMENT));
 		assertEquals("customValue", bookmark.getPropertyValue("customProp"));
 		assertEquals(new BookmarkId("bookmark11"), getBookmarkBefore(bookmark.getId()).get().getId());
+	}
+
+	@Test
+	public void testAddBookmarkToExplicitParentFolder() throws Exception {
+		// Given
+		DataContext dataContext = mock(DataContext.class);
+		doPutPropertiesWhenAddBookmarkPropertiesCalled(bookmarkPropertiesProvider, dataContext,
+				ImmutableMap.of(Bookmark.PROPERTY_NAME, "bookmark13"));
+
+		// When
+		operation.addBookmark(dataContext, new BookmarkId("folder2"), new ProgressIndicatorBase());
+
+		// Then
+		Bookmark bookmark = getBookmarkWithName(new BookmarkId("folder2"), "bookmark13").get();
+		assertEquals("bookmark13", bookmark.getPropertyValue(Bookmark.PROPERTY_NAME));
 	}
 
 	private BookmarksTree createBookmarksTree() {

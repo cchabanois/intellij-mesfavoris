@@ -6,6 +6,7 @@ import mesfavoris.internal.service.operations.utils.NewBookmarkPosition;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.Collections;
@@ -22,17 +23,23 @@ public class AddBookmarkFromPropertiesOperation {
     }
 
     public BookmarkId addBookmark(Map<String, String> properties) throws BookmarksException {
+        return addBookmark(properties, null);
+    }
+
+    public BookmarkId addBookmark(Map<String, String> properties, @Nullable BookmarkId parentFolderId) throws BookmarksException {
         Map<String, String> bookmarkProperties = new HashMap<>(properties);
         bookmarkProperties.putIfAbsent(Bookmark.PROPERTY_CREATED, Instant.now().toString());
 
         BookmarkId bookmarkId = new BookmarkId();
         Bookmark bookmark = new Bookmark(bookmarkId, properties);
-        addBookmarkToTree(bookmark);
+        addBookmarkToTree(bookmark, parentFolderId);
         return bookmarkId;
     }
 
-    private void addBookmarkToTree(final Bookmark bookmark) throws BookmarksException {
-        NewBookmarkPosition newBookmarkPosition = newBookmarkPositionProvider.getNewBookmarkPosition();
+    private void addBookmarkToTree(final Bookmark bookmark, @Nullable BookmarkId parentFolderId) throws BookmarksException {
+        NewBookmarkPosition newBookmarkPosition = parentFolderId != null
+                ? new NewBookmarkPosition(parentFolderId)
+                : newBookmarkPositionProvider.getNewBookmarkPosition();
         bookmarkDatabase.modify(bookmarksTreeModifier -> {
             if (newBookmarkPosition.getBookmarkId().isPresent()) {
                 bookmarksTreeModifier.addBookmarksAfter(newBookmarkPosition.getParentBookmarkId(),
