@@ -21,14 +21,10 @@ import mesfavoris.BookmarksException
 import mesfavoris.bookmarktype.BookmarkPropertyDescriptor
 import mesfavoris.internal.Constants.DEFAULT_BOOKMARKFOLDER_ID
 import mesfavoris.internal.bookmarktypes.extension.ExtensionBookmarkPropertyDescriptors
-import mesfavoris.internal.placeholders.PathPlaceholderResolver
-import mesfavoris.internal.settings.placeholders.PathPlaceholdersStore
 import mesfavoris.internal.toolwindow.MesFavorisToolWindowUtils
 import mesfavoris.model.Bookmark
 import mesfavoris.model.BookmarkFolder
 import mesfavoris.model.BookmarkId
-import mesfavoris.model.BookmarksTree
-import mesfavoris.path.PathBookmarkProperties.PROP_FILE_PATH
 import mesfavoris.service.IBookmarksService
 import mesfavoris.service.MoveLocation
 
@@ -65,15 +61,28 @@ class BookmarksMcpToolset : McpToolset {
     @McpTool
     @McpDescription(description = "Navigate to a bookmark (favori) in the IDE by its ID.")
     suspend fun goto_bookmark(
-        @McpDescription(description = "The bookmark ID to navigate to") id: String
+        @McpDescription(description = "The bookmark ID to navigate to") id: String,
+        @McpDescription(description = "Whether to also select the bookmark in the tree (default: true)") selectBookmark: Boolean = true
     ): String {
         val service = bookmarksService()
         return try {
             service.gotoBookmark(BookmarkId(id), EmptyProgressIndicator())
+            if (selectBookmark) service.selectBookmarkInTree(BookmarkId(id))
             "Navigated to bookmark: $id"
         } catch (e: BookmarksException) {
             mcpFail("Could not navigate to bookmark '$id': ${e.message}")
         }
+    }
+
+    @McpTool
+    @McpDescription(description = "Select a bookmark (favori) in the bookmarks tree view.")
+    suspend fun select_bookmark(
+        @McpDescription(description = "The bookmark ID to select") id: String
+    ): String {
+        val service = bookmarksService()
+        service.getBookmarksTree().getBookmark(BookmarkId(id)) ?: mcpFail("Bookmark not found: $id")
+        service.selectBookmarkInTree(BookmarkId(id))
+        return "Selected bookmark: $id"
     }
 
     @McpTool
@@ -305,16 +314,11 @@ class BookmarksMcpToolset : McpToolset {
         val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(filePath)
             ?: mcpFail("File not found: $filePath")
 
-        val tree = service.getBookmarksTree()
-        val resolvedParentFolderId: BookmarkId = if (parentId.isNotBlank()) {
-            val parent = tree.getBookmark(BookmarkId(parentId)) ?: mcpFail("Parent folder not found: $parentId")
+        val resolvedParentFolderId: BookmarkId? = if (parentId.isNotBlank()) {
+            val parent = service.getBookmarksTree().getBookmark(BookmarkId(parentId)) ?: mcpFail("Parent folder not found: $parentId")
             if (parent !is BookmarkFolder) mcpFail("'$parentId' is not a folder")
             BookmarkId(parentId)
-        } else {
-            getSelectedFolderIdFromToolWindow(project)
-                ?: if (tree.getBookmark(DEFAULT_BOOKMARKFOLDER_ID) != null) DEFAULT_BOOKMARKFOLDER_ID
-                   else tree.rootFolder.id
-        }
+        } else null
         var newId: BookmarkId? = null
         var error: String? = null
         ApplicationManager.getApplication().invokeAndWait {
@@ -365,56 +369,6 @@ class BookmarksMcpToolset : McpToolset {
         }
         return result
     }
-
-    private fun bookmarkToResult(tree: BookmarksTree, bookmark: Bookmark): BookmarkResult {
-        val resolver = PathPlaceholderResolver(PathPlaceholdersStore.getInstance())
-        val expandedProperties = bookmark.properties.mapValues { (k, v) ->
-            if (k == PROP_FILE_PATH) resolver.expand(v)?.toString() ?: v else v
-        }
-        return BookmarkResult(
-            id = bookmark.id.toString(),
-            type = if (bookmark is BookmarkFolder) BookmarkType.FOLDER else BookmarkType.BOOKMARK,
-            properties = expandedProperties,
-            folderPath = buildFolderPath(tree, bookmark.id)
-        )
-    }
-
-    private fun buildFolderPath(tree: BookmarksTree, bookmarkId: BookmarkId): String {
-        val segments = mutableListOf<String>()
-        val rootId = tree.rootFolder.id
-        var current = tree.getParentBookmark(bookmarkId)
-        while (current != null && current.id != rootId) {
-            val name = current.getPropertyValue(Bookmark.PROPERTY_NAME) ?: ""
-            segments.add(name.replace("/", "\\/"))
-            current = tree.getParentBookmark(current.id)
-        }
-        segments.reverse()
-        return "/" + segments.joinToString("/")
-    }
-
-    @Serializable
-    enum class BookmarkType {
-        @SerialName("folder")   FOLDER,
-        @SerialName("bookmark") BOOKMARK
-    }
-
-    @Serializable
-    data class BookmarkResult(
-        @property:McpDescription("Unique identifier of the bookmark")
-        val id: String,
-        @property:McpDescription("Type of the entry: folder or bookmark")
-        val type: BookmarkType,
-        @property:McpDescription("Key-value properties of the bookmark (e.g. name, filePath, lineNumber, comment). Use list_bookmark_properties to get the full list of possible properties with their descriptions.")
-        val properties: Map<String, String>,
-        @property:McpDescription("Path of the containing bookmark folder from root, e.g. '/work/projects'")
-        val folderPath: String
-    )
-
-    @Serializable
-    data class BookmarksResult(
-        @property:McpDescription("The list of bookmarks (favoris)")
-        val bookmarks: List<BookmarkResult>
-    )
 
     @Serializable
     enum class PropertyType {

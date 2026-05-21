@@ -1,29 +1,28 @@
 package mesfavoris.internal.service.operations.utils;
 
+import com.google.common.collect.Lists;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
-
-import com.google.common.collect.Lists;
-
 import mesfavoris.BookmarksException;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkFolder;
 import mesfavoris.model.BookmarkId;
-import static mesfavoris.internal.Constants.DEFAULT_BOOKMARKFOLDER_ID;
-import com.intellij.openapi.diagnostic.Logger;
 
 import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static mesfavoris.internal.Constants.DEFAULT_BOOKMARKFOLDER_ID;
 
 /**
  * Provides the position where to add a new bookmark.
@@ -85,7 +84,7 @@ public class NewBookmarkPositionProvider implements INewBookmarkPositionProvider
 		if (selection.isEmpty()) {
 			return null;
 		}
-		Bookmark firstSelectedElement = selection.get(0);
+		Bookmark firstSelectedElement = selection.getFirst();
 		if (firstSelectedElement instanceof BookmarkFolder bookmarkFolder) {
             return new NewBookmarkPosition(bookmarkFolder.getId());
 		} else if (firstSelectedElement != null) {
@@ -98,6 +97,9 @@ public class NewBookmarkPositionProvider implements INewBookmarkPositionProvider
 
 	private List<Bookmark> getBookmarksToolWindowSelection() {
 		ToolWindow bookmarksToolWindow = ToolWindowManager.getInstance(project).getToolWindow("mesfavoris");
+		if (bookmarksToolWindow == null) {
+			return List.of();
+		}
 		Content content = bookmarksToolWindow.getContentManager().getContent(0);
 		Component component = content.getComponent();
 		Object[] selectedItems = getSelectedItemsFromDataContext(component);
