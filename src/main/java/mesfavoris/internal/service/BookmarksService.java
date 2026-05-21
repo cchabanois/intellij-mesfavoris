@@ -31,6 +31,7 @@ import mesfavoris.internal.validation.BookmarksModificationValidator;
 import mesfavoris.internal.visited.IVisitedBookmarksProvider;
 import mesfavoris.internal.visited.VisitedBookmarksDatabase;
 import mesfavoris.internal.workspace.BookmarksWorkspaceFactory;
+import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.BookmarksTree;
@@ -57,6 +58,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -240,6 +242,15 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
     public void setBookmarkProperties(BookmarkId bookmarkId, Map<String, String> properties) throws BookmarksException {
         SetBookmarkPropertiesOperation operation = new SetBookmarkPropertiesOperation(bookmarkDatabase);
         operation.setProperties(bookmarkId, properties);
+    }
+
+    @Override
+    public void modifyBookmark(BookmarkId bookmarkId, Map<String, String> changedProperties) throws BookmarksException {
+        Bookmark bookmark = bookmarkDatabase.getBookmarksTree().getBookmark(bookmarkId);
+        if (bookmark == null) throw new BookmarksException("Bookmark not found: " + bookmarkId);
+        Map<String, String> merged = new HashMap<>(bookmark.getProperties());
+        merged.putAll(changedProperties);
+        setBookmarkProperties(bookmarkId, merged);
     }
 
     public void copyToClipboard(List<BookmarkId> selection) {
