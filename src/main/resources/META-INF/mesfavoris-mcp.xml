@@ -4,6 +4,7 @@
         <mcpToolset implementation="mesfavoris.snippets.internal.mcp.SnippetsMcpToolset"/>
         <mcpToolset implementation="mesfavoris.notes.internal.mcp.NotesMcpToolset"/>
         <mcpToolset implementation="mesfavoris.url.internal.mcp.UrlsMcpToolset"/>
+        <mcpToolset implementation="mesfavoris.remote.internal.mcp.RemoteStoresMcpToolset"/>
     </extensions>
 </idea-plugin>
 
