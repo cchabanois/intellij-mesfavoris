@@ -18,8 +18,8 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import mesfavoris.BookmarksException
-import mesfavoris.internal.Constants.DEFAULT_BOOKMARKFOLDER_ID
 import mesfavoris.bookmarktype.BookmarkPropertyDescriptor
+import mesfavoris.internal.Constants.DEFAULT_BOOKMARKFOLDER_ID
 import mesfavoris.internal.bookmarktypes.extension.ExtensionBookmarkPropertyDescriptors
 import mesfavoris.internal.placeholders.PathPlaceholderResolver
 import mesfavoris.internal.settings.placeholders.PathPlaceholdersStore
@@ -44,7 +44,7 @@ class BookmarksMcpToolset : McpToolset {
             ?: mcpFail("Bookmarks service unavailable")
 
     @McpTool
-    @McpDescription(description = "List all known bookmark property descriptors. Returns a JSON array describing the possible properties of a bookmark.")
+    @McpDescription(description = "List all known bookmark (favori) property descriptors, describing the possible properties of a bookmark.")
     suspend fun list_bookmark_properties(): PropertyDescriptorsResult {
         val descriptors = ExtensionBookmarkPropertyDescriptors()
         return PropertyDescriptorsResult(descriptors.getPropertyDescriptors().map { descriptor ->
@@ -63,7 +63,7 @@ class BookmarksMcpToolset : McpToolset {
     }
 
     @McpTool
-    @McpDescription(description = "Navigate to a bookmark in the IDE by its ID")
+    @McpDescription(description = "Navigate to a bookmark (favori) in the IDE by its ID.")
     suspend fun goto_bookmark(
         @McpDescription(description = "The bookmark ID to navigate to") id: String
     ): String {
@@ -77,9 +77,9 @@ class BookmarksMcpToolset : McpToolset {
     }
 
     @McpTool
-    @McpDescription(description = "Search bookmarks by text. Returns matching bookmarks as JSON.")
+    @McpDescription(description = "Search bookmarks (favoris) by text.")
     suspend fun search_bookmarks(
-        @McpDescription(description = "ID of the folder to search in (default: entire tree)") parentId: String = "",
+        @McpDescription(description = "ID of the bookmark folder to search in (default: entire tree)") parentId: String = "",
         @McpDescription(description = "Text to search for (case-insensitive)") query: String,
         @McpDescription(description = "Whether to search recursively in subfolders (default: true)") recursive: Boolean = true,
         @McpDescription(description = "Comma-separated list of property names to search in (default: all properties)") attributes: String = "",
@@ -119,10 +119,10 @@ class BookmarksMcpToolset : McpToolset {
     }
 
     @McpTool
-    @McpDescription(description = "Create a bookmark folder. Returns the created folder as JSON.")
+    @McpDescription(description = "Create a bookmark folder.")
     suspend fun create_bookmark_folder(
-        @McpDescription(description = "Name of the folder to create (must not be blank)") name: String,
-        @McpDescription(description = "ID of the parent folder (default: currently selected folder, then 'default' folder, then root)") parentId: String = ""
+        @McpDescription(description = "Name of the bookmark folder to create (must not be blank)") name: String,
+        @McpDescription(description = "ID of the parent bookmark folder (default: currently selected folder, then 'default' folder, then root)") parentId: String = ""
     ): BookmarkResult {
         val project = currentProject()
         val service = bookmarksService()
@@ -152,9 +152,9 @@ class BookmarksMcpToolset : McpToolset {
     }
 
     @McpTool
-    @McpDescription(description = "List bookmarks in a folder. Returns a JSON array of direct children, or all descendants if recursive.")
+    @McpDescription(description = "List bookmarks (favoris) in a bookmark folder. Returns direct children, or all descendants if recursive.")
     suspend fun list_bookmark_folder(
-        @McpDescription(description = "ID of the folder to list (default: root folder)") folderId: String = "",
+        @McpDescription(description = "ID of the bookmark folder to list (default: root folder)") folderId: String = "",
         @McpDescription(description = "Whether to list recursively (default: false)") recursive: Boolean = false
     ): BookmarksResult {
         val service = bookmarksService()
@@ -175,11 +175,11 @@ class BookmarksMcpToolset : McpToolset {
     }
 
     @McpTool
-    @McpDescription(description = "Move bookmarks to a new location. Returns a confirmation message.")
+    @McpDescription(description = "Move bookmarks (favoris) to a new location. Returns a confirmation message.")
     suspend fun move_bookmarks(
         @McpDescription(description = "Comma-separated list of bookmark IDs to move") ids: String,
         @McpDescription(description = "Target bookmark ID") targetId: String,
-        @McpDescription(description = "Where to place the bookmarks: INTO (into a folder), BEFORE or AFTER (relative to target)") location: String = "INTO"
+        @McpDescription(description = "Where to place the bookmarks: INTO (into a bookmark folder), BEFORE or AFTER (relative to target)") location: String = "INTO"
     ): String {
         val service = bookmarksService()
         val bookmarkIds = ids.split(",").map { it.trim() }.filter { it.isNotEmpty() }.map { BookmarkId(it) }
@@ -206,10 +206,10 @@ class BookmarksMcpToolset : McpToolset {
     }
 
     @McpTool
-    @McpDescription(description = "Delete a bookmark or folder by its ID.")
+    @McpDescription(description = "Delete a bookmark (favori) or bookmark folder by its ID. IMPORTANT: When recursive=true, always ask the user for confirmation before calling this tool.")
     suspend fun delete_bookmark(
         @McpDescription(description = "The bookmark ID to delete") id: String,
-        @McpDescription(description = "Whether to delete folder contents recursively (default: false)") recursive: Boolean = false
+        @McpDescription(description = "Whether to delete bookmark folder contents recursively (default: false)") recursive: Boolean = false
     ): String {
         val service = bookmarksService()
         service.getBookmarksTree().getBookmark(BookmarkId(id)) ?: mcpFail("Bookmark not found: $id")
@@ -222,12 +222,82 @@ class BookmarksMcpToolset : McpToolset {
     }
 
     @McpTool
-    @McpDescription(description = "Add a bookmark for a file at a specific line. Returns the created bookmark as JSON.")
+    @McpDescription(description = "Modify a bookmark (favori) by merging the given properties into its existing ones. Only specified properties are updated; others remain unchanged.")
+    suspend fun modify_bookmark(
+        @McpDescription(description = "The bookmark ID to modify") id: String,
+        @McpDescription(description = "Properties to update. Use list_bookmark_properties to get the list of possible properties.") properties: Map<String, String>
+    ): BookmarkResult {
+        val service = bookmarksService()
+        service.getBookmarksTree().getBookmark(BookmarkId(id)) ?: mcpFail("Bookmark not found: $id")
+        return try {
+            service.modifyBookmark(BookmarkId(id), properties)
+            val updatedTree = service.getBookmarksTree()
+            val bookmark = updatedTree.getBookmark(BookmarkId(id)) ?: mcpFail("Bookmark not found after modify: $id")
+            bookmarkToResult(updatedTree, bookmark)
+        } catch (e: BookmarksException) {
+            mcpFail("Could not modify bookmark '$id': ${e.message}")
+        }
+    }
+
+    @McpTool
+    @McpDescription(description = "Update a bookmark (favori) to a new file location, re-capturing file path, line number and line content.")
+    suspend fun update_bookmark(
+        @McpDescription(description = "The bookmark ID to update") id: String,
+        @McpDescription(description = "Absolute path to the file") filePath: String,
+        @McpDescription(description = "Line number (1-based)") lineNumber: Int,
+        @McpDescription(description = "New comment (leave blank to keep existing)") comment: String = ""
+    ): BookmarkResult {
+        val project = currentProject()
+        val service = bookmarksService()
+
+        service.getBookmarksTree().getBookmark(BookmarkId(id)) ?: mcpFail("Bookmark not found: $id")
+        val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(filePath)
+            ?: mcpFail("File not found: $filePath")
+
+        var error: String? = null
+        ApplicationManager.getApplication().invokeAndWait {
+            val document = FileDocumentManager.getInstance().getDocument(virtualFile)
+                ?: run { error = "Cannot read document for: $filePath"; return@invokeAndWait }
+            if (lineNumber < 1 || lineNumber > document.lineCount) {
+                error = "Line number $lineNumber is out of range (1..${document.lineCount})"
+                return@invokeAndWait
+            }
+            val editor = EditorFactory.getInstance().createEditor(document, project, virtualFile.fileType, true)
+            try {
+                editor.caretModel.moveToOffset(document.getLineStartOffset(lineNumber - 1))
+                val dataContext = SimpleDataContext.builder()
+                    .add(CommonDataKeys.EDITOR, editor)
+                    .add(CommonDataKeys.VIRTUAL_FILE, virtualFile)
+                    .add(CommonDataKeys.PROJECT, project)
+                    .build()
+                service.updateBookmark(BookmarkId(id), dataContext, EmptyProgressIndicator())
+            } catch (e: BookmarksException) {
+                error = "Could not update bookmark: ${e.message}"
+            } finally {
+                EditorFactory.getInstance().releaseEditor(editor)
+            }
+        }
+
+        error?.let { mcpFail(it) }
+        if (comment.isNotBlank()) {
+            try {
+                service.modifyBookmark(BookmarkId(id), mapOf(Bookmark.PROPERTY_COMMENT to comment))
+            } catch (e: BookmarksException) {
+                mcpFail("Bookmark updated but could not set comment: ${e.message}")
+            }
+        }
+        val updatedTree = service.getBookmarksTree()
+        val bookmark = updatedTree.getBookmark(BookmarkId(id)) ?: mcpFail("Bookmark not found after update: $id")
+        return bookmarkToResult(updatedTree, bookmark)
+    }
+
+    @McpTool
+    @McpDescription(description = "Add a bookmark (favori) for a file at a specific line.")
     suspend fun add_bookmark(
         @McpDescription(description = "Absolute path to the file") filePath: String,
         @McpDescription(description = "Line number (1-based)") lineNumber: Int,
         @McpDescription(description = "Optional comment for the bookmark") comment: String = "",
-        @McpDescription(description = "ID of the parent folder (default: currently selected folder, then 'default' folder, then root)") parentId: String = ""
+        @McpDescription(description = "ID of the parent bookmark folder (default: currently selected folder, then 'default' folder, then root)") parentId: String = ""
     ): BookmarkResult {
         val project = currentProject()
         val service = bookmarksService()
@@ -334,7 +404,7 @@ class BookmarksMcpToolset : McpToolset {
         val id: String,
         @property:McpDescription("Type of the entry: folder or bookmark")
         val type: BookmarkType,
-        @property:McpDescription("Key-value properties of the bookmark (e.g. name, filePath, lineNumber, comment)")
+        @property:McpDescription("Key-value properties of the bookmark (e.g. name, filePath, lineNumber, comment). Use list_bookmark_properties to get the full list of possible properties with their descriptions.")
         val properties: Map<String, String>,
         @property:McpDescription("Path of the containing bookmark folder from root, e.g. '/work/projects'")
         val folderPath: String
@@ -342,7 +412,7 @@ class BookmarksMcpToolset : McpToolset {
 
     @Serializable
     data class BookmarksResult(
-        @property:McpDescription("The list of bookmarks")
+        @property:McpDescription("The list of bookmarks (favoris)")
         val bookmarks: List<BookmarkResult>
     )
 

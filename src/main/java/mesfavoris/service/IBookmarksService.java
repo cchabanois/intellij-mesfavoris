@@ -157,6 +157,16 @@ public interface IBookmarksService {
     void setBookmarkProperties(BookmarkId bookmarkId, Map<String, String> properties) throws BookmarksException;
 
     /**
+     * Modify bookmark by merging the given properties into existing ones.
+     * Only the specified properties are updated; others remain unchanged.
+     *
+     * @param bookmarkId        the bookmark ID
+     * @param changedProperties the properties to update
+     * @throws BookmarksException if the bookmark cannot be modified
+     */
+    void modifyBookmark(BookmarkId bookmarkId, Map<String, String> changedProperties) throws BookmarksException;
+
+    /**
      * Copy bookmarks to clipboard
      *
      * @param selection the bookmark IDs to copy

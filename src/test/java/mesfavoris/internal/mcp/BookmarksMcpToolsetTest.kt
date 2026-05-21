@@ -554,6 +554,100 @@ class BookmarksMcpToolsetTest : BasePlatformTestCase() {
         }
     }
 
+    // --- modify_bookmark ---
+
+    @Test
+    fun testModifyBookmarkUpdatesSpecifiedProperty() {
+        runBlocking {
+            toolset.modify_bookmark(id = taskBookmarkId.toString(), properties = mapOf("comment" to "updated"))
+
+            val bookmark = bookmarkDatabase.getBookmarksTree().getBookmark(taskBookmarkId)
+            assertThat(bookmark?.getPropertyValue("comment")).isEqualTo("updated")
+        }
+    }
+
+    @Test
+    fun testModifyBookmarkPreservesOtherProperties() {
+        runBlocking {
+            val nameBefore = bookmarkDatabase.getBookmarksTree().getBookmark(taskBookmarkId)?.getPropertyValue("name")
+            toolset.modify_bookmark(id = taskBookmarkId.toString(), properties = mapOf("comment" to "new comment"))
+
+            val bookmark = bookmarkDatabase.getBookmarksTree().getBookmark(taskBookmarkId)
+            assertThat(bookmark?.getPropertyValue("name")).isEqualTo(nameBefore)
+        }
+    }
+
+    @Test
+    fun testModifyBookmarkReturnsUpdatedBookmark() {
+        runBlocking {
+            val result = toolset.modify_bookmark(id = taskBookmarkId.toString(), properties = mapOf("comment" to "hello"))
+
+            assertThat(result.id).isEqualTo(taskBookmarkId.toString())
+            assertThat(result.properties["comment"]).isEqualTo("hello")
+        }
+    }
+
+    @Test
+    fun testModifyBookmarkWithInvalidIdFails() {
+        assertMcpFails("not found") {
+            runBlocking { toolset.modify_bookmark(id = "nonexistent", properties = mapOf("comment" to "x")) }
+        }
+    }
+
+    // --- update_bookmark ---
+
+    @Test
+    fun testUpdateBookmarkChangesFileLocation() {
+        runBlocking {
+            val result = toolset.add_bookmark(filePath = testFilePath(), lineNumber = 1)
+            val id = result.id
+
+            toolset.update_bookmark(id = id, filePath = testFilePath(), lineNumber = 5)
+
+            val bookmark = bookmarkDatabase.getBookmarksTree().getBookmark(BookmarkId(id))
+            assertThat(bookmark?.getPropertyValue("lineNumber")).isEqualTo("4")
+        }
+    }
+
+    @Test
+    fun testUpdateBookmarkWithCommentSetsComment() {
+        runBlocking {
+            val result = toolset.add_bookmark(filePath = testFilePath(), lineNumber = 1)
+            val id = result.id
+
+            val updated = toolset.update_bookmark(id = id, filePath = testFilePath(), lineNumber = 5, comment = "new comment")
+
+            assertThat(updated.properties["comment"]).isEqualTo("new comment")
+        }
+    }
+
+    @Test
+    fun testUpdateBookmarkWithInvalidIdFails() {
+        assertMcpFails("not found") {
+            runBlocking { toolset.update_bookmark(id = "nonexistent", filePath = testFilePath(), lineNumber = 1) }
+        }
+    }
+
+    @Test
+    fun testUpdateBookmarkWithInvalidFilePathFails() {
+        assertMcpFails("not found") {
+            runBlocking {
+                val result = toolset.add_bookmark(filePath = testFilePath(), lineNumber = 1)
+                toolset.update_bookmark(id = result.id, filePath = "/nonexistent/file.java", lineNumber = 1)
+            }
+        }
+    }
+
+    @Test
+    fun testUpdateBookmarkWithLineNumberOutOfRangeFails() {
+        assertMcpFails("out of range") {
+            runBlocking {
+                val result = toolset.add_bookmark(filePath = testFilePath(), lineNumber = 1)
+                toolset.update_bookmark(id = result.id, filePath = testFilePath(), lineNumber = 10000)
+            }
+        }
+    }
+
     // --- list_bookmark_properties ---
 
     @Test
