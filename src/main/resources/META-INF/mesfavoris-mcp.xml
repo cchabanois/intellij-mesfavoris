@@ -1,6 +1,9 @@
 <idea-plugin>
     <extensions defaultExtensionNs="com.intellij.mcpServer">
         <mcpToolset implementation="mesfavoris.internal.mcp.BookmarksMcpToolset"/>
+        <mcpToolset implementation="mesfavoris.snippets.internal.mcp.SnippetsMcpToolset"/>
+        <mcpToolset implementation="mesfavoris.notes.internal.mcp.NotesMcpToolset"/>
+        <mcpToolset implementation="mesfavoris.url.internal.mcp.UrlsMcpToolset"/>
     </extensions>
 </idea-plugin>
 

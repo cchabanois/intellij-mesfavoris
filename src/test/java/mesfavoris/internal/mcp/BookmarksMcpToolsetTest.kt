@@ -178,7 +178,7 @@ class BookmarksMcpToolsetTest : BasePlatformTestCase() {
             val results = toolset.search_bookmarks(query = "Daily Task").bookmarks
 
             assertThat(results.size).isEqualTo(1)
-            assertThat(results[0].type).isEqualTo(BookmarksMcpToolset.BookmarkType.BOOKMARK)
+            assertThat(results[0].type).isEqualTo(BookmarkType.BOOKMARK)
         }
     }
 
@@ -189,7 +189,7 @@ class BookmarksMcpToolsetTest : BasePlatformTestCase() {
 
             val folderResult = results.firstOrNull { it.id == projectsFolderId.toString() }
             assertThat(folderResult).isNotNull
-            assertThat(folderResult!!.type).isEqualTo(BookmarksMcpToolset.BookmarkType.FOLDER)
+            assertThat(folderResult!!.type).isEqualTo(BookmarkType.FOLDER)
         }
     }
 
@@ -227,7 +227,7 @@ class BookmarksMcpToolsetTest : BasePlatformTestCase() {
         runBlocking {
             val result = toolset.create_bookmark_folder(name = "New Folder", parentId = workFolderId.toString())
 
-            assertThat(result.type).isEqualTo(BookmarksMcpToolset.BookmarkType.FOLDER)
+            assertThat(result.type).isEqualTo(BookmarkType.FOLDER)
             assertThat(result.properties["name"]).isEqualTo("New Folder")
             assertThat(result.folderPath).isEqualTo("/work")
             assertThat(result.id).isNotBlank()
@@ -283,7 +283,7 @@ class BookmarksMcpToolsetTest : BasePlatformTestCase() {
         runBlocking {
             val result = toolset.add_bookmark(filePath = testFilePath(), lineNumber = 2)
 
-            assertThat(result.type).isEqualTo(BookmarksMcpToolset.BookmarkType.BOOKMARK)
+            assertThat(result.type).isEqualTo(BookmarkType.BOOKMARK)
             assertThat(result.id).isNotBlank()
         }
     }
@@ -685,7 +685,7 @@ class BookmarksMcpToolsetTest : BasePlatformTestCase() {
 
     private fun testFilePath() = myFixture.findFileInTempDir("commons-cli/src/main/java/org/apache/commons/cli/CommandLine.java").path
 
-    private fun List<BookmarksMcpToolset.BookmarkResult>.ids() = map { it.id }
+    private fun List<BookmarkResult>.ids() = map { it.id }
 
 
     private fun assertMcpFails(messageContains: String, block: () -> Unit) {
