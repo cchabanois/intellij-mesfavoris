@@ -1,4 +1,4 @@
-package mesfavoris.remote.internal.mcp
+package mesfavoris.internal.mcp
 
 import com.intellij.mcpserver.McpToolset
 import com.intellij.mcpserver.annotations.McpDescription
@@ -12,7 +12,6 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import mesfavoris.BookmarksException
-import mesfavoris.internal.mcp.buildFolderPath
 import mesfavoris.model.Bookmark
 import mesfavoris.remote.IRemoteBookmarksStore
 import mesfavoris.remote.RemoteBookmarksStoreManager
