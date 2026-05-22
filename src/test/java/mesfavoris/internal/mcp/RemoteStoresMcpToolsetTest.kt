@@ -12,7 +12,6 @@ import mesfavoris.model.BookmarkId
 import mesfavoris.remote.AbstractRemoteBookmarksStore
 import mesfavoris.remote.IRemoteBookmarksStore
 import mesfavoris.remote.RemoteBookmarksStoreExtension
-import mesfavoris.remote.internal.mcp.RemoteStoresMcpToolset
 import mesfavoris.service.IBookmarksService
 import mesfavoris.tests.commons.bookmarks.BookmarkBuilder.bookmark
 import mesfavoris.tests.commons.bookmarks.BookmarkBuilder.bookmarkFolder
