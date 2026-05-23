@@ -10,6 +10,7 @@ import com.intellij.openapi.project.ProjectManager
 import kotlinx.coroutines.currentCoroutineContext
 import mesfavoris.BookmarksException
 import mesfavoris.internal.mcp.BookmarkResult
+import mesfavoris.internal.mcp.McpBookmarkProperties
 import mesfavoris.internal.mcp.bookmarkToResult
 import mesfavoris.model.Bookmark
 import mesfavoris.model.BookmarkFolder
@@ -83,6 +84,7 @@ class SnippetsMcpToolset : McpToolset {
         val properties = buildMap {
             put(Bookmark.PROPERTY_NAME, resolvedName)
             put(PROP_SNIPPET_CONTENT, content)
+            put(McpBookmarkProperties.PROPERTY_ORIGIN, McpBookmarkProperties.ORIGIN_MCP)
             if (comment.isNotBlank()) put(Bookmark.PROPERTY_COMMENT, comment)
         }
 

@@ -4,6 +4,7 @@ import mesfavoris.extensions.AbstractBookmarkTypeExtension;
 import mesfavoris.internal.ui.details.CommentBookmarkDetailPart;
 import mesfavoris.internal.ui.details.BookmarkPropertiesDetailPart;
 import mesfavoris.internal.ui.details.MarkerBookmarkDetailPart;
+import mesfavoris.internal.mcp.McpBookmarkProperties;
 import mesfavoris.model.Bookmark;
 import mesfavoris.ui.renderers.BookmarkFolderLabelProvider;
 
@@ -28,6 +29,12 @@ public class DefaultBookmarkTypeExtension extends AbstractBookmarkTypeExtension 
                 .type(STRING)
                 .updatable(false)
                 .description("Free-text comment for the bookmark. Only the first line is shown in the bookmark tree; the full multi-line comment is visible in the details panel.")
+                .build());
+
+        addProperty(bookmarkPropertyDescriptor(McpBookmarkProperties.PROPERTY_ORIGIN)
+                .type(STRING)
+                .updatable(false)
+                .description("Source that created this bookmark. 'mcp' if created via MCP tools, empty if created by the user.")
                 .build());
 
         addProperty(bookmarkPropertyDescriptor(Bookmark.PROPERTY_CREATED)

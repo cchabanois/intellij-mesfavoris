@@ -152,6 +152,7 @@ class BookmarksMcpToolset : McpToolset {
 
         return try {
             val newId = service.addBookmarkFolder(parentFolderId, name)
+            service.modifyBookmark(newId, mapOf(McpBookmarkProperties.PROPERTY_ORIGIN to McpBookmarkProperties.ORIGIN_MCP))
             val updatedTree = service.getBookmarksTree()
             val folder = updatedTree.getBookmark(newId) ?: mcpFail("Folder was created but could not be retrieved")
             bookmarkToResult(updatedTree, folder)
@@ -346,13 +347,13 @@ class BookmarksMcpToolset : McpToolset {
 
         error?.let { mcpFail(it) }
         val id = newId ?: mcpFail("Could not create bookmark")
-        if (comment.isNotBlank()) {
-            try {
-                val existingProps = service.getBookmarksTree().getBookmark(id)?.properties ?: emptyMap()
-                service.setBookmarkProperties(id, existingProps + (Bookmark.PROPERTY_COMMENT to comment))
-            } catch (e: BookmarksException) {
-                mcpFail("Bookmark created but could not set comment: ${e.message}")
-            }
+        try {
+            val existingProps = service.getBookmarksTree().getBookmark(id)?.properties ?: emptyMap()
+            val extraProps = mutableMapOf(McpBookmarkProperties.PROPERTY_ORIGIN to McpBookmarkProperties.ORIGIN_MCP)
+            if (comment.isNotBlank()) extraProps[Bookmark.PROPERTY_COMMENT] = comment
+            service.setBookmarkProperties(id, existingProps + extraProps)
+        } catch (e: BookmarksException) {
+            mcpFail("Bookmark created but could not set properties: ${e.message}")
         }
         val updatedTree = service.getBookmarksTree()
         val bookmark = updatedTree.getBookmark(id) ?: mcpFail("Bookmark was created but could not be retrieved")
