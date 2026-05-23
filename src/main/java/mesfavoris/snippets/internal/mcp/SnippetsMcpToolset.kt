@@ -30,15 +30,46 @@ class SnippetsMcpToolset : McpToolset {
             ?: mcpFail("Bookmarks service unavailable")
 
     @McpTool
-    @McpDescription(description = "Add a snippet bookmark (favori) storing text content such as a shell command or code snippet.")
-    suspend fun add_snippet(
-        @McpDescription(description = "The snippet content to store (e.g. a shell command or code snippet)") content: String,
+    @McpDescription(description = "Add a snippet bookmark storing a code excerpt for quick reference. Navigating to the bookmark copies its content to the clipboard.")
+    suspend fun add_snippet_bookmark(
+        @McpDescription(description = "The code snippet to store.") content: String,
         @McpDescription(description = "Name for the bookmark. Defaults to the first non-empty line of content if blank.") name: String = "",
-        @McpDescription(description = "Optional comment") comment: String = "",
-        @McpDescription(description = "ID of the parent bookmark folder (default: currently selected folder, then 'default' folder, then root)") parentId: String = ""
+        @McpDescription(description = "Optional comment. Only the first line is shown in the bookmark tree; the full multi-line comment is visible in the details panel.") comment: String = "",
+        @McpDescription(description = "ID of the parent bookmark folder (default: currently selected folder, then 'default' folder, then root). The 'default' folder is a general-purpose inbox for temporary or yet-to-be-organized bookmarks.") parentId: String = ""
     ): BookmarkResult {
         if (content.isBlank()) mcpFail("Snippet content must not be blank")
 
+        return createSnippetBookmark(content, name, comment, parentId)
+    }
+
+    @McpTool
+    @McpDescription(description = "Add a command bookmark storing a single shell command. Navigating to the bookmark copies the command to the clipboard, ready to paste in a terminal. Store exactly one command per bookmark — call this tool once per command.")
+    suspend fun add_command_bookmark(
+        @McpDescription(description = "The shell command to store. Must be a single command with no inline # comments and no newlines.") command: String,
+        @McpDescription(description = "Name for the bookmark. Defaults to the command itself if blank.") name: String = "",
+        @McpDescription(description = "Optional comment describing what the command does. Only the first line is shown in the bookmark tree; the full multi-line comment is visible in the details panel.") comment: String = "",
+        @McpDescription(description = "ID of the parent bookmark folder (default: currently selected folder, then 'default' folder, then root). The 'default' folder is a general-purpose inbox for temporary or yet-to-be-organized bookmarks.") parentId: String = ""
+    ): BookmarkResult {
+        if (command.isBlank()) mcpFail("Command must not be blank")
+        if (command.trimStart().startsWith('#')) mcpFail("Command must not start with a comment. Put the description in the name or comment fields instead.")
+        val nonEmptyLines = command.lines().filter { it.isNotBlank() }
+        val hasMultipleCommands = nonEmptyLines.size > 1 &&
+            nonEmptyLines.zipWithNext().any { (prev, _) ->
+                val trimmed = prev.trimEnd()
+                !trimmed.endsWith('\\') && !trimmed.endsWith('|') &&
+                !trimmed.endsWith("&&") && !trimmed.endsWith("||")
+            }
+        if (hasMultipleCommands) mcpFail("A command bookmark must contain a single command. Call this tool once per command.")
+
+        return createSnippetBookmark(command, name.ifBlank { command }, comment, parentId)
+    }
+
+    private suspend fun createSnippetBookmark(
+        content: String,
+        name: String,
+        comment: String,
+        parentId: String
+    ): BookmarkResult {
         val service = bookmarksService()
 
         val resolvedParentId: BookmarkId? = if (parentId.isNotBlank()) {

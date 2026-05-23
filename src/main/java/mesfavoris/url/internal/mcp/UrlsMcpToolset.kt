@@ -33,8 +33,8 @@ class UrlsMcpToolset : McpToolset {
     suspend fun add_url_bookmark(
         @McpDescription(description = "The URL to bookmark") url: String,
         @McpDescription(description = "Name for the bookmark. Defaults to the URL if blank.") name: String = "",
-        @McpDescription(description = "Optional comment") comment: String = "",
-        @McpDescription(description = "ID of the parent bookmark folder (default: currently selected folder, then 'default' folder, then root)") parentId: String = ""
+        @McpDescription(description = "Optional comment. Only the first line is shown in the bookmark tree; the full multi-line comment is visible in the details panel.") comment: String = "",
+        @McpDescription(description = "ID of the parent bookmark folder (default: currently selected folder, then 'default' folder, then root). The 'default' folder is a general-purpose inbox for temporary or yet-to-be-organized bookmarks.") parentId: String = ""
     ): BookmarkResult {
         if (url.isBlank()) mcpFail("URL must not be blank")
 

@@ -39,7 +39,7 @@ class RemoteStoresMcpToolset : McpToolset {
 
     @McpTool
     @McpDescription(description = "List all available remote bookmark stores with their connection state and user info.")
-    suspend fun list_remote_stores(): RemoteStoresResult {
+    suspend fun list_remote_bookmark_stores(): RemoteStoresResult {
         val manager = storeManager()
         return RemoteStoresResult(manager.remoteBookmarksStores.map { store ->
             store.toResult()
@@ -48,7 +48,7 @@ class RemoteStoresMcpToolset : McpToolset {
 
     @McpTool
     @McpDescription(description = "Connect to a remote bookmark store.")
-    suspend fun connect_remote_store(
+    suspend fun connect_remote_bookmark_store(
         @McpDescription(description = "The remote store ID") storeId: String
     ): String {
         val store = requireStore(storeId)
@@ -65,7 +65,7 @@ class RemoteStoresMcpToolset : McpToolset {
 
     @McpTool
     @McpDescription(description = "Disconnect from a remote bookmark store.")
-    suspend fun disconnect_remote_store(
+    suspend fun disconnect_remote_bookmark_store(
         @McpDescription(description = "The remote store ID") storeId: String
     ): String {
         val store = requireStore(storeId)
@@ -82,7 +82,7 @@ class RemoteStoresMcpToolset : McpToolset {
 
     @McpTool
     @McpDescription(description = "List all bookmark folders synchronized with a remote store.")
-    suspend fun list_remote_folders(
+    suspend fun list_remote_bookmark_folders(
         @McpDescription(description = "The remote store ID to filter by (default: all stores)") storeId: String = ""
     ): RemoteFoldersResult {
         val manager = storeManager()
@@ -114,7 +114,7 @@ class RemoteStoresMcpToolset : McpToolset {
 
     @McpTool
     @McpDescription(description = "Synchronize a local bookmark folder with a remote store.")
-    suspend fun add_to_remote_store(
+    suspend fun add_to_remote_bookmark_store(
         @McpDescription(description = "The remote store ID") storeId: String,
         @McpDescription(description = "The bookmark folder ID to synchronize") bookmarkFolderId: String
     ): String {
@@ -134,7 +134,7 @@ class RemoteStoresMcpToolset : McpToolset {
 
     @McpTool
     @McpDescription(description = "Remove the synchronization between a local bookmark folder and a remote store.")
-    suspend fun remove_from_remote_store(
+    suspend fun remove_from_remote_bookmark_store(
         @McpDescription(description = "The remote store ID") storeId: String,
         @McpDescription(description = "The bookmark folder ID to unsynchronize") bookmarkFolderId: String
     ): String {
@@ -150,7 +150,7 @@ class RemoteStoresMcpToolset : McpToolset {
 
     @McpTool
     @McpDescription(description = "Refresh bookmarks from a remote store. Fetches the latest changes from the remote.")
-    suspend fun refresh_remote_store(
+    suspend fun refresh_remote_bookmark_store(
         @McpDescription(description = "The remote store ID to refresh (default: all stores)") storeId: String = ""
     ): String {
         val service = bookmarksService()

@@ -38,7 +38,7 @@ class SnippetsMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testAddSnippetCreatesBookmarkWithContent() {
         runBlocking {
-            val result = toolset.add_snippet(content = "echo hello world")
+            val result = toolset.add_snippet_bookmark(content = "echo hello world")
 
             assertThat(result.type).isEqualTo(BookmarkType.BOOKMARK)
             assertThat(result.properties[PROP_SNIPPET_CONTENT]).isEqualTo("echo hello world")
@@ -48,7 +48,7 @@ class SnippetsMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testAddSnippetDerivesNameFromFirstLine() {
         runBlocking {
-            val result = toolset.add_snippet(content = "echo hello\necho world")
+            val result = toolset.add_snippet_bookmark(content = "echo hello\necho world")
 
             assertThat(result.properties["name"]).isEqualTo("echo hello")
         }
@@ -57,7 +57,7 @@ class SnippetsMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testAddSnippetUsesExplicitName() {
         runBlocking {
-            val result = toolset.add_snippet(content = "git status", name = "Check git status")
+            val result = toolset.add_snippet_bookmark(content = "git status", name = "Check git status")
 
             assertThat(result.properties["name"]).isEqualTo("Check git status")
         }
@@ -66,7 +66,7 @@ class SnippetsMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testAddSnippetWithComment() {
         runBlocking {
-            val result = toolset.add_snippet(content = "ls -la", comment = "list all files")
+            val result = toolset.add_snippet_bookmark(content = "ls -la", comment = "list all files")
 
             assertThat(result.properties["comment"]).isEqualTo("list all files")
         }
@@ -75,7 +75,7 @@ class SnippetsMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testAddSnippetInSpecificFolder() {
         runBlocking {
-            val result = toolset.add_snippet(content = "df -h", parentId = shellFolderId.toString())
+            val result = toolset.add_snippet_bookmark(content = "df -h", parentId = shellFolderId.toString())
 
             assertThat(result.folderPath).isEqualTo("/shell")
             val bookmark = bookmarkDatabase.getBookmarksTree().getBookmark(BookmarkId(result.id))
@@ -86,23 +86,23 @@ class SnippetsMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testAddSnippetWithBlankContentFails() {
         assertMcpFails("blank") {
-            runBlocking { toolset.add_snippet(content = "   ") }
+            runBlocking { toolset.add_snippet_bookmark(content = "   ") }
         }
     }
 
     @Test
     fun testAddSnippetWithInvalidParentIdFails() {
         assertMcpFails("not found") {
-            runBlocking { toolset.add_snippet(content = "echo hi", parentId = "nonexistent") }
+            runBlocking { toolset.add_snippet_bookmark(content = "echo hi", parentId = "nonexistent") }
         }
     }
 
     @Test
     fun testAddSnippetWithNonFolderParentIdFails() {
         runBlocking {
-            val bookmark = toolset.add_snippet(content = "echo hi")
+            val bookmark = toolset.add_snippet_bookmark(content = "echo hi")
             assertMcpFails("not a folder") {
-                runBlocking { toolset.add_snippet(content = "echo world", parentId = bookmark.id) }
+                runBlocking { toolset.add_snippet_bookmark(content = "echo world", parentId = bookmark.id) }
             }
         }
     }
