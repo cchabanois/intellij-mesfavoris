@@ -12,9 +12,11 @@ import com.intellij.util.ui.UIUtil;
 import mesfavoris.bookmarktype.IBookmarkLabelProvider;
 import mesfavoris.commons.Adapters;
 import mesfavoris.icons.MesFavorisIcons;
+import mesfavoris.internal.mcp.McpBookmarkProperties;
 import mesfavoris.internal.ui.virtual.VirtualBookmarkFolder;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
+import mesfavoris.model.BookmarkFolder;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.persistence.IBookmarksDirtyStateListener;
 import mesfavoris.persistence.IBookmarksDirtyStateTracker;
@@ -36,6 +38,7 @@ public class BookmarksTreeCellRenderer extends ColoredTreeCellRenderer implement
     private final IBookmarkLabelProvider bookmarkLabelProvider;
     private final IBookmarksDirtyStateTracker bookmarksDirtyStateTracker;
     private final Color commentColor = new JBColor(new Color(63, 127, 95), new Color(63, 127, 95));
+    private static final Color AI_BADGE_COLOR = new JBColor(new Color(155, 89, 214), new Color(176, 127, 232));
     private final IBookmarksDirtyStateListener dirtyStateListener = dirtyBookmarks -> ApplicationManager.getApplication().invokeLater(() -> {
         JTree tree = getTree();
         if (tree == null || !tree.isShowing()) {
@@ -98,6 +101,12 @@ public class BookmarksTreeCellRenderer extends ColoredTreeCellRenderer implement
         styledString = styledString.append(bookmarkLabelProvider.getStyledText(project, bookmark));
         if (isDisabled) {
             styledString = styledString.setStyle(SimpleTextAttributes.GRAYED_ATTRIBUTES);
+        }
+
+        if (!(bookmark instanceof BookmarkFolder)
+                && McpBookmarkProperties.ORIGIN_MCP.equals(bookmark.getPropertyValue(McpBookmarkProperties.PROPERTY_ORIGIN))) {
+            Color badgeColor = isDisabled ? UIUtil.getInactiveTextColor() : AI_BADGE_COLOR;
+            styledString = styledString.append(" [AI]", new SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, badgeColor));
         }
 
         if (hasComment) {
