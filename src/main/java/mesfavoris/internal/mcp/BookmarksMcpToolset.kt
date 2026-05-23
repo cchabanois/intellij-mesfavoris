@@ -128,10 +128,10 @@ class BookmarksMcpToolset : McpToolset {
     }
 
     @McpTool
-    @McpDescription(description = "Create a bookmark folder.")
+    @McpDescription(description = "Create a bookmark folder. Always call list_bookmark_folder first to check the current state — the user may have added, moved or deleted bookmarks since the last interaction.")
     suspend fun create_bookmark_folder(
         @McpDescription(description = "Name of the bookmark folder to create (must not be blank)") name: String,
-        @McpDescription(description = "ID of the parent bookmark folder (default: currently selected folder, then 'default' folder, then root)") parentId: String = ""
+        @McpDescription(description = "ID of the parent bookmark folder (default: currently selected folder, then 'default' folder, then root). The 'default' folder is a general-purpose inbox for temporary or yet-to-be-organized bookmarks.") parentId: String = ""
     ): BookmarkResult {
         val project = currentProject()
         val service = bookmarksService()
@@ -161,7 +161,7 @@ class BookmarksMcpToolset : McpToolset {
     }
 
     @McpTool
-    @McpDescription(description = "List bookmarks (favoris) in a bookmark folder. Returns direct children, or all descendants if recursive.")
+    @McpDescription(description = "List bookmarks (favoris) in a bookmark folder. Returns direct children, or all descendants if recursive. The bookmark tree can be modified by the user at any time outside of this conversation, so always verify the current state rather than relying on memory of previous interactions.")
     suspend fun list_bookmark_folder(
         @McpDescription(description = "ID of the bookmark folder to list (default: root folder)") folderId: String = "",
         @McpDescription(description = "Whether to list recursively (default: false)") recursive: Boolean = false
@@ -302,11 +302,11 @@ class BookmarksMcpToolset : McpToolset {
 
     @McpTool
     @McpDescription(description = "Add a bookmark (favori) for a file at a specific line.")
-    suspend fun add_bookmark(
+    suspend fun add_file_bookmark(
         @McpDescription(description = "Absolute path to the file") filePath: String,
         @McpDescription(description = "Line number (1-based)") lineNumber: Int,
-        @McpDescription(description = "Optional comment for the bookmark") comment: String = "",
-        @McpDescription(description = "ID of the parent bookmark folder (default: currently selected folder, then 'default' folder, then root)") parentId: String = ""
+        @McpDescription(description = "Optional comment for the bookmark. Only the first line is shown in the bookmark tree; the full multi-line comment is visible in the details panel.") comment: String = "",
+        @McpDescription(description = "ID of the parent bookmark folder (default: currently selected folder, then 'default' folder, then root). The 'default' folder is a general-purpose inbox for temporary or yet-to-be-organized bookmarks.") parentId: String = ""
     ): BookmarkResult {
         val project = currentProject()
         val service = bookmarksService()

@@ -30,11 +30,11 @@ class NotesMcpToolset : McpToolset {
 
     @McpTool
     @McpDescription(description = "Add a note bookmark (favori) storing Markdown text content.")
-    suspend fun add_note(
+    suspend fun add_note_bookmark(
         @McpDescription(description = "Name of the note bookmark. Defaults to the first heading or first line of content if blank.") name: String = "",
         @McpDescription(description = "Note content in Markdown format") content: String = "",
-        @McpDescription(description = "Optional comment") comment: String = "",
-        @McpDescription(description = "ID of the parent bookmark folder (default: currently selected folder, then 'default' folder, then root)") parentId: String = ""
+        @McpDescription(description = "Optional comment. Only the first line is shown in the bookmark tree; the full multi-line comment is visible in the details panel.") comment: String = "",
+        @McpDescription(description = "ID of the parent bookmark folder (default: currently selected folder, then 'default' folder, then root). The 'default' folder is a general-purpose inbox for temporary or yet-to-be-organized bookmarks.") parentId: String = ""
     ): BookmarkResult {
         val service = bookmarksService()
 

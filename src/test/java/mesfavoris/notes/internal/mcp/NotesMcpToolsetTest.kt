@@ -38,7 +38,7 @@ class NotesMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testAddNoteCreatesBookmarkWithContent() {
         runBlocking {
-            val result = toolset.add_note(name = "My Note", content = "# Hello\nSome text")
+            val result = toolset.add_note_bookmark(name = "My Note", content = "# Hello\nSome text")
 
             assertThat(result.type).isEqualTo(BookmarkType.BOOKMARK)
             assertThat(result.properties[PROP_NOTES]).isEqualTo("# Hello\nSome text")
@@ -48,7 +48,7 @@ class NotesMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testAddNoteUsesExplicitName() {
         runBlocking {
-            val result = toolset.add_note(name = "Meeting notes", content = "# Team meeting")
+            val result = toolset.add_note_bookmark(name = "Meeting notes", content = "# Team meeting")
 
             assertThat(result.properties["name"]).isEqualTo("Meeting notes")
         }
@@ -57,7 +57,7 @@ class NotesMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testAddNoteDerivesNameFromMarkdownHeading() {
         runBlocking {
-            val result = toolset.add_note(content = "# My Heading\nSome content")
+            val result = toolset.add_note_bookmark(content = "# My Heading\nSome content")
 
             assertThat(result.properties["name"]).isEqualTo("My Heading")
         }
@@ -66,7 +66,7 @@ class NotesMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testAddNoteDerivesNameFromFirstLine() {
         runBlocking {
-            val result = toolset.add_note(content = "First line\nSecond line")
+            val result = toolset.add_note_bookmark(content = "First line\nSecond line")
 
             assertThat(result.properties["name"]).isEqualTo("First line")
         }
@@ -75,7 +75,7 @@ class NotesMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testAddNoteDefaultsToNewNoteWhenNoContent() {
         runBlocking {
-            val result = toolset.add_note()
+            val result = toolset.add_note_bookmark()
 
             assertThat(result.properties["name"]).isEqualTo("New Note")
             assertThat(result.properties[PROP_NOTES]).isEqualTo("")
@@ -85,7 +85,7 @@ class NotesMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testAddNoteWithComment() {
         runBlocking {
-            val result = toolset.add_note(name = "Todo", content = "- item 1", comment = "work items")
+            val result = toolset.add_note_bookmark(name = "Todo", content = "- item 1", comment = "work items")
 
             assertThat(result.properties["comment"]).isEqualTo("work items")
         }
@@ -94,7 +94,7 @@ class NotesMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testAddNoteInSpecificFolder() {
         runBlocking {
-            val result = toolset.add_note(name = "Note", parentId = notesFolderId.toString())
+            val result = toolset.add_note_bookmark(name = "Note", parentId = notesFolderId.toString())
 
             assertThat(result.folderPath).isEqualTo("/notes")
         }
@@ -103,16 +103,16 @@ class NotesMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testAddNoteWithInvalidParentIdFails() {
         assertMcpFails("not found") {
-            runBlocking { toolset.add_note(name = "Note", parentId = "nonexistent") }
+            runBlocking { toolset.add_note_bookmark(name = "Note", parentId = "nonexistent") }
         }
     }
 
     @Test
     fun testAddNoteWithNonFolderParentIdFails() {
         runBlocking {
-            val existing = toolset.add_note(name = "Existing")
+            val existing = toolset.add_note_bookmark(name = "Existing")
             assertMcpFails("not a folder") {
-                runBlocking { toolset.add_note(name = "New", parentId = existing.id) }
+                runBlocking { toolset.add_note_bookmark(name = "New", parentId = existing.id) }
             }
         }
     }

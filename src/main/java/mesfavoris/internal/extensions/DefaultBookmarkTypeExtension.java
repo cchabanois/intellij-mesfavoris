@@ -27,6 +27,7 @@ public class DefaultBookmarkTypeExtension extends AbstractBookmarkTypeExtension 
         addProperty(bookmarkPropertyDescriptor(Bookmark.PROPERTY_COMMENT)
                 .type(STRING)
                 .updatable(false)
+                .description("Free-text comment for the bookmark. Only the first line is shown in the bookmark tree; the full multi-line comment is visible in the details panel.")
                 .build());
 
         addProperty(bookmarkPropertyDescriptor(Bookmark.PROPERTY_CREATED)

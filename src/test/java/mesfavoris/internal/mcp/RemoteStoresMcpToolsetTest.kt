@@ -60,7 +60,7 @@ class RemoteStoresMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testListRemoteStoresReturnsStore() {
         runBlocking {
-            val result = toolset.list_remote_stores()
+            val result = toolset.list_remote_bookmark_stores()
 
             assertThat(result.stores).hasSize(1)
             assertThat(result.stores[0].id).isEqualTo(storeId)
@@ -71,7 +71,7 @@ class RemoteStoresMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testConnectRemoteStore() {
         runBlocking {
-            val result = toolset.connect_remote_store(storeId)
+            val result = toolset.connect_remote_bookmark_store(storeId)
 
             assertThat(result).containsIgnoringCase("connected")
             assertThat(remoteStore.state).isEqualTo(IRemoteBookmarksStore.State.connected)
@@ -82,7 +82,7 @@ class RemoteStoresMcpToolsetTest : BasePlatformTestCase() {
     fun testConnectAlreadyConnectedStore() {
         remoteStore.connect(EmptyProgressIndicator())
         runBlocking {
-            val result = toolset.connect_remote_store(storeId)
+            val result = toolset.connect_remote_bookmark_store(storeId)
 
             assertThat(result).containsIgnoringCase("already connected")
         }
@@ -92,7 +92,7 @@ class RemoteStoresMcpToolsetTest : BasePlatformTestCase() {
     fun testDisconnectRemoteStore() {
         remoteStore.connect(EmptyProgressIndicator())
         runBlocking {
-            val result = toolset.disconnect_remote_store(storeId)
+            val result = toolset.disconnect_remote_bookmark_store(storeId)
 
             assertThat(result).containsIgnoringCase("disconnected")
             assertThat(remoteStore.state).isEqualTo(IRemoteBookmarksStore.State.disconnected)
@@ -102,7 +102,7 @@ class RemoteStoresMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testDisconnectAlreadyDisconnectedStore() {
         runBlocking {
-            val result = toolset.disconnect_remote_store(storeId)
+            val result = toolset.disconnect_remote_bookmark_store(storeId)
 
             assertThat(result).containsIgnoringCase("already disconnected")
         }
@@ -112,7 +112,7 @@ class RemoteStoresMcpToolsetTest : BasePlatformTestCase() {
     fun testListRemoteStoresAfterConnect() {
         remoteStore.connect(EmptyProgressIndicator())
         runBlocking {
-            val result = toolset.list_remote_stores()
+            val result = toolset.list_remote_bookmark_stores()
 
             assertThat(result.stores[0].state).isEqualTo(RemoteStoresMcpToolset.RemoteStoreState.CONNECTED)
         }
@@ -121,14 +121,14 @@ class RemoteStoresMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testConnectUnknownStoreFails() {
         assertMcpFails("not found") {
-            runBlocking { toolset.connect_remote_store("unknownStore") }
+            runBlocking { toolset.connect_remote_bookmark_store("unknownStore") }
         }
     }
 
     @Test
     fun testListRemoteFoldersEmpty() {
         runBlocking {
-            val result = toolset.list_remote_folders()
+            val result = toolset.list_remote_bookmark_folders()
 
             assertThat(result.folders).isEmpty()
         }
@@ -138,8 +138,8 @@ class RemoteStoresMcpToolsetTest : BasePlatformTestCase() {
     fun testAddToRemoteStoreAndListFolders() {
         remoteStore.connect(EmptyProgressIndicator())
         runBlocking {
-            toolset.add_to_remote_store(storeId, syncFolderId.toString())
-            val result = toolset.list_remote_folders()
+            toolset.add_to_remote_bookmark_store(storeId, syncFolderId.toString())
+            val result = toolset.list_remote_bookmark_folders()
 
             assertThat(result.folders).hasSize(1)
             assertThat(result.folders[0].storeId).isEqualTo(storeId)
@@ -151,8 +151,8 @@ class RemoteStoresMcpToolsetTest : BasePlatformTestCase() {
     fun testListRemoteFoldersByStoreId() {
         remoteStore.connect(EmptyProgressIndicator())
         runBlocking {
-            toolset.add_to_remote_store(storeId, syncFolderId.toString())
-            val result = toolset.list_remote_folders(storeId)
+            toolset.add_to_remote_bookmark_store(storeId, syncFolderId.toString())
+            val result = toolset.list_remote_bookmark_folders(storeId)
 
             assertThat(result.folders).hasSize(1)
         }
@@ -162,9 +162,9 @@ class RemoteStoresMcpToolsetTest : BasePlatformTestCase() {
     fun testRemoveFromRemoteStore() {
         remoteStore.connect(EmptyProgressIndicator())
         runBlocking {
-            toolset.add_to_remote_store(storeId, syncFolderId.toString())
-            toolset.remove_from_remote_store(storeId, syncFolderId.toString())
-            val result = toolset.list_remote_folders()
+            toolset.add_to_remote_bookmark_store(storeId, syncFolderId.toString())
+            toolset.remove_from_remote_bookmark_store(storeId, syncFolderId.toString())
+            val result = toolset.list_remote_bookmark_folders()
 
             assertThat(result.folders).isEmpty()
         }
@@ -174,7 +174,7 @@ class RemoteStoresMcpToolsetTest : BasePlatformTestCase() {
     fun testAddToRemoteStoreWithNonExistentFolderFails() {
         remoteStore.connect(EmptyProgressIndicator())
         assertMcpFails("not found") {
-            runBlocking { toolset.add_to_remote_store(storeId, "nonexistent") }
+            runBlocking { toolset.add_to_remote_bookmark_store(storeId, "nonexistent") }
         }
     }
 
@@ -188,7 +188,7 @@ class RemoteStoresMcpToolsetTest : BasePlatformTestCase() {
             ))
         }
         assertMcpFails("not a folder") {
-            runBlocking { toolset.add_to_remote_store(storeId, bookmarkId.toString()) }
+            runBlocking { toolset.add_to_remote_bookmark_store(storeId, bookmarkId.toString()) }
         }
     }
 

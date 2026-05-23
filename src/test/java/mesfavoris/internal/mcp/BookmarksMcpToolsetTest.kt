@@ -281,7 +281,7 @@ class BookmarksMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testAddBookmarkCreatesBookmarkForFile() {
         runBlocking {
-            val result = toolset.add_bookmark(filePath = testFilePath(), lineNumber = 2)
+            val result = toolset.add_file_bookmark(filePath = testFilePath(), lineNumber = 2)
 
             assertThat(result.type).isEqualTo(BookmarkType.BOOKMARK)
             assertThat(result.id).isNotBlank()
@@ -291,7 +291,7 @@ class BookmarksMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testAddBookmarkIsPersistedInTree() {
         runBlocking {
-            val result = toolset.add_bookmark(filePath = testFilePath(), lineNumber = 1)
+            val result = toolset.add_file_bookmark(filePath = testFilePath(), lineNumber = 1)
             val id = BookmarkId(result.id)
 
             assertThat(bookmarkDatabase.getBookmarksTree().getBookmark(id)).isNotNull
@@ -301,7 +301,7 @@ class BookmarksMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testAddBookmarkWithCommentSetsCommentProperty() {
         runBlocking {
-            val result = toolset.add_bookmark(filePath = testFilePath(), lineNumber = 1, comment = "my comment")
+            val result = toolset.add_file_bookmark(filePath = testFilePath(), lineNumber = 1, comment = "my comment")
             val id = BookmarkId(result.id)
 
             val bookmark = bookmarkDatabase.getBookmarksTree().getBookmark(id)
@@ -312,7 +312,7 @@ class BookmarksMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testAddBookmarkWithCommentPreservesOtherProperties() {
         runBlocking {
-            val result = toolset.add_bookmark(filePath = testFilePath(), lineNumber = 1, comment = "my comment")
+            val result = toolset.add_file_bookmark(filePath = testFilePath(), lineNumber = 1, comment = "my comment")
             val id = BookmarkId(result.id)
 
             val bookmark = bookmarkDatabase.getBookmarksTree().getBookmark(id)
@@ -324,7 +324,7 @@ class BookmarksMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testAddBookmarkWithParentIdPlacesBookmarkInFolder() {
         runBlocking {
-            val result = toolset.add_bookmark(filePath = testFilePath(), lineNumber = 1, parentId = workFolderId.toString())
+            val result = toolset.add_file_bookmark(filePath = testFilePath(), lineNumber = 1, parentId = workFolderId.toString())
             val id = BookmarkId(result.id)
 
             assertThat(bookmarkDatabase.getBookmarksTree().getParentBookmark(id)?.id).isEqualTo(workFolderId)
@@ -334,7 +334,7 @@ class BookmarksMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testAddBookmarkFolderPathReflectsParentId() {
         runBlocking {
-            val result = toolset.add_bookmark(filePath = testFilePath(), lineNumber = 1, parentId = projectsFolderId.toString())
+            val result = toolset.add_file_bookmark(filePath = testFilePath(), lineNumber = 1, parentId = projectsFolderId.toString())
 
             assertThat(result.folderPath).isEqualTo("/work/projects")
         }
@@ -343,35 +343,35 @@ class BookmarksMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testAddBookmarkWithInvalidFilePathFails() {
         assertMcpFails("not found") {
-            runBlocking { toolset.add_bookmark(filePath = "/nonexistent/path/file.java", lineNumber = 1) }
+            runBlocking { toolset.add_file_bookmark(filePath = "/nonexistent/path/file.java", lineNumber = 1) }
         }
     }
 
     @Test
     fun testAddBookmarkWithLineNumberOutOfRangeFails() {
         assertMcpFails("out of range") {
-            runBlocking { toolset.add_bookmark(filePath = testFilePath(), lineNumber = 10000) }
+            runBlocking { toolset.add_file_bookmark(filePath = testFilePath(), lineNumber = 10000) }
         }
     }
 
     @Test
     fun testAddBookmarkWithZeroLineNumberFails() {
         assertMcpFails("out of range") {
-            runBlocking { toolset.add_bookmark(filePath = testFilePath(), lineNumber = 0) }
+            runBlocking { toolset.add_file_bookmark(filePath = testFilePath(), lineNumber = 0) }
         }
     }
 
     @Test
     fun testAddBookmarkWithInvalidParentIdFails() {
         assertMcpFails("not found") {
-            runBlocking { toolset.add_bookmark(filePath = testFilePath(), lineNumber = 1, parentId = "nonexistent") }
+            runBlocking { toolset.add_file_bookmark(filePath = testFilePath(), lineNumber = 1, parentId = "nonexistent") }
         }
     }
 
     @Test
     fun testAddBookmarkWithNonFolderParentIdFails() {
         assertMcpFails("not a folder") {
-            runBlocking { toolset.add_bookmark(filePath = testFilePath(), lineNumber = 1, parentId = taskBookmarkId.toString()) }
+            runBlocking { toolset.add_file_bookmark(filePath = testFilePath(), lineNumber = 1, parentId = taskBookmarkId.toString()) }
         }
     }
 
@@ -599,7 +599,7 @@ class BookmarksMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testUpdateBookmarkChangesFileLocation() {
         runBlocking {
-            val result = toolset.add_bookmark(filePath = testFilePath(), lineNumber = 1)
+            val result = toolset.add_file_bookmark(filePath = testFilePath(), lineNumber = 1)
             val id = result.id
 
             toolset.update_bookmark(id = id, filePath = testFilePath(), lineNumber = 5)
@@ -612,7 +612,7 @@ class BookmarksMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testUpdateBookmarkWithCommentSetsComment() {
         runBlocking {
-            val result = toolset.add_bookmark(filePath = testFilePath(), lineNumber = 1)
+            val result = toolset.add_file_bookmark(filePath = testFilePath(), lineNumber = 1)
             val id = result.id
 
             val updated = toolset.update_bookmark(id = id, filePath = testFilePath(), lineNumber = 5, comment = "new comment")
@@ -632,7 +632,7 @@ class BookmarksMcpToolsetTest : BasePlatformTestCase() {
     fun testUpdateBookmarkWithInvalidFilePathFails() {
         assertMcpFails("not found") {
             runBlocking {
-                val result = toolset.add_bookmark(filePath = testFilePath(), lineNumber = 1)
+                val result = toolset.add_file_bookmark(filePath = testFilePath(), lineNumber = 1)
                 toolset.update_bookmark(id = result.id, filePath = "/nonexistent/file.java", lineNumber = 1)
             }
         }
@@ -642,7 +642,7 @@ class BookmarksMcpToolsetTest : BasePlatformTestCase() {
     fun testUpdateBookmarkWithLineNumberOutOfRangeFails() {
         assertMcpFails("out of range") {
             runBlocking {
-                val result = toolset.add_bookmark(filePath = testFilePath(), lineNumber = 1)
+                val result = toolset.add_file_bookmark(filePath = testFilePath(), lineNumber = 1)
                 toolset.update_bookmark(id = result.id, filePath = testFilePath(), lineNumber = 10000)
             }
         }
