@@ -75,6 +75,18 @@ class BookmarksMcpToolset : McpToolset {
     }
 
     @McpTool
+    @McpDescription(description = "Show only specific bookmarks in the tree UI, hiding all others. The search bar shows 'Filtered by AI: <description>' — click × to restore the full view. Use this after finding relevant bookmarks with search_bookmarks or list_bookmark_folder.")
+    suspend fun show_bookmarks(
+        @McpDescription(description = "IDs of the bookmarks to display exclusively") ids: List<String>,
+        @McpDescription(description = "Short description of what is being shown, e.g. 'caffeine-related snippets'. Displayed in the search bar.") description: String = ""
+    ): String {
+        if (ids.isEmpty()) mcpFail("Provide at least one bookmark ID")
+        val service = bookmarksService()
+        service.showOnlyBookmarks(ids.map { BookmarkId(it) }, description)
+        return "Showing ${ids.size} bookmark(s)"
+    }
+
+    @McpTool
     @McpDescription(description = "Select a bookmark (favori) in the bookmarks tree view.")
     suspend fun select_bookmark(
         @McpDescription(description = "The bookmark ID to select") id: String

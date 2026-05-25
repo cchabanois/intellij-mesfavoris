@@ -8,41 +8,32 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Search text field for bookmarks with history support
- */
-public class BookmarksSearchTextField extends SearchTextField implements Disposable {
+public class SearchHistoryTextField extends SearchTextField implements Disposable {
     private static final int HISTORY_SIZE = 20;
-    private final Project project;
     private final List<SearchListener> listeners = new ArrayList<>();
 
-    public BookmarksSearchTextField(@NotNull Project project) {
+    public SearchHistoryTextField(@NotNull Project project, @NotNull String tooltipText) {
         super(true);
-        this.project = project;
 
         setHistorySize(HISTORY_SIZE);
-        getTextEditor().setToolTipText("Search bookmarks");
+        getTextEditor().setToolTipText(tooltipText);
 
-        // Add key listener for Enter key
-        getTextEditor().addKeyListener(new KeyAdapter() {
+        getTextEditor().addFocusListener(new FocusAdapter() {
             @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    String text = getText();
-                    if (!text.isEmpty()) {
-                        addCurrentTextToHistory();
-                        notifySearchPerformed(text);
-                    }
+            public void focusLost(FocusEvent e) {
+                String text = getText();
+                if (!text.isEmpty()) {
+                    addCurrentTextToHistory();
+                    notifySearchPerformed(text);
                 }
             }
         });
 
-        // Add document listener for real-time search
         addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
@@ -88,21 +79,11 @@ public class BookmarksSearchTextField extends SearchTextField implements Disposa
         listeners.clear();
     }
 
-    /**
-     * Listener for search events
-     */
     public interface SearchListener {
-        /**
-         * Called when search text changes (real-time)
-         */
         default void searchTextChanged(String searchText) {
         }
 
-        /**
-         * Called when search is performed (Enter key)
-         */
         default void searchPerformed(String searchText) {
         }
     }
 }
-

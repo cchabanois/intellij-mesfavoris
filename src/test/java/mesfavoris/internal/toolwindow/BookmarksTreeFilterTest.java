@@ -8,6 +8,8 @@ import mesfavoris.model.BookmarksTree;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Set;
+
 import static mesfavoris.tests.commons.bookmarks.BookmarkBuilder.bookmark;
 import static mesfavoris.tests.commons.bookmarks.BookmarkBuilder.bookmarkFolder;
 import static mesfavoris.tests.commons.bookmarks.BookmarksTreeBuilder.bookmarksTree;
@@ -149,6 +151,88 @@ public class BookmarksTreeFilterTest {
 
         // Then
         assertThat(filter.getSearchText()).isEqualTo("test search");
+    }
+
+    @Test
+    public void testSetIdFilter_showsOnlySpecifiedBookmarksAndAncestors() {
+        // When - filter by bookmark3Id (which is inside folder1)
+        filter.setIdFilter(Set.of(bookmark3Id));
+
+        // Then - bookmark3 and its parent folder1 are visible
+        assertThat(filter.isFiltering()).isTrue();
+        assertThat(filter.isVisible(getBookmark(bookmark3Id))).isTrue();
+        assertThat(filter.matches(getBookmark(bookmark3Id))).isTrue();
+        assertThat(filter.isVisible(getBookmark(folder1Id))).isTrue();
+        assertThat(filter.matches(getBookmark(folder1Id))).isFalse();
+
+        // Other bookmarks not in the filter are not visible
+        assertThat(filter.isVisible(getBookmark(bookmark1Id))).isFalse();
+        assertThat(filter.isVisible(getBookmark(bookmark2Id))).isFalse();
+        assertThat(filter.isVisible(getBookmark(folder2Id))).isFalse();
+    }
+
+    @Test
+    public void testClearIdFilter_restoresAllBookmarks() {
+        // Given - an ID filter is active
+        filter.setIdFilter(Set.of(bookmark3Id));
+        assertThat(filter.isFiltering()).isTrue();
+
+        // When
+        filter.clear();
+
+        // Then - all bookmarks are visible again
+        assertThat(filter.isFiltering()).isFalse();
+        assertThat(filter.isVisible(getBookmark(bookmark1Id))).isTrue();
+        assertThat(filter.isVisible(getBookmark(bookmark2Id))).isTrue();
+        assertThat(filter.isVisible(getBookmark(bookmark3Id))).isTrue();
+        assertThat(filter.isVisible(getBookmark(folder1Id))).isTrue();
+        assertThat(filter.isVisible(getBookmark(folder2Id))).isTrue();
+    }
+
+    @Test
+    public void testIsIdFiltering_falseByDefault() {
+        // Then - no ID filter active initially
+        assertThat(filter.isIdFiltering()).isFalse();
+
+        // When
+        filter.setIdFilter(Set.of(bookmark1Id));
+
+        // Then - ID filtering is now active
+        assertThat(filter.isIdFiltering()).isTrue();
+    }
+
+    @Test
+    public void testClear_alsoResetsSearchText() {
+        // Given - a text filter is active
+        filter.setSearchText("Java");
+        assertThat(filter.isFiltering()).isTrue();
+
+        // When
+        filter.clear();
+
+        // Then - search text is reset and all bookmarks are visible
+        assertThat(filter.isFiltering()).isFalse();
+        assertThat(filter.getSearchText()).isEmpty();
+        assertThat(filter.isVisible(getBookmark(bookmark1Id))).isTrue();
+        assertThat(filter.isVisible(getBookmark(bookmark2Id))).isTrue();
+    }
+
+    @Test
+    public void testSetSearchText_clearsIdFilter() {
+        // Given - an ID filter is active
+        filter.setIdFilter(Set.of(bookmark3Id));
+        assertThat(filter.isIdFiltering()).isTrue();
+
+        // When - set a search text
+        filter.setSearchText("Java");
+
+        // Then - ID filter is cleared
+        assertThat(filter.isIdFiltering()).isFalse();
+        // And search text filter is active
+        assertThat(filter.isFiltering()).isTrue();
+        assertThat(filter.isVisible(getBookmark(bookmark1Id))).isTrue();
+        assertThat(filter.isVisible(getBookmark(bookmark3Id))).isTrue();
+        assertThat(filter.isVisible(getBookmark(bookmark2Id))).isFalse();
     }
 
     private Bookmark getBookmark(BookmarkId bookmarkId) {

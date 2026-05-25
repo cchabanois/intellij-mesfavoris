@@ -648,6 +648,38 @@ class BookmarksMcpToolsetTest : BasePlatformTestCase() {
         }
     }
 
+    // --- show_bookmarks ---
+
+    @Test
+    fun testShowBookmarksReturnsCorrectCount() {
+        runBlocking {
+            val result = toolset.show_bookmarks(
+                ids = listOf(taskBookmarkId.toString(), projectBookmarkId.toString()),
+                description = "work-related bookmarks"
+            )
+
+            assertThat(result).isEqualTo("Showing 2 bookmark(s)")
+        }
+    }
+
+    @Test
+    fun testShowBookmarksSingleIdReturnsCorrectCount() {
+        runBlocking {
+            val result = toolset.show_bookmarks(
+                ids = listOf(blogBookmarkId.toString())
+            )
+
+            assertThat(result).isEqualTo("Showing 1 bookmark(s)")
+        }
+    }
+
+    @Test
+    fun testShowBookmarksWithEmptyIdsFails() {
+        assertMcpFails("at least one") {
+            runBlocking { toolset.show_bookmarks(ids = emptyList()) }
+        }
+    }
+
     // --- list_bookmark_properties ---
 
     @Test

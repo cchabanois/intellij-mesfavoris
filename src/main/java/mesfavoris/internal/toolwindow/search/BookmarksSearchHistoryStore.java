@@ -9,9 +9,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Persistent storage for bookmarks search history
- */
 @State(
     name = "BookmarksSearchHistory",
     storages = @Storage("mesfavoris.xml")
@@ -20,11 +17,24 @@ public class BookmarksSearchHistoryStore implements PersistentStateComponent<Boo
     private static final int MAX_HISTORY_SIZE = 20;
     private State state = new State();
 
-    public static class State {
-        public List<String> searchHistory = new ArrayList<>();
+    public enum EntryType { TEXT, BY_ID }
 
-        public State() {
+    public static class HistoryEntry {
+        public EntryType type;
+        public String label;
+        public List<String> ids;
+
+        public HistoryEntry() {}
+
+        public HistoryEntry(EntryType type, String label, List<String> ids) {
+            this.type = type;
+            this.label = label;
+            this.ids = ids;
         }
+    }
+
+    public static class State {
+        public List<HistoryEntry> history = new ArrayList<>();
     }
 
     @Override
@@ -37,29 +47,30 @@ public class BookmarksSearchHistoryStore implements PersistentStateComponent<Boo
         this.state = state;
     }
 
-    public List<String> getSearchHistory() {
-        return new ArrayList<>(state.searchHistory);
-    }
-
-    public void addToHistory(String searchText) {
-        if (searchText == null || searchText.trim().isEmpty()) {
+    public void addTextSearch(@NotNull String label) {
+        if (label.trim().isEmpty()) {
             return;
         }
+        addEntry(new HistoryEntry(EntryType.TEXT, label, null));
+    }
 
-        // Remove if already exists
-        state.searchHistory.remove(searchText);
+    public void addIdSearch(@NotNull String label, @NotNull List<String> ids) {
+        addEntry(new HistoryEntry(EntryType.BY_ID, label, new ArrayList<>(ids)));
+    }
 
-        // Add to beginning
-        state.searchHistory.add(0, searchText);
-
-        // Limit size
-        if (state.searchHistory.size() > MAX_HISTORY_SIZE) {
-            state.searchHistory = new ArrayList<>(state.searchHistory.subList(0, MAX_HISTORY_SIZE));
+    private void addEntry(HistoryEntry entry) {
+        state.history.removeIf(e -> entry.label.equals(e.label));
+        state.history.add(0, entry);
+        if (state.history.size() > MAX_HISTORY_SIZE) {
+            state.history = new ArrayList<>(state.history.subList(0, MAX_HISTORY_SIZE));
         }
+    }
+
+    public List<HistoryEntry> getHistory() {
+        return new ArrayList<>(state.history);
     }
 
     public void clearHistory() {
-        state.searchHistory.clear();
+        state.history.clear();
     }
 }
-

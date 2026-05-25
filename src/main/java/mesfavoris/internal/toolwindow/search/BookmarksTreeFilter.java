@@ -1,9 +1,6 @@
 package mesfavoris.internal.toolwindow.search;
 
-import mesfavoris.model.Bookmark;
-import mesfavoris.model.BookmarkDatabase;
-import mesfavoris.model.BookmarkFolder;
-import mesfavoris.model.BookmarksTree;
+import mesfavoris.model.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,13 +9,16 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Filter for bookmarks tree based on search text
+ * Filter for bookmarks tree. Supports two mutually exclusive modes:
+ * - text-based: filters by name/comment match
+ * - ID-based: shows only a specific set of bookmark IDs (used by MCP tools)
  */
 public class BookmarksTreeFilter {
     private final BookmarkDatabase bookmarkDatabase;
     private String searchText;
     private final Set<Bookmark> matchingBookmarks;
     private final Set<Bookmark> visibleBookmarks;
+    private Set<BookmarkId> idFilter = null;
 
     public BookmarksTreeFilter(@NotNull BookmarkDatabase bookmarkDatabase) {
         this.bookmarkDatabase = bookmarkDatabase;
@@ -27,19 +27,70 @@ public class BookmarksTreeFilter {
         this.visibleBookmarks = new HashSet<>();
     }
 
+    /**
+     * Switches to text mode and filters bookmarks by name/comment match. Clears any active ID filter.
+     *
+     * @param searchText the text to search for, or null/empty to clear the text filter
+     */
     public void setSearchText(@Nullable String searchText) {
+        this.idFilter = null;
         this.searchText = searchText == null ? "" : searchText.toLowerCase();
         updateFilter();
     }
 
+    /**
+     * Returns the current search text.
+     *
+     * @return the search text, or an empty string when not in text mode
+     */
     public String getSearchText() {
         return searchText;
     }
 
-    public boolean isFiltering() {
-        return !searchText.isEmpty();
+    /**
+     * Switches to ID mode and shows only the given bookmarks (plus their ancestors). Clears search text.
+     *
+     * @param ids the bookmark IDs to show exclusively
+     */
+    public void setIdFilter(@NotNull Set<BookmarkId> ids) {
+        this.idFilter = ids;
+        this.searchText = "";
+        updateFilter();
     }
 
+    /**
+     * Clears all active filters; the tree shows all bookmarks.
+     */
+    public void clear() {
+        this.idFilter = null;
+        this.searchText = "";
+        updateFilter();
+    }
+
+    /**
+     * Returns true when the filter is in ID mode.
+     *
+     * @return true if an ID filter is active
+     */
+    public boolean isIdFiltering() {
+        return idFilter != null;
+    }
+
+    /**
+     * Returns true when any filter (text or ID) is active.
+     *
+     * @return true if the tree is currently filtered
+     */
+    public boolean isFiltering() {
+        return isIdFiltering() || !searchText.isEmpty();
+    }
+
+    /**
+     * Returns true if the bookmark should be shown in the tree. Always true when no filter is active.
+     *
+     * @param bookmark the bookmark to check
+     * @return true if the bookmark is visible
+     */
     public boolean isVisible(@NotNull Bookmark bookmark) {
         if (!isFiltering()) {
             return true;
@@ -47,6 +98,12 @@ public class BookmarksTreeFilter {
         return visibleBookmarks.contains(bookmark);
     }
 
+    /**
+     * Returns true if the bookmark directly matches the active filter (used to bold matched nodes).
+     *
+     * @param bookmark the bookmark to check
+     * @return true if the bookmark is a direct match
+     */
     public boolean matches(@NotNull Bookmark bookmark) {
         return matchingBookmarks.contains(bookmark);
     }
@@ -61,16 +118,27 @@ public class BookmarksTreeFilter {
 
         BookmarksTree bookmarksTree = bookmarkDatabase.getBookmarksTree();
 
-        // Find all matching bookmarks
-        findMatchingBookmarks(bookmarksTree, bookmarksTree.getRootFolder());
+        if (isIdFiltering()) {
+            collectIdMatches(bookmarksTree);
+        } else {
+            collectTextMatches(bookmarksTree, bookmarksTree.getRootFolder());
+        }
 
-        // Make all ancestors of matching bookmarks visible
         for (Bookmark matching : matchingBookmarks) {
             makeAncestorsVisible(bookmarksTree, matching);
         }
     }
 
-    private void findMatchingBookmarks(@NotNull BookmarksTree bookmarksTree, @NotNull Bookmark bookmark) {
+    private void collectIdMatches(@NotNull BookmarksTree bookmarksTree) {
+        for (BookmarkId id : idFilter) {
+            Bookmark bookmark = bookmarksTree.getBookmark(id);
+            if (bookmark != null) {
+                matchingBookmarks.add(bookmark);
+            }
+        }
+    }
+
+    private void collectTextMatches(@NotNull BookmarksTree bookmarksTree, @NotNull Bookmark bookmark) {
         if (matchesSearchText(bookmark)) {
             matchingBookmarks.add(bookmark);
             visibleBookmarks.add(bookmark);
@@ -79,7 +147,7 @@ public class BookmarksTreeFilter {
         if (bookmark instanceof BookmarkFolder folder) {
             List<Bookmark> children = bookmarksTree.getChildren(folder.getId());
             for (Bookmark child : children) {
-                findMatchingBookmarks(bookmarksTree, child);
+                collectTextMatches(bookmarksTree, child);
             }
         }
     }
@@ -91,11 +159,7 @@ public class BookmarksTreeFilter {
         }
 
         String comment = bookmark.getPropertyValue(Bookmark.PROPERTY_COMMENT);
-        if (comment != null && comment.toLowerCase().contains(searchText)) {
-            return true;
-        }
-
-        return false;
+        return comment != null && comment.toLowerCase().contains(searchText);
     }
 
     private void makeAncestorsVisible(@NotNull BookmarksTree bookmarksTree, @NotNull Bookmark bookmark) {
@@ -110,4 +174,3 @@ public class BookmarksTreeFilter {
         }
     }
 }
-
