@@ -18,7 +18,7 @@ import mesfavoris.remote.RemoteBookmarksStoreManager
 import mesfavoris.service.IBookmarksService
 import java.io.IOException
 
-class RemoteStoresMcpToolset : McpToolset {
+class MesFavorisRemoteStoresMcpToolset : McpToolset {
 
     private suspend fun currentProject(): Project =
         runCatching { currentCoroutineContext().projectOrNull }.getOrNull()

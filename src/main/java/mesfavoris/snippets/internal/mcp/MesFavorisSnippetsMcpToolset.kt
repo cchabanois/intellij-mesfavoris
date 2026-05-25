@@ -19,7 +19,7 @@ import mesfavoris.service.IBookmarksService
 import mesfavoris.snippets.SnippetBookmarkProperties.PROP_SNIPPET_CONTENT
 import mesfavoris.snippets.internal.SnippetBookmarkPropertiesProvider
 
-class SnippetsMcpToolset : McpToolset {
+class MesFavorisSnippetsMcpToolset : McpToolset {
 
     private suspend fun currentProject(): Project =
         runCatching { currentCoroutineContext().projectOrNull }.getOrNull()

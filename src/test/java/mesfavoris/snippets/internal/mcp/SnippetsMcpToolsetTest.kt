@@ -12,9 +12,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
 
-class SnippetsMcpToolsetTest : BasePlatformTestCase() {
+class MesFavorisSnippetsMcpToolsetTest : BasePlatformTestCase() {
 
-    private lateinit var toolset: SnippetsMcpToolset
+    private lateinit var toolset: MesFavorisSnippetsMcpToolset
     private lateinit var bookmarkDatabase: BookmarkDatabase
     private lateinit var rootFolderId: BookmarkId
     private lateinit var shellFolderId: BookmarkId
@@ -22,7 +22,7 @@ class SnippetsMcpToolsetTest : BasePlatformTestCase() {
     @Before
     override fun setUp() {
         super.setUp()
-        toolset = SnippetsMcpToolset()
+        toolset = MesFavorisSnippetsMcpToolset()
         val service = project.getService(IBookmarksService::class.java)
         bookmarkDatabase = service.getBookmarkDatabase()
         rootFolderId = bookmarkDatabase.getBookmarksTree().rootFolder.id

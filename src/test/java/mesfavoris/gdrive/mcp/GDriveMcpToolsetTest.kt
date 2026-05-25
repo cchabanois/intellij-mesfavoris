@@ -25,9 +25,9 @@ import java.io.StringWriter
 import java.nio.charset.StandardCharsets
 import java.time.Duration
 
-class GDriveMcpToolsetTest : BasePlatformTestCase() {
+class MesFavorisGDriveMcpToolsetTest : BasePlatformTestCase() {
 
-    private lateinit var toolset: GDriveMcpToolset
+    private lateinit var toolset: MesFavorisGDriveMcpToolset
     private lateinit var gdriveConnectionRule: GDriveConnectionRule
     private lateinit var bookmarkDatabase: BookmarkDatabase
     private lateinit var rootFolderId: BookmarkId
@@ -42,7 +42,7 @@ class GDriveMcpToolsetTest : BasePlatformTestCase() {
         `when`(mockGDriveService.connectionManager).thenReturn(gdriveConnectionRule.gDriveConnectionManager)
         project.registerServiceInstance(BookmarksGDriveService::class.java, mockGDriveService)
 
-        toolset = GDriveMcpToolset()
+        toolset = MesFavorisGDriveMcpToolset()
         val service = project.getService(IBookmarksService::class.java)
         bookmarkDatabase = service.getBookmarkDatabase()
         rootFolderId = bookmarkDatabase.getBookmarksTree().rootFolder.id

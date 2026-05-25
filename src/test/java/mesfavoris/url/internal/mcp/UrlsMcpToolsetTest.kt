@@ -12,9 +12,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
 
-class UrlsMcpToolsetTest : BasePlatformTestCase() {
+class MesFavorisUrlsMcpToolsetTest : BasePlatformTestCase() {
 
-    private lateinit var toolset: UrlsMcpToolset
+    private lateinit var toolset: MesFavorisUrlsMcpToolset
     private lateinit var bookmarkDatabase: BookmarkDatabase
     private lateinit var rootFolderId: BookmarkId
     private lateinit var linksFolderId: BookmarkId
@@ -22,7 +22,7 @@ class UrlsMcpToolsetTest : BasePlatformTestCase() {
     @Before
     override fun setUp() {
         super.setUp()
-        toolset = UrlsMcpToolset()
+        toolset = MesFavorisUrlsMcpToolset()
         val service = project.getService(IBookmarksService::class.java)
         bookmarkDatabase = service.getBookmarkDatabase()
         rootFolderId = bookmarkDatabase.getBookmarksTree().rootFolder.id

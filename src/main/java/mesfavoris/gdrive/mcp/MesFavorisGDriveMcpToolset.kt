@@ -22,7 +22,7 @@ import mesfavoris.service.IBookmarksService
 import java.io.IOException
 import java.util.*
 
-class GDriveMcpToolset : McpToolset {
+class MesFavorisGDriveMcpToolset : McpToolset {
 
     private suspend fun currentProject(): Project =
         runCatching { currentCoroutineContext().projectOrNull }.getOrNull()

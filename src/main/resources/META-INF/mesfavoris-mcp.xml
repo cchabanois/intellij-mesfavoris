@@ -1,11 +1,10 @@
 <idea-plugin>
     <extensions defaultExtensionNs="com.intellij.mcpServer">
-        <mcpToolset implementation="mesfavoris.internal.mcp.BookmarksMcpToolset"/>
-        <mcpToolset implementation="mesfavoris.snippets.internal.mcp.SnippetsMcpToolset"/>
-        <mcpToolset implementation="mesfavoris.notes.internal.mcp.NotesMcpToolset"/>
-        <mcpToolset implementation="mesfavoris.url.internal.mcp.UrlsMcpToolset"/>
-        <mcpToolset implementation="mesfavoris.internal.mcp.RemoteStoresMcpToolset"/>
-        <mcpToolset implementation="mesfavoris.gdrive.mcp.GDriveMcpToolset"/>
+        <mcpToolset implementation="mesfavoris.internal.mcp.MesFavorisBookmarksMcpToolset"/>
+        <mcpToolset implementation="mesfavoris.snippets.internal.mcp.MesFavorisSnippetsMcpToolset"/>
+        <mcpToolset implementation="mesfavoris.notes.internal.mcp.MesFavorisNotesMcpToolset"/>
+        <mcpToolset implementation="mesfavoris.url.internal.mcp.MesFavorisUrlsMcpToolset"/>
+        <mcpToolset implementation="mesfavoris.internal.mcp.MesFavorisRemoteStoresMcpToolset"/>
+        <mcpToolset implementation="mesfavoris.gdrive.mcp.MesFavorisGDriveMcpToolset"/>
     </extensions>
 </idea-plugin>
-
