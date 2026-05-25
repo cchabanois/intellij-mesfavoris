@@ -4,6 +4,18 @@
 
 ## [Unreleased]
 
+### Added
+
+- MCP tools for bookmark management: list, search, create, move, delete bookmarks and folders.
+- MCP tools for note, URL, and snippet bookmark types.
+- MCP tools for remote store operations: connect, disconnect, refresh, list, add/remove bookmarks.
+- MCP tools for Google Drive: list files, import bookmarks from file or URL.
+- MCP-created bookmarks are marked with an `[AI]` badge in the bookmark tree.
+- New `show_bookmarks` MCP tool to filter the bookmark tree to a specific set of bookmarks. The search bar shows `Filtered by AI: <description>` and clicking × restores the full view.
+- Search history now preserves the interleaved order of text searches and ID-based filters.
+- Java bookmark names now use the simple class name (`Cache`, `Cache.get()`) instead of the fully qualified name.
+- Search history is saved on focus lost, without requiring Enter.
+
 ## [0.5.0] - 2026-05-17
 
 ### Added

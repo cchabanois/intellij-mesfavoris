@@ -9,6 +9,19 @@
 
 ![logo](docs/mesfavoris-1280x1520.png)
 
+## Features
+
+- **Hierarchical bookmarks** — organize in folders and subfolders with drag-and-drop
+- **Multiple bookmark types** — files, URLs, code snippets, Java members, notes, shortcuts, IDE actions
+- **Path placeholders** — portable bookmarks across machines using variables like `${HOME}`
+- **Remote sync** — share bookmarks with your team via Google Drive
+- **Resilient file bookmarks** — survive refactoring and edits thanks to the Bitap algorithm
+- **Search Everywhere** — find any bookmark with double Shift
+- **Virtual folders** — automatic Recent, Latest Visited, and Most Visited views
+- **Inlay hints** — display bookmark comments inline in the editor
+- **MCP integration** — manage bookmarks from any MCP-compatible AI assistant (Claude, etc.)
+<!-- Plugin description end -->
+
 ## Table of Contents
 
 - [Features](#features)
@@ -38,21 +51,15 @@
   - [Importing a bookmark folder from Google Drive](#importing-a-bookmark-folder-from-google-drive)
   - [Refreshing](#refreshing)
 - [Settings](#settings)
+- [MCP Integration](#mcp-integration)
+  - [Examples](#examples)
+    - [Exploring a new codebase](#exploring-a-new-codebase)
+    - [Deep-diving into an algorithm](#deep-diving-into-an-algorithm)
+    - [Saving usage patterns and sharing with the team](#saving-usage-patterns-and-sharing-with-the-team)
+    - [Organizing build commands](#organizing-build-commands)
 - [License](#license)
 
 ---
-
-## Features
-
-- **Hierarchical bookmarks** — organize in folders and subfolders with drag-and-drop
-- **Multiple bookmark types** — files, URLs, code snippets, Java members, notes, shortcuts, IDE actions
-- **Path placeholders** — portable bookmarks across machines using variables like `${HOME}`
-- **Remote sync** — share bookmarks with your team via Google Drive
-- **Resilient file bookmarks** — survive refactoring and edits thanks to the Bitap algorithm
-- **Search Everywhere** — find any bookmark with double Shift
-- **Virtual folders** — automatic Recent, Latest Visited, and Most Visited views
-- **Inlay hints** — display bookmark comments inline in the editor
-<!-- Plugin description end -->
 
 ## Installation
 
@@ -294,6 +301,102 @@ To disconnect or remove stored credentials, use the gear icon > **Delete Credent
 | **Google Drive** | IDE-wide | Configure OAuth credentials — use the built-in credentials or provide your own Client ID and Client Secret |
 
 ![Google Drive settings](docs/gdrive-settings.png)
+
+---
+
+## MCP Integration
+
+Mes Favoris adds tools to the [MCP (Model Context Protocol)](https://www.jetbrains.com/help/idea/mcp-server.html) server built into IntelliJ IDEA 2025.2+. This lets AI coding assistants (Claude Code, Cursor, VS Code) manage your bookmarks directly from their chat interface.
+
+### Available tools
+
+#### Bookmarks
+
+| Tool | Description |
+|------|-------------|
+| `list_bookmark_folder` | List direct children (or all descendants) of a bookmark folder |
+| `search_bookmarks` | Search bookmarks by text across all properties or specific ones |
+| `create_bookmark_folder` | Create a new bookmark folder |
+| `add_file_bookmark` | Add a file bookmark at a specific line |
+| `modify_bookmark` | Update properties of an existing bookmark |
+| `update_bookmark` | Re-capture the file location of a file bookmark (new file path + line number) |
+| `move_bookmarks` | Move bookmarks INTO a folder or BEFORE/AFTER another bookmark |
+| `delete_bookmark` | Delete a bookmark or folder (optionally recursive) |
+| `goto_bookmark` | Navigate the IDE to a bookmark by its ID |
+| `select_bookmark` | Select a bookmark in the tree without navigating |
+| `show_bookmarks` | Filter the bookmark tree to show only specific bookmarks; click × in the search bar to restore the full view |
+| `list_bookmark_properties` | List all known bookmark property descriptors |
+
+#### Typed bookmarks
+
+| Tool | Description |
+|------|-------------|
+| `add_url_bookmark` | Add a URL bookmark |
+| `add_note_bookmark` | Add a Markdown note bookmark |
+| `add_snippet_bookmark` | Add a code snippet bookmark |
+| `add_command_bookmark` | Add a shell command bookmark (one command per bookmark; navigating copies it to the clipboard) |
+
+#### Remote stores
+
+| Tool | Description |
+|------|-------------|
+| `list_remote_bookmark_stores` | List all remote bookmark stores and their connection state |
+| `connect_remote_bookmark_store` | Connect to a remote store (e.g. `gdrive`) |
+| `disconnect_remote_bookmark_store` | Disconnect from a remote store |
+| `list_remote_bookmark_folders` | List bookmark folders currently synchronized with a remote store |
+| `add_to_remote_bookmark_store` | Start synchronizing a local folder with a remote store |
+| `remove_from_remote_bookmark_store` | Stop synchronizing a local folder |
+| `refresh_remote_bookmark_store` | Pull the latest changes from one or all remote stores |
+
+#### Google Drive
+
+| Tool | Description |
+|------|-------------|
+| `list_gdrive_bookmark_files` | List bookmark files available in Google Drive |
+| `import_gdrive_bookmark_file` | Import a Google Drive bookmark file by its file ID |
+| `import_gdrive_bookmark_from_url` | Import a Google Drive bookmark file from a sharing URL |
+
+### In action
+
+#### Exploring a new codebase
+
+> I just opened the [Caffeine](https://github.com/ben-manes/caffeine) caching library in IntelliJ. Can you explore the project and create a 'Caffeine' bookmark folder with bookmarks on the most important classes to understand how the cache works?
+
+Claude explores the project structure, creates the folder, and adds bookmarks on the key classes — each with a comment explaining its role — along with a suggested reading order.
+
+![Caffeine bookmarks in Mes Favoris](docs/mcp-example-caffeine.png)
+
+#### Deep-diving into an algorithm
+
+> Can you go deeper on the W-TinyLFU algorithm? Create a 'TinyLFU' subfolder inside 'Caffeine', add bookmarks on the key implementation steps, a note summarizing how the algorithm works, and a link to the research paper.
+
+Claude creates a `TinyLFU` subfolder with 15 items: a URL bookmark to the original ACM paper, a Markdown note summarizing the algorithm, and 13 code bookmarks organized by phase (FrequencySketch, queue structure, eviction loop, admission gate, hill climber) — each with a comment explaining what it does.
+
+![TinyLFU bookmarks and algorithm note](docs/mcp-example-tinylfu.png)
+
+#### Filtering bookmarks by topic
+
+> Show me only the bookmarks related to the eviction and admission logic.
+
+Claude calls `show_bookmarks` with the relevant IDs — the tree instantly filters to those bookmarks, and the search bar shows `Filtered by AI: eviction and admission logic`. Click × to restore the full view.
+
+![Bookmarks filtered by AI](docs/mcp-example-show-bookmarks.png)
+
+#### Saving usage patterns and sharing with the team
+
+> Add a 'Usage Examples' subfolder in 'Caffeine' with snippet bookmarks for the most common cache patterns (basic loading cache, async cache, manual eviction). Then share the whole 'Caffeine' folder to Google Drive.
+
+Claude creates a `Usage Examples` subfolder with 6 snippets, then synchronizes the entire `Caffeine` folder to Google Drive.
+
+![Usage Examples snippets](docs/mcp-example-snippets.png)
+
+#### Organizing build commands
+
+> Add a 'Commands' subfolder in 'Caffeine' with the most useful commands as snippet bookmarks, creating one subfolder per category.
+
+Claude creates one subfolder per category, with one command bookmark per command. Navigating to a command bookmark copies it to the clipboard, ready to paste in a terminal.
+
+![Commands bookmarks](docs/mcp-example-commands.png)
 
 ---
 
