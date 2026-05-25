@@ -101,9 +101,10 @@ public class JavaEditorBookmarkPropertiesProvider extends AbstractBookmarkProper
 		if (member instanceof PsiMethod method) {
             putIfAbsent(bookmarkProperties, PROP_JAVA_METHOD_SIGNATURE,
 					JavaEditorUtils.getMethodSimpleSignature(method));
-			if (declaringType != null) {
+			String simpleClassName = containingClass != null ? containingClass.getName() : null;
+			if (simpleClassName != null) {
 				putIfAbsent(bookmarkProperties, PROPERTY_NAME,
-						declaringType + '.' + member.getName() + "()");
+						simpleClassName + '.' + member.getName() + "()");
 			} else {
 				putIfAbsent(bookmarkProperties, PROPERTY_NAME, member.getName() + "()");
 			}
@@ -112,13 +113,14 @@ public class JavaEditorBookmarkPropertiesProvider extends AbstractBookmarkProper
 		if (member instanceof PsiClass type) {
             String qualifiedName = type.getQualifiedName();
 			putIfAbsent(bookmarkProperties, PROP_JAVA_TYPE, qualifiedName);
-			putIfAbsent(bookmarkProperties, PROPERTY_NAME, qualifiedName);
+			putIfAbsent(bookmarkProperties, PROPERTY_NAME, type.getName());
 		}
 
 		if (member instanceof PsiField) {
-			if (declaringType != null) {
+			String simpleClassName = containingClass != null ? containingClass.getName() : null;
+			if (simpleClassName != null) {
 				putIfAbsent(bookmarkProperties, PROPERTY_NAME,
-						declaringType + '.' + member.getName());
+						simpleClassName + '.' + member.getName());
 			} else {
 				putIfAbsent(bookmarkProperties, PROPERTY_NAME, member.getName());
 			}
