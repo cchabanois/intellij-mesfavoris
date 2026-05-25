@@ -18,7 +18,7 @@ import mesfavoris.model.BookmarkId
 import mesfavoris.service.IBookmarksService
 import mesfavoris.url.UrlBookmarkProperties.PROP_URL
 
-class UrlsMcpToolset : McpToolset {
+class MesFavorisUrlsMcpToolset : McpToolset {
 
     private suspend fun currentProject(): Project =
         runCatching { currentCoroutineContext().projectOrNull }.getOrNull()

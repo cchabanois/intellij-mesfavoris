@@ -20,9 +20,9 @@ import org.junit.Before
 import org.junit.Test
 import javax.swing.Icon
 
-class RemoteStoresMcpToolsetTest : BasePlatformTestCase() {
+class MesFavorisRemoteStoresMcpToolsetTest : BasePlatformTestCase() {
 
-    private lateinit var toolset: RemoteStoresMcpToolset
+    private lateinit var toolset: MesFavorisRemoteStoresMcpToolset
     private lateinit var bookmarkDatabase: BookmarkDatabase
     private lateinit var rootFolderId: BookmarkId
     private lateinit var syncFolderId: BookmarkId
@@ -32,7 +32,7 @@ class RemoteStoresMcpToolsetTest : BasePlatformTestCase() {
     @Before
     override fun setUp() {
         super.setUp()
-        toolset = RemoteStoresMcpToolset()
+        toolset = MesFavorisRemoteStoresMcpToolset()
         val service = project.getService(IBookmarksService::class.java)
         bookmarkDatabase = service.getBookmarkDatabase()
         rootFolderId = bookmarkDatabase.getBookmarksTree().rootFolder.id
@@ -64,7 +64,7 @@ class RemoteStoresMcpToolsetTest : BasePlatformTestCase() {
 
             assertThat(result.stores).hasSize(1)
             assertThat(result.stores[0].id).isEqualTo(storeId)
-            assertThat(result.stores[0].state).isEqualTo(RemoteStoresMcpToolset.RemoteStoreState.DISCONNECTED)
+            assertThat(result.stores[0].state).isEqualTo(MesFavorisRemoteStoresMcpToolset.RemoteStoreState.DISCONNECTED)
         }
     }
 
@@ -114,7 +114,7 @@ class RemoteStoresMcpToolsetTest : BasePlatformTestCase() {
         runBlocking {
             val result = toolset.list_remote_bookmark_stores()
 
-            assertThat(result.stores[0].state).isEqualTo(RemoteStoresMcpToolset.RemoteStoreState.CONNECTED)
+            assertThat(result.stores[0].state).isEqualTo(MesFavorisRemoteStoresMcpToolset.RemoteStoreState.CONNECTED)
         }
     }
 

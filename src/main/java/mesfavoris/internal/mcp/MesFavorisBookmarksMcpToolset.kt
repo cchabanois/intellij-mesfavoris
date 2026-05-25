@@ -28,7 +28,7 @@ import mesfavoris.model.BookmarkId
 import mesfavoris.service.IBookmarksService
 import mesfavoris.service.MoveLocation
 
-class BookmarksMcpToolset : McpToolset {
+class MesFavorisBookmarksMcpToolset : McpToolset {
 
     private suspend fun currentProject(): Project =
         runCatching { currentCoroutineContext().projectOrNull }.getOrNull()
@@ -317,7 +317,7 @@ class BookmarksMcpToolset : McpToolset {
     @McpDescription(description = "Add a bookmark (favori) for a file at a specific line.")
     suspend fun add_file_bookmark(
         @McpDescription(description = "Absolute path to the file") filePath: String,
-        @McpDescription(description = "Line number (1-based)") lineNumber: Int,
+        @McpDescription(description = "Line number (1-based). Read the file first to find the exact line of the element you want to bookmark — do not default to 1.") lineNumber: Int,
         @McpDescription(description = "Optional comment for the bookmark. Only the first line is shown in the bookmark tree; the full multi-line comment is visible in the details panel.") comment: String = "",
         @McpDescription(description = "ID of the parent bookmark folder (default: currently selected folder, then 'default' folder, then root). The 'default' folder is a general-purpose inbox for temporary or yet-to-be-organized bookmarks.") parentId: String = ""
     ): BookmarkResult {

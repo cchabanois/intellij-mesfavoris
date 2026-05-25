@@ -15,9 +15,9 @@ import org.junit.Before
 import org.junit.Test
 import java.nio.file.Paths
 
-class BookmarksMcpToolsetTest : BasePlatformTestCase() {
+class MesFavorisBookmarksMcpToolsetTest : BasePlatformTestCase() {
 
-    private lateinit var toolset: BookmarksMcpToolset
+    private lateinit var toolset: MesFavorisBookmarksMcpToolset
     private lateinit var bookmarkDatabase: BookmarkDatabase
     private lateinit var rootFolderId: BookmarkId
     private lateinit var workFolderId: BookmarkId
@@ -35,7 +35,7 @@ class BookmarksMcpToolsetTest : BasePlatformTestCase() {
     override fun setUp() {
         super.setUp()
         myFixture.copyDirectoryToProject("commons-cli", "commons-cli")
-        toolset = BookmarksMcpToolset()
+        toolset = MesFavorisBookmarksMcpToolset()
         val service = project.getService(IBookmarksService::class.java)
         bookmarkDatabase = service.getBookmarkDatabase()
         rootFolderId = bookmarkDatabase.getBookmarksTree().rootFolder.id
@@ -709,7 +709,7 @@ class BookmarksMcpToolsetTest : BasePlatformTestCase() {
 
             val filePathDescriptor = descriptors.firstOrNull { it.name == "filePath" }
             assertThat(filePathDescriptor).isNotNull
-            assertThat(filePathDescriptor!!.type).isEqualTo(BookmarksMcpToolset.PropertyType.PATH)
+            assertThat(filePathDescriptor!!.type).isEqualTo(MesFavorisBookmarksMcpToolset.PropertyType.PATH)
         }
     }
 

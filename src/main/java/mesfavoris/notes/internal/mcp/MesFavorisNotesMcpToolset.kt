@@ -18,7 +18,7 @@ import mesfavoris.model.BookmarkId
 import mesfavoris.notes.NoteBookmarkProperties.PROP_NOTES
 import mesfavoris.service.IBookmarksService
 
-class NotesMcpToolset : McpToolset {
+class MesFavorisNotesMcpToolset : McpToolset {
 
     private suspend fun currentProject(): Project =
         runCatching { currentCoroutineContext().projectOrNull }.getOrNull()
