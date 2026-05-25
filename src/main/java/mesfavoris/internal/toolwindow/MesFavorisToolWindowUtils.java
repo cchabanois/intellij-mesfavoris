@@ -13,49 +13,28 @@ import java.awt.*;
  */
 public class MesFavorisToolWindowUtils {
 
-    /**
-     * Finds the BookmarksTreeComponent in the MesFavoris tool window
-     *
-     * @param project the project
-     * @return the BookmarksTreeComponent, or null if not found
-     */
     @Nullable
-    public static BookmarksTreeComponent findBookmarksTree(Project project) {
+    public static MesFavorisPanel findMesFavorisPanel(Project project) {
         ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow("mesfavoris");
         if (toolWindow == null) {
             return null;
         }
-
         Content content = toolWindow.getContentManager().getContent(0);
         if (content != null && content.getComponent() instanceof MesFavorisPanel panel) {
-            return findBookmarksTreeInPanel(panel);
+            return panel;
         }
         return null;
     }
 
-    /**
-     * Finds the BookmarksTreeComponent in a MesFavorisPanel
-     *
-     * @param panel the panel to search in
-     * @return the BookmarksTreeComponent, or null if not found
-     */
     @Nullable
-    private static BookmarksTreeComponent findBookmarksTreeInPanel(MesFavorisPanel panel) {
-        for (Component component : panel.getComponents()) {
-            BookmarksTreeComponent tree = findBookmarksTreeRecursive(component);
-            if (tree != null) {
-                return tree;
-            }
+    public static BookmarksTreeComponent findBookmarksTree(Project project) {
+        MesFavorisPanel panel = findMesFavorisPanel(project);
+        if (panel == null) {
+            return null;
         }
-        return null;
+        return findBookmarksTreeRecursive(panel);
     }
 
-    /**
-     * Recursively searches for a BookmarksTreeComponent in a component hierarchy
-     *
-     * @param component the component to search in
-     * @return the BookmarksTreeComponent, or null if not found
-     */
     @Nullable
     private static BookmarksTreeComponent findBookmarksTreeRecursive(Component component) {
         if (component instanceof BookmarksTreeComponent tree) {
@@ -72,4 +51,3 @@ public class MesFavorisToolWindowUtils {
         return null;
     }
 }
-

@@ -16,6 +16,7 @@ import mesfavoris.remote.RemoteBookmarkFolder;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -255,6 +256,15 @@ public interface IBookmarksService {
      * @param bookmarkId the bookmark to select
      */
     void selectBookmarkInTree(BookmarkId bookmarkId);
+
+    /**
+     * Filter the bookmarks tree UI to show only the specified bookmarks.
+     * The search bar shows "Filtered by AI: &lt;description&gt;".
+     *
+     * @param bookmarkIds the bookmark IDs to show exclusively
+     * @param description short description displayed in the search bar (e.g. "caffeine-related snippets")
+     */
+    void showOnlyBookmarks(Collection<BookmarkId> bookmarkIds, String description);
 
     /**
      * Refresh a specific remote bookmark folder

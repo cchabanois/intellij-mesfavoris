@@ -27,6 +27,8 @@ import mesfavoris.internal.recent.RecentBookmarksDatabase;
 import mesfavoris.internal.service.operations.*;
 import mesfavoris.internal.service.operations.utils.INewBookmarkPositionProvider;
 import mesfavoris.internal.service.operations.utils.NewBookmarkPositionProvider;
+import mesfavoris.internal.toolwindow.MesFavorisPanel;
+import mesfavoris.internal.toolwindow.MesFavorisToolWindowUtils;
 import mesfavoris.internal.validation.BookmarksModificationValidator;
 import mesfavoris.internal.visited.IVisitedBookmarksProvider;
 import mesfavoris.internal.visited.VisitedBookmarksDatabase;
@@ -58,7 +60,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -307,6 +311,16 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
     public void selectBookmarkInTree(BookmarkId bookmarkId) {
         SelectBookmarkInTreeOperation operation = new SelectBookmarkInTreeOperation(project);
         operation.selectBookmark(bookmarkId);
+    }
+
+    @Override
+    public void showOnlyBookmarks(Collection<BookmarkId> bookmarkIds, String description) {
+        com.intellij.openapi.application.ApplicationManager.getApplication().invokeLater(() -> {
+            MesFavorisPanel panel = MesFavorisToolWindowUtils.findMesFavorisPanel(project);
+            if (panel != null) {
+                panel.showOnlyBookmarks(new HashSet<>(bookmarkIds), description);
+            }
+        });
     }
 
     @Override
