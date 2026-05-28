@@ -8,6 +8,7 @@
     <depends optional="true" config-file="mesfavoris-java.xml">com.intellij.java</depends>
     <depends optional="true" config-file="mesfavoris-markdown.xml">org.intellij.plugins.markdown</depends>
     <depends optional="true" config-file="mesfavoris-mcp.xml">com.intellij.mcpServer</depends>
+    <depends optional="true" config-file="mesfavoris-github-plugin.xml">org.jetbrains.plugins.github</depends>
 
     <!-- Extension Points for Bookmark Types -->
     <extensionPoints>
