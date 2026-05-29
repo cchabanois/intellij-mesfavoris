@@ -14,12 +14,12 @@ public class GDriveIcons {
     /**
      * Main Google Drive icon
      */
-    public static final @NotNull Icon GDRIVE = load("/icons/gdrive.png");
+    public static final @NotNull Icon GDRIVE = load("/icons/gdrive.svg");
 
     /**
      * Overlay icon for Google Drive bookmarks (using a smaller icon)
      */
-    public static final @NotNull Icon GDRIVE_OVERLAY = load("/icons/gdrive_overlay.png");
+    public static final @NotNull Icon GDRIVE_OVERLAY = load("/icons/gdrive_overlay.svg");
 
     private static @NotNull Icon load(@NotNull String path) {
         return IconLoader.getIcon(path, MesFavorisIcons.class);

@@ -6,10 +6,19 @@ This product includes software developed by Cédric Chabanois.
 This plugin is a port and adaptation of the Eclipse Mesfavoris plugin,
 originally developed by the same author.
 
+Trademarks:
+- Google Drive is a trademark of Google LLC. Use of this trademark does not indicate endorsement by Google.
+- GitHub is a trademark of GitHub, Inc. Use of this trademark does not indicate endorsement by GitHub.
+- The Google Drive and GitHub icons are used solely to identify the respective services and are sourced from Simple Icons (CC0 license).
+
 Third-party dependencies:
-- Google Drive API (Apache License 2.0)
-- Google OAuth Client (Apache License 2.0)
+- javimmutable-collections (Apache License 2.0)
+- Google Drive API / google-api-services-drive (Apache License 2.0)
+- Google OAuth Client / google-oauth-client (Apache License 2.0)
+- Google HTTP Client / google-http-client-jackson2 (Apache License 2.0)
+- Jackson (Apache License 2.0)
 - Jsoup (MIT License)
-- imgscalr (Apache License 2.0)
-- AssertJ (Apache License 2.0)
+- AssertJ (Apache License 2.0) [test only]
+- Mockito (MIT License) [test only]
+- JUnit 4 (Eclipse Public License 1.0) [test only]
 
