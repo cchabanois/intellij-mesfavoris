@@ -1,0 +1,16 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationService serviceInterface="mesfavoris.github.integration.IGithubAccountResolver"
+                            serviceImplementation="mesfavoris.github.integration.GithubAccountResolver"/>
+
+        <postStartupActivity implementation="mesfavoris.github.mappings.GistMappingsStore$Initializer"/>
+        <projectConfigurable parentId="mesfavoris.settings"
+                             instance="mesfavoris.github.settings.GithubConfigurable"
+                             id="mesfavoris.settings.github"
+                             displayName="GitHub Gists"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="com.cchabanois.mesfavoris">
+        <remoteBookmarksStore implementation="mesfavoris.github.GithubRemoteBookmarksStoreExtension"/>
+    </extensions>
+</idea-plugin>
