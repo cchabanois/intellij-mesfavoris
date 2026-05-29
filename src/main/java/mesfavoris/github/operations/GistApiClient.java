@@ -11,6 +11,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -135,6 +138,33 @@ public class GistApiClient {
             throw new IOException("Failed to check gist: HTTP " + response.statusCode());
         }
         return response.headers().firstValue("ETag").orElse(null);
+    }
+
+    public List<GistResponse> listGists() throws IOException {
+        List<GistResponse> all = new ArrayList<>();
+        String url = baseUrlSupplier.get() + "/gists?per_page=100";
+        while (url != null) {
+            HttpRequest request = authorizedRequest(url).GET().build();
+            HttpResponse<String> response = send(request);
+            if (response.statusCode() != 200) {
+                throw new IOException("Failed to list gists: HTTP " + response.statusCode());
+            }
+            all.addAll(Arrays.asList(gson.fromJson(response.body(), GistResponse[].class)));
+            url = nextPageUrl(response.headers().firstValue("Link").orElse(null));
+        }
+        return all;
+    }
+
+    private static String nextPageUrl(String linkHeader) {
+        if (linkHeader == null) return null;
+        for (String part : linkHeader.split(",")) {
+            if (part.contains("rel=\"next\"")) {
+                int start = part.indexOf('<') + 1;
+                int end = part.indexOf('>');
+                if (start > 0 && end > start) return part.substring(start, end);
+            }
+        }
+        return null;
     }
 
     public UserResponse getAuthenticatedUser() throws IOException {
