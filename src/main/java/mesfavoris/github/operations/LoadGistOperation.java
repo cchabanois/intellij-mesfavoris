@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets;
 
 /** Loads a Gist's {@code bookmarks.json} content, fetching raw content if the file is truncated. */
 public class LoadGistOperation {
-    static final String BOOKMARKS_FILE_NAME = "bookmarks.json";
+    public static final String BOOKMARKS_FILE_NAME = "bookmarks.json";
 
     private final GistApiClient apiClient;
 

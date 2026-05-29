@@ -158,6 +158,12 @@ tasks {
             exclude("**/gdrive/**")
             logger.warn("Google Drive credentials not available - skipping GDrive tests")
         }
+
+        val hasGithubCredentials = !System.getenv("USER1_GITHUB_TOKEN").isNullOrBlank()
+        if (!hasGithubCredentials) {
+            exclude("**/github/**")
+            logger.warn("GitHub credentials not available - skipping GitHub E2E tests")
+        }
     }
 }
 
