@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-05-26
+
 ### Added
 
 - MCP tools for bookmark management: list, search, create, move, delete bookmarks and folders.
@@ -210,7 +212,8 @@
   - Bookmark label providers for custom rendering
   - Bookmark properties providers for extracting metadata
 
-[Unreleased]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.5.0...HEAD
+[Unreleased]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.6.0...HEAD
+[0.6.0]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.5.0...0.6.0
 [0.5.0]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.0.1-beta.5...0.5.0
 [0.0.1-beta.5]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.0.1-beta.4...0.0.1-beta.5
 [0.0.1-beta.4]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.0.1-beta.3...0.0.1-beta.4
