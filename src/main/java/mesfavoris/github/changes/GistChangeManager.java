@@ -127,9 +127,11 @@ public class GistChangeManager implements Disposable {
                     try {
                         String newEtag = apiClient.conditionalGetEtag(gistId, storedEtag);
                         if (newEtag != null) {
-                            // ETag changed — gist was modified
                             gistEtags.put(gistId, newEtag);
-                            fireGistChanged(mapping.getBookmarkFolderId(), gistId);
+                            // Only fire if we had a previous ETag — first poll just seeds the cache
+                            if (storedEtag != null) {
+                                fireGistChanged(mapping.getBookmarkFolderId(), gistId);
+                            }
                         }
                     } catch (IOException e) {
                         LOG.warn("Could not check gist " + gistId + " for changes", e);
