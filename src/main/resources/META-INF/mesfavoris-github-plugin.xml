@@ -13,4 +13,6 @@
     <extensions defaultExtensionNs="com.cchabanois.mesfavoris">
         <remoteBookmarksStore implementation="mesfavoris.github.GithubRemoteBookmarksStoreExtension"/>
     </extensions>
+
+    <depends optional="true" config-file="mesfavoris-github-mcp.xml">com.intellij.mcpServer</depends>
 </idea-plugin>

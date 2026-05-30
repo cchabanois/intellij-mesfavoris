@@ -3,6 +3,7 @@ package mesfavoris.github;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import mesfavoris.github.actions.CopyGistLinkAction;
 import mesfavoris.github.actions.ImportBookmarksFromGithubAction;
 import mesfavoris.github.actions.ViewInGithubAction;
 import mesfavoris.github.changes.GistChangeManager;
@@ -39,6 +40,6 @@ public class GithubRemoteBookmarksStoreExtension extends AbstractRemoteBookmarks
     @NotNull
     @Override
     public List<AnAction> getAdditionalActions() {
-        return List.of(new ImportBookmarksFromGithubAction(), new ViewInGithubAction());
+        return List.of(new ImportBookmarksFromGithubAction(), new ViewInGithubAction(), new CopyGistLinkAction());
     }
 }

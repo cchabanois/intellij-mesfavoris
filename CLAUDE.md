@@ -132,6 +132,8 @@ Three workflows in `.github/workflows/`:
 
 ### Testing Patterns
 
+Always add tests when implementing new features or fixing bugs.
+
 Two test styles:
 1. **Plain JUnit** for model/utility code (no IDE required)
 2. **`BasePlatformTestCase` subclasses** for anything touching IntelliJ APIs (file system, PSI, editor)
@@ -142,3 +144,30 @@ Test helpers in `src/test/java/mesfavoris/tests/commons/`:
 - `toolwindow/` — tool window interaction helpers
 
 Test data (sample projects for PSI-level tests) lives in `src/test/testData/`.
+
+GitHub integration tests (`src/test/java/mesfavoris/github/`) require the environment variable `USER1_GITHUB_TOKEN` — they are skipped if absent.
+
+For async assertions in tests, use `Waiter.waitUntil()` (`mesfavoris.tests.commons.waits.Waiter`) instead of `Thread.sleep()`.
+
+### Clipboard & Notifications
+
+To copy text to the clipboard and notify the user (pattern used in actions):
+```java
+CopyPasteManager.getInstance().setContents(new StringSelection(text));
+Notification notification = new Notification(
+        "com.cchabanois.mesfavoris.info",
+        "Title",
+        "Body",
+        NotificationType.INFORMATION
+);
+Notifications.Bus.notify(notification, project);
+```
+
+### MCP Tool Naming
+
+MCP tool names follow the pattern `<verb>_<store>_bookmark_<noun>`:
+- `list_github_bookmark_gists`, `import_github_bookmark_gist`, `import_github_bookmark_from_url`
+- `list_gdrive_bookmark_files`, `import_gdrive_bookmark_file`, `import_gdrive_bookmark_from_url`
+- `list_remote_bookmark_stores`, `connect_remote_bookmark_store`, etc.
+
+Always include the store qualifier (`github`, `gdrive`) in store-specific tool names so tools from different toolsets are unambiguous.
