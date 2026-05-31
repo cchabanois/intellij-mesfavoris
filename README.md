@@ -14,7 +14,7 @@
 - **Hierarchical bookmarks** — organize in folders and subfolders with drag-and-drop
 - **Multiple bookmark types** — files, URLs, code snippets, Java members, notes, shortcuts, IDE actions
 - **Path placeholders** — portable bookmarks across machines using variables like `${HOME}`
-- **Remote sync** — share bookmarks with your team via Google Drive
+- **Remote sync** — share bookmarks with your team via Google Drive or GitHub Gists
 - **Resilient file bookmarks** — survive refactoring and edits thanks to the Bitap algorithm
 - **Search Everywhere** — find any bookmark with double Shift
 - **Virtual folders** — automatic Recent, Latest Visited, and Most Visited views
@@ -50,6 +50,10 @@
   - [Sharing a bookmark folder to Google Drive](#sharing-a-bookmark-folder-to-google-drive)
   - [Importing a bookmark folder from Google Drive](#importing-a-bookmark-folder-from-google-drive)
   - [Refreshing](#refreshing)
+- [Remote Sync (GitHub Gists)](#remote-sync-github-gists)
+  - [Connecting](#connecting-1)
+  - [Sharing a bookmark folder to GitHub Gists](#sharing-a-bookmark-folder-to-github-gists)
+  - [Importing a bookmark folder from GitHub Gists](#importing-a-bookmark-folder-from-github-gists)
 - [Settings](#settings)
 - [MCP Integration](#mcp-integration)
   - [Examples](#examples)
@@ -141,6 +145,11 @@ Three read-only virtual folders are automatically maintained at the root:
 - **Delete Shared Bookmark Folder** — delete a synced folder locally, with an option to also delete it from Google Drive
 - **Import bookmarks...** — import a bookmark folder from Google Drive
 - **View in Google Drive** — open the corresponding Drive file in the browser (visible on synced folders)
+- **Add to GitHub Gists** — sync a bookmark folder as a private GitHub Gist (visible on folders, requires connection)
+- **Remove from GitHub Gists** — stop syncing a folder and delete the Gist, but keep the folder locally
+- **Import bookmarks from GitHub...** — import a bookmark folder from an existing Gist
+- **View in GitHub** — open the corresponding Gist in the browser (visible on synced folders)
+- **Copy Shareable Link** — copy the GitHub Gist URL to the clipboard (visible on synced folders)
 
 ### Details panel
 
@@ -290,6 +299,36 @@ To disconnect or remove stored credentials, use the gear icon > **Delete Credent
 
 ---
 
+## Remote Sync (GitHub Gists)
+
+Mes Favoris can sync bookmark folders to GitHub Gists, storing each folder as a private Gist in your GitHub account.
+
+### Connecting
+
+Click the **Connect to GitHub Gists** icon in the tool window toolbar. Authentication is handled via the built-in GitHub plugin — no extra credentials needed if you are already signed in to GitHub in IntelliJ.
+
+### Sharing a bookmark folder to GitHub Gists
+
+Right-click any bookmark folder in the tree and select **Add to GitHub Gists**. The folder is uploaded as a private Gist and kept in sync automatically. The folder icon shows a GitHub overlay to indicate it is remote.
+
+| Connected | Disconnected |
+|-----------|--------------|
+| ![Shared folder - connected](docs/github-shared-folder-connected.png) | ![Shared folder - disconnected](docs/github-shared-folder-disconnected.png) |
+
+When not connected to GitHub, shared folders are **read-only** — bookmarks inside cannot be added, edited, or deleted.
+
+To stop syncing a folder, right-click it and select **Remove from GitHub Gists**. The corresponding Gist is deleted, but the folder is kept locally.
+
+### Importing a bookmark folder from GitHub Gists
+
+Right-click a folder in the tree and select **Import bookmarks from GitHub...**. A dialog lists all your Gists that contain a `bookmarks.json` file. Select one and click **OK** to import it as a new subfolder.
+
+![Import bookmarks from GitHub Gist](docs/import-github-gist.png)
+
+If you want to import a Gist by URL or ID, click **Add by URL/ID...** in the dialog and paste the Gist URL or bare ID.
+
+---
+
 ## Settings
 
 <kbd>Settings</kbd> > <kbd>Tools</kbd> > <kbd>Mes Favoris</kbd>
@@ -299,6 +338,7 @@ To disconnect or remove stored credentials, use the gear icon > **Delete Credent
 | **Placeholders** | IDE-wide | Create and manage path placeholders; view usage statistics |
 | **Bookmark Types** | IDE-wide | Enable or disable individual bookmark types |
 | **Google Drive** | IDE-wide | Configure OAuth credentials — use the built-in credentials or provide your own Client ID and Client Secret |
+| **GitHub Gists** | IDE-wide | Configure the GitHub account used for Gist sync (resolved from the built-in GitHub plugin) |
 
 ![Google Drive settings](docs/gdrive-settings.png)
 
@@ -355,6 +395,14 @@ Mes Favoris adds tools to the [MCP (Model Context Protocol)](https://www.jetbrai
 | `list_gdrive_bookmark_files` | List bookmark files available in Google Drive |
 | `import_gdrive_bookmark_file` | Import a Google Drive bookmark file by its file ID |
 | `import_gdrive_bookmark_from_url` | Import a Google Drive bookmark file from a sharing URL |
+
+#### GitHub Gists
+
+| Tool | Description |
+|------|-------------|
+| `list_github_bookmark_gists` | List GitHub Gists containing bookmarks |
+| `import_github_bookmark_gist` | Import a GitHub Gist bookmark file by its gist ID |
+| `import_github_bookmark_from_url` | Import a GitHub Gist bookmark file from a sharing URL |
 
 ### In action
 

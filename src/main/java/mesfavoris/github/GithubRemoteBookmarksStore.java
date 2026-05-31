@@ -222,8 +222,8 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
     }
 
     @Override
-    public void deleteCredentials() throws IOException {
-        connectionManager.deleteCredentials();
+    public void deleteCredentials() {
+        // Token is managed by the IntelliJ GitHub plugin — nothing to delete here.
     }
 
     private void assertConnected() {

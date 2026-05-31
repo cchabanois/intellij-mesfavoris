@@ -8,6 +8,7 @@ import mesfavoris.github.integration.IGithubAccountResolver;
 import mesfavoris.github.operations.GetAuthenticatedUserOperation;
 import mesfavoris.github.operations.GistApiClient;
 import mesfavoris.remote.IRemoteBookmarksStore.State;
+import mesfavoris.remote.RemoteStoreConfigurationException;
 import mesfavoris.remote.UserInfo;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,9 +64,10 @@ public class GithubConnectionManager {
 
             IGithubAccountResolver.GithubAccountInfo accountInfo = accountIntegration.resolveAccount(project);
             if (accountInfo == null) {
-                throw new IOException(
+                throw new RemoteStoreConfigurationException(
                         "No GitHub account available. Please configure a GitHub account in " +
-                        "Settings > Version Control > GitHub.");
+                        "Settings > Version Control > GitHub.",
+                        org.jetbrains.plugins.github.ui.GithubSettingsConfigurable.class);
             }
 
             if (indicator != null) {
@@ -124,14 +126,6 @@ public class GithubConnectionManager {
     @Nullable
     public String getApiBaseUrl() {
         return apiBaseUrl != null ? apiBaseUrl : "https://api.github.com";
-    }
-
-    public void deleteCredentials() throws IOException {
-        if (getState() != State.disconnected) {
-            throw new IOException("Cannot delete credentials while connected");
-        }
-        this.userInfo = null;
-        userInfoStore.setUserInfo(null);
     }
 
     @Nullable
