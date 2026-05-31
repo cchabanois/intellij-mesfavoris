@@ -1,5 +1,10 @@
 package mesfavoris.github.settings;
 
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationAction;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -9,6 +14,7 @@ import com.intellij.util.ui.JBUI;
 import mesfavoris.github.BookmarksGithubService;
 import mesfavoris.github.connection.GithubConnectionManager;
 import mesfavoris.remote.IRemoteBookmarksStore.State;
+import mesfavoris.remote.RemoteStoreConfigurationException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -25,21 +31,18 @@ public class GithubSettingsPanel extends JPanel {
     private final JBLabel statusLabel;
     private final JButton connectButton;
     private final JButton disconnectButton;
-    private final JButton clearCredentialsButton;
 
     public GithubSettingsPanel(@NotNull Project project) {
         this.project = project;
         this.statusLabel = new JBLabel();
         this.connectButton = new JButton("Connect");
         this.disconnectButton = new JButton("Disconnect");
-        this.clearCredentialsButton = new JButton("Clear Credentials");
 
         buildUI();
         updateStatus();
 
         connectButton.addActionListener(e -> doConnect());
         disconnectButton.addActionListener(e -> doDisconnect());
-        clearCredentialsButton.addActionListener(e -> doClearCredentials());
     }
 
     private void buildUI() {
@@ -63,8 +66,6 @@ public class GithubSettingsPanel extends JPanel {
         add(connectButton, c);
         c.gridx++;
         add(disconnectButton, c);
-        c.gridx++;
-        add(clearCredentialsButton, c);
 
         c.gridx = 0;
         c.gridy++;
@@ -84,19 +85,16 @@ public class GithubSettingsPanel extends JPanel {
                 statusLabel.setText("Status: Connected as " + login);
                 connectButton.setEnabled(false);
                 disconnectButton.setEnabled(true);
-                clearCredentialsButton.setEnabled(false);
             }
             case connecting -> {
                 statusLabel.setText("Status: Connecting...");
                 connectButton.setEnabled(false);
                 disconnectButton.setEnabled(false);
-                clearCredentialsButton.setEnabled(false);
             }
             default -> {
                 statusLabel.setText("Status: Disconnected");
                 connectButton.setEnabled(true);
                 disconnectButton.setEnabled(false);
-                clearCredentialsButton.setEnabled(true);
             }
         }
     }
@@ -109,9 +107,24 @@ public class GithubSettingsPanel extends JPanel {
                 try {
                     manager.connect(indicator);
                 } catch (IOException e) {
-                    SwingUtilities.invokeLater(() ->
+                    SwingUtilities.invokeLater(() -> {
+                        if (e instanceof RemoteStoreConfigurationException ex) {
+                            Notification notification = new Notification(
+                                    "com.cchabanois.mesfavoris.errors",
+                                    "GitHub Connection Failed",
+                                    e.getMessage(),
+                                    NotificationType.ERROR
+                            );
+                            notification.addAction(NotificationAction.createSimple(
+                                    "Open Settings",
+                                    () -> ShowSettingsUtil.getInstance().showSettingsDialog(project, ex.getConfigurableClass())
+                            ));
+                            Notifications.Bus.notify(notification, project);
+                        } else {
                             JOptionPane.showMessageDialog(GithubSettingsPanel.this,
-                                    "Connection failed: " + e.getMessage(), "GitHub Connection", JOptionPane.ERROR_MESSAGE));
+                                    "Connection failed: " + e.getMessage(), "GitHub Connection", JOptionPane.ERROR_MESSAGE);
+                        }
+                    });
                 } finally {
                     SwingUtilities.invokeLater(GithubSettingsPanel.this::updateStatus);
                 }
@@ -125,14 +138,4 @@ public class GithubSettingsPanel extends JPanel {
         updateStatus();
     }
 
-    private void doClearCredentials() {
-        GithubConnectionManager manager = project.getService(BookmarksGithubService.class).getConnectionManager();
-        try {
-            manager.deleteCredentials();
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Failed to clear credentials: " + e.getMessage(), "GitHub", JOptionPane.ERROR_MESSAGE);
-        }
-        updateStatus();
-    }
 }

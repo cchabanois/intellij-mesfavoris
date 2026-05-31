@@ -1,6 +1,7 @@
 package mesfavoris.internal.actions;
 
 import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
@@ -9,6 +10,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Toggleable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -17,6 +19,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import mesfavoris.remote.IRemoteBookmarksStore;
 import mesfavoris.remote.RemoteBookmarksStoreDescriptor;
+import mesfavoris.remote.RemoteStoreConfigurationException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -149,11 +152,27 @@ public class ConnectToRemoteBookmarksStoreAction extends AnAction implements Dum
     }
 
     private void showConnectionErrorMessage(@NotNull Project project, @NotNull RemoteBookmarksStoreDescriptor descriptor, @NotNull IOException e) {
-        ApplicationManager.getApplication().invokeLater(() -> Messages.showErrorDialog(
-                project,
-                "Failed to connect to %s: %s".formatted(descriptor.label(), e.getMessage()),
-                "Connection Failed"
-        ));
+        if (e instanceof RemoteStoreConfigurationException ex) {
+            ApplicationManager.getApplication().invokeLater(() -> {
+                Notification notification = new Notification(
+                        "com.cchabanois.mesfavoris.errors",
+                        "Connection Failed",
+                        "Failed to connect to %s: %s".formatted(descriptor.label(), e.getMessage()),
+                        NotificationType.ERROR
+                );
+                notification.addAction(NotificationAction.createSimple(
+                        "Open Settings",
+                        () -> ShowSettingsUtil.getInstance().showSettingsDialog(project, ex.getConfigurableClass())
+                ));
+                Notifications.Bus.notify(notification, project);
+            });
+        } else {
+            ApplicationManager.getApplication().invokeLater(() -> Messages.showErrorDialog(
+                    project,
+                    "Failed to connect to %s: %s".formatted(descriptor.label(), e.getMessage()),
+                    "Connection Failed"
+            ));
+        }
     }
 
     private void showDisconnectionSuccessMessage(@NotNull Project project, @NotNull RemoteBookmarksStoreDescriptor descriptor) {

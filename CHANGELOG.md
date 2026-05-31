@@ -4,6 +4,15 @@
 
 ## [Unreleased]
 
+### Added
+
+- GitHub Gists remote bookmark store: sync bookmark folders as private Gists, authenticated via the built-in GitHub plugin.
+- MCP tools for GitHub Gists: list gists, import bookmarks from gist ID or URL.
+- Import bookmarks from an existing GitHub Gist via the remote store menu.
+- "View in GitHub" action to open a synced bookmark folder in the browser.
+- "Copy Shareable Link" action to copy the GitHub Gist URL to the clipboard.
+- When no GitHub account is configured, the connection error notification now includes an "Open Settings" button that navigates directly to Settings > Version Control > GitHub.
+
 ## [0.6.0] - 2026-05-26
 
 ### Added
