@@ -12,7 +12,9 @@ import mesfavoris.github.operations.GistApiClient;
 import mesfavoris.remote.IRemoteBookmarksStore.State;
 
 import java.io.IOException;
+import java.net.http.HttpClient;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
@@ -37,6 +39,7 @@ public class GistChangeManager implements Disposable {
     private final IGistMappings gistMappings;
     private final ScheduledExecutorService scheduledExecutorService;
     private final Supplier<Duration> pollDelayProvider;
+    private HttpClient httpClient;
     private final AtomicBoolean closed = new AtomicBoolean(false);
     private final Map<String, String> gistEtags = new ConcurrentHashMap<>();
     private final PollJob pollJob = new PollJob();
@@ -59,6 +62,7 @@ public class GistChangeManager implements Disposable {
     }
 
     public void init() {
+        httpClient = HttpClient.newHttpClient();
         MessageBusConnection messageBusConnection = project.getMessageBus().connect(this);
         messageBusConnection.subscribe(GithubConnectionListener.TOPIC, new GithubConnectionListener() {
             @Override
@@ -79,6 +83,9 @@ public class GistChangeManager implements Disposable {
     public void dispose() {
         cancelJob();
         closed.set(true);
+        if (httpClient != null) {
+            httpClient.close();
+        }
     }
 
     private synchronized void scheduleJob() {
@@ -98,6 +105,10 @@ public class GistChangeManager implements Disposable {
         }
     }
 
+    Map<String, String> getGistEtags() {
+        return Collections.unmodifiableMap(gistEtags);
+    }
+
     private boolean shouldSchedule() {
         return connectionManager.getState() == State.connected && !closed.get();
     }
@@ -114,12 +125,11 @@ public class GistChangeManager implements Disposable {
                 if (connectionManager.getState() != State.connected) {
                     return;
                 }
-                String token = connectionManager.getAccessToken();
-                if (token == null) {
+                if (connectionManager.getAccessToken() == null) {
                     return;
                 }
-                GistApiClient apiClient = new GistApiClient(() -> token, connectionManager::getApiBaseUrl,
-                        java.net.http.HttpClient.newHttpClient(),
+                GistApiClient apiClient = new GistApiClient(connectionManager::getAccessToken,
+                        connectionManager::getApiBaseUrl, httpClient,
                         mesfavoris.github.GithubRemoteBookmarksStoreExtension.USER_AGENT);
                 for (GistMapping mapping : gistMappings.getMappings()) {
                     String gistId = mapping.getGistId();
