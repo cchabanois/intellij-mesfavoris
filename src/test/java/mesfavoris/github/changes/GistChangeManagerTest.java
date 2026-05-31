@@ -43,17 +43,22 @@ public class GistChangeManagerTest extends BasePlatformTestCase {
         gistMappingsStore.add(new BookmarkId("bookmarkFolder1"), gistId1, Collections.emptyMap());
         gistMappingsStore.add(new BookmarkId("bookmarkFolder2"), gistId2, Collections.emptyMap());
 
-        // Wait a few seconds so the initial poll doesn't pick up the creation events
-        Thread.sleep(5000);
-
         ScheduledExecutorService executor = AppExecutorUtil.getAppScheduledExecutorService();
         gistChangeManager = new GistChangeManager(getProject(), connectionRule.getConnectionManager(),
-                gistMappingsStore, executor, () -> Duration.ofMillis(100));
+                gistMappingsStore, executor, () -> Duration.ofSeconds(2));
 
         messageBusConnection = getProject().getMessageBus().connect();
         messageBusConnection.subscribe(IGistChangeListener.TOPIC, listener);
 
         gistChangeManager.init();
+
+        // Wait until the initial poll has seeded ETags for both gists (proves GitHub has propagated them)
+        String trackedGistId1 = gistMappingsStore.getMapping(new BookmarkId("bookmarkFolder1")).get().getGistId();
+        String trackedGistId2 = gistMappingsStore.getMapping(new BookmarkId("bookmarkFolder2")).get().getGistId();
+        Waiter.waitUntil("Initial ETags not seeded",
+                () -> gistChangeManager.getGistEtags().containsKey(trackedGistId1)
+                        && gistChangeManager.getGistEtags().containsKey(trackedGistId2),
+                Duration.ofSeconds(30));
     }
 
     @Override
@@ -81,7 +86,7 @@ public class GistChangeManagerTest extends BasePlatformTestCase {
 
         Waiter.waitUntil("Listener not called", () -> listener.getEvents().size() == 1,
                 Duration.ofSeconds(10));
-        Thread.sleep(100);
+        Thread.sleep(3000); // wait > 1 poll cycle (2s) to confirm no duplicate events
         assertThat(listener.getEvents()).hasSize(1);
         assertThat(listener.getEvents().getFirst().bookmarkFolderId())
                 .isEqualTo(new BookmarkId("bookmarkFolder1"));
@@ -94,7 +99,7 @@ public class GistChangeManagerTest extends BasePlatformTestCase {
 
         updateGist(gistId, "{\"updated\": true}");
 
-        Thread.sleep(500);
+        Thread.sleep(3000); // wait > 1 poll cycle (2s) to confirm no events fired
         assertThat(listener.getEvents()).isEmpty();
     }
 
