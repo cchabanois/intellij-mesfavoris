@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-06-01
+
 ### Added
 
 - GitHub Gists remote bookmark store: sync bookmark folders as private Gists, authenticated via the built-in GitHub plugin.
@@ -221,7 +223,8 @@
   - Bookmark label providers for custom rendering
   - Bookmark properties providers for extracting metadata
 
-[Unreleased]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.6.0...HEAD
+[Unreleased]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.7.0...HEAD
+[0.7.0]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.6.0...0.7.0
 [0.6.0]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.5.0...0.6.0
 [0.5.0]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.0.1-beta.5...0.5.0
 [0.0.1-beta.5]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.0.1-beta.4...0.0.1-beta.5
