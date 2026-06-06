@@ -19,7 +19,6 @@ import mesfavoris.model.BookmarkId
 import mesfavoris.remote.IRemoteBookmarksStore
 import mesfavoris.service.IBookmarksService
 import java.io.IOException
-import java.net.http.HttpClient
 
 class MesFavorisGithubMcpToolset : McpToolset {
 
@@ -44,9 +43,8 @@ class MesFavorisGithubMcpToolset : McpToolset {
         if (connectionManager.state != IRemoteBookmarksStore.State.connected) {
             mcpFail("Not connected to GitHub. Use connect_remote_store with storeId 'github' first.")
         }
-        val token = connectionManager.accessToken
-        val baseUrl = connectionManager.apiBaseUrl
-        return GistApiClient({ token }, { baseUrl }, HttpClient.newHttpClient())
+        return connectionManager.gistApiClient
+            ?: mcpFail("GitHub API client not available")
     }
 
     private suspend fun resolveParentId(parentId: String): BookmarkId {

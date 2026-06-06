@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import mesfavoris.github.GithubRemoteBookmarksStoreExtension;
 import mesfavoris.github.integration.IGithubAccountResolver;
 import mesfavoris.github.operations.GetAuthenticatedUserOperation;
 import mesfavoris.github.operations.GistApiClient;
@@ -13,7 +14,6 @@ import mesfavoris.remote.UserInfo;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.net.http.HttpClient;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -32,6 +32,7 @@ public class GithubConnectionManager {
     private volatile String accessToken;
     private volatile String apiBaseUrl;
     private volatile UserInfo userInfo;
+    private volatile GistApiClient gistApiClient;
 
     public GithubConnectionManager(Project project) {
         this(project, project.getService(GithubUserInfoStore.class));
@@ -76,7 +77,8 @@ public class GithubConnectionManager {
             }
 
             GistApiClient apiClient = new GistApiClient(
-                    accountInfo::accessToken, accountInfo::apiBaseUrl, HttpClient.newHttpClient());
+                    accountInfo::accessToken, accountInfo::apiBaseUrl, GistApiClient.newHttpClient(),
+                    GithubRemoteBookmarksStoreExtension.USER_AGENT);
             UserInfo authenticatedUser = new GetAuthenticatedUserOperation(apiClient)
                     .getAuthenticatedUser(indicator);
 
@@ -84,6 +86,8 @@ public class GithubConnectionManager {
             this.accessToken = accountInfo.accessToken();
             this.apiBaseUrl = accountInfo.apiBaseUrl();
             this.userInfo = authenticatedUser;
+            this.gistApiClient = new GistApiClient(this::getAccessToken, this::getApiBaseUrl,
+                    GistApiClient.newHttpClient(), GithubRemoteBookmarksStoreExtension.USER_AGENT);
 
             state.set(State.connected);
 
@@ -106,6 +110,7 @@ public class GithubConnectionManager {
         }
         this.accessToken = null;
         this.apiBaseUrl = null;
+        this.gistApiClient = null;
         fireDisconnected();
     }
 
@@ -116,6 +121,11 @@ public class GithubConnectionManager {
     @Nullable
     public UserInfo getUserInfo() {
         return userInfo;
+    }
+
+    @Nullable
+    public GistApiClient getGistApiClient() {
+        return gistApiClient;
     }
 
     @Nullable

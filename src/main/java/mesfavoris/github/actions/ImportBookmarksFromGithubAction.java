@@ -25,7 +25,6 @@ import mesfavoris.service.IBookmarksService;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.net.http.HttpClient;
 import java.util.List;
 
 public class ImportBookmarksFromGithubAction extends AbstractBookmarkAction {
@@ -70,10 +69,7 @@ public class ImportBookmarksFromGithubAction extends AbstractBookmarkAction {
 
         IBookmarksService bookmarksService = project.getService(IBookmarksService.class);
         GistMappingsStore gistMappingsStore = project.getService(GistMappingsStore.class);
-        GistApiClient apiClient = new GistApiClient(
-                connectionManager::getAccessToken,
-                connectionManager::getApiBaseUrl,
-                HttpClient.newHttpClient());
+        GistApiClient apiClient = connectionManager.getGistApiClient();
 
         List<Bookmark> selectedBookmarks = getSelectedBookmarks(event);
         BookmarkId targetFolderId = selectedBookmarks.isEmpty() || !(selectedBookmarks.getFirst() instanceof BookmarkFolder)

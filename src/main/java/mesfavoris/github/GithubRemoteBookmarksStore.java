@@ -42,7 +42,6 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
     private final GistMappingsStore gistMappingsStore;
     private final GistChangeManager gistChangeManager;
     private final GistMappingPropertiesProvider propertiesProvider;
-    private final GistApiClient apiClient;
 
     public GithubRemoteBookmarksStore(Project project,
                                        GithubConnectionManager connectionManager,
@@ -54,8 +53,10 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
         this.gistMappingsStore = gistMappingsStore;
         this.gistChangeManager = gistChangeManager;
         this.propertiesProvider = new GistMappingPropertiesProvider();
-        this.apiClient = new GistApiClient(connectionManager::getAccessToken, connectionManager::getApiBaseUrl,
-                java.net.http.HttpClient.newHttpClient(), GithubRemoteBookmarksStoreExtension.USER_AGENT);
+    }
+
+    private GistApiClient getApiClient() {
+        return connectionManager.getGistApiClient();
     }
 
     @Override
@@ -128,7 +129,7 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
         if (indicator != null) {
             indicator.setFraction(0.2);
         }
-        GistApiClient.GistResponse response = new CreateGistOperation(apiClient)
+        GistApiClient.GistResponse response = new CreateGistOperation(getApiClient())
                 .createGist(folder.getPropertyValue(Bookmark.PROPERTY_NAME), content, indicator);
         BookmarksTree subTree = bookmarksTree.subTree(bookmarkFolderId);
         gistMappingsStore.add(bookmarkFolderId, response.id,
@@ -151,7 +152,7 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
         if (indicator != null) {
             indicator.setFraction(0.1);
         }
-        new DeleteGistOperation(apiClient).deleteGist(gistId, indicator);
+        new DeleteGistOperation(getApiClient()).deleteGist(gistId, indicator);
         if (indicator != null) {
             indicator.setFraction(1.0);
         }
@@ -165,7 +166,7 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
             indicator.setFraction(0.0);
         }
         String gistId = requireGistId(bookmarkFolderId);
-        LoadGistOperation.GistContents contents = new LoadGistOperation(apiClient).loadGist(gistId, indicator);
+        LoadGistOperation.GistContents contents = new LoadGistOperation(getApiClient()).loadGist(gistId, indicator);
         if (indicator != null) {
             indicator.setFraction(0.8);
         }
@@ -193,7 +194,7 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
         if (indicator != null) {
             indicator.setFraction(0.2);
         }
-        GistApiClient.GistResponse response = new UpdateGistOperation(apiClient)
+        GistApiClient.GistResponse response = new UpdateGistOperation(getApiClient())
                 .updateGist(gistId, content, etag, indicator);
         BookmarksTree subTree = bookmarksTree.subTree(bookmarkFolderId);
         gistMappingsStore.update(gistId, propertiesProvider.getProperties(response, subTree));

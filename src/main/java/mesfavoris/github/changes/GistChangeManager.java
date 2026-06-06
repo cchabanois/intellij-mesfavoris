@@ -2,6 +2,7 @@ package mesfavoris.github.changes;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBusConnection;
 import mesfavoris.github.connection.GithubConnectionListener;
@@ -12,7 +13,9 @@ import mesfavoris.github.operations.GistApiClient;
 import mesfavoris.remote.IRemoteBookmarksStore.State;
 
 import java.io.IOException;
-import java.net.http.HttpClient;
+import java.net.ConnectException;
+import java.net.UnknownHostException;
+import java.net.http.HttpTimeoutException;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
@@ -39,7 +42,6 @@ public class GistChangeManager implements Disposable {
     private final IGistMappings gistMappings;
     private final ScheduledExecutorService scheduledExecutorService;
     private final Supplier<Duration> pollDelayProvider;
-    private HttpClient httpClient;
     private final AtomicBoolean closed = new AtomicBoolean(false);
     private final Map<String, String> gistEtags = new ConcurrentHashMap<>();
     private final PollJob pollJob = new PollJob();
@@ -62,7 +64,6 @@ public class GistChangeManager implements Disposable {
     }
 
     public void init() {
-        httpClient = HttpClient.newHttpClient();
         MessageBusConnection messageBusConnection = project.getMessageBus().connect(this);
         messageBusConnection.subscribe(GithubConnectionListener.TOPIC, new GithubConnectionListener() {
             @Override
@@ -83,9 +84,6 @@ public class GistChangeManager implements Disposable {
     public void dispose() {
         cancelJob();
         closed.set(true);
-        if (httpClient != null) {
-            httpClient.close();
-        }
     }
 
     private synchronized void scheduleJob() {
@@ -125,12 +123,10 @@ public class GistChangeManager implements Disposable {
                 if (connectionManager.getState() != State.connected) {
                     return;
                 }
-                if (connectionManager.getAccessToken() == null) {
+                GistApiClient apiClient = connectionManager.getGistApiClient();
+                if (apiClient == null) {
                     return;
                 }
-                GistApiClient apiClient = new GistApiClient(connectionManager::getAccessToken,
-                        connectionManager::getApiBaseUrl, httpClient,
-                        mesfavoris.github.GithubRemoteBookmarksStoreExtension.USER_AGENT);
                 for (GistMapping mapping : gistMappings.getMappings()) {
                     String gistId = mapping.getGistId();
                     String storedEtag = gistEtags.get(gistId);
@@ -143,6 +139,9 @@ public class GistChangeManager implements Disposable {
                                 fireGistChanged(mapping.getBookmarkFolderId(), gistId);
                             }
                         }
+                    } catch (HttpTimeoutException | UnknownHostException | ConnectException e) {
+                        connectionManager.disconnect(new EmptyProgressIndicator());
+                        return;
                     } catch (IOException e) {
                         LOG.warn("Could not check gist " + gistId + " for changes", e);
                     }
