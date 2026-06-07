@@ -28,9 +28,9 @@ public class UpdateGistOperationTest extends AbstractGithubOperationTest {
         trackGist(created.id);
         GistApiClient.GistResponse current = apiClient.loadGist(created.id);
         UpdateGistOperation op = new UpdateGistOperation(apiClient);
-        op.updateGist(created.id, "{\"v\":1}".getBytes(StandardCharsets.UTF_8), current.updated_at, null);
-        // GitHub timestamps have second precision — sleep >1s so updated_at advances before the conflict check
+        // GitHub timestamps have second precision — sleep >1s so updated_at advances on the first update
         Thread.sleep(1100);
+        op.updateGist(created.id, "{\"v\":1}".getBytes(StandardCharsets.UTF_8), current.updated_at, null);
 
         Throwable thrown = catchThrowable(() ->
                 op.updateGist(created.id, "{\"v\":2}".getBytes(StandardCharsets.UTF_8),
