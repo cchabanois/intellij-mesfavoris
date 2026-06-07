@@ -11,6 +11,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -23,6 +24,13 @@ import java.util.function.Supplier;
 public class GistApiClient {
     private static final String DEFAULT_BASE_URL = "https://api.github.com";
     private static final String API_VERSION = "2022-11-28";
+    private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(30);
+
+    public static HttpClient newHttpClient() {
+        return HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
+    }
 
     private final HttpClient httpClient;
     private final Gson gson;
@@ -31,7 +39,7 @@ public class GistApiClient {
     private final String userAgent;
 
     public GistApiClient(Supplier<String> tokenSupplier) {
-        this(tokenSupplier, () -> DEFAULT_BASE_URL, HttpClient.newHttpClient(), "");
+        this(tokenSupplier, () -> DEFAULT_BASE_URL, newHttpClient(), "");
     }
 
     public GistApiClient(Supplier<String> tokenSupplier, HttpClient httpClient) {
@@ -181,6 +189,7 @@ public class GistApiClient {
 
     private HttpRequest.Builder authorizedRequest(String url) {
         return HttpRequest.newBuilder(URI.create(url))
+                .timeout(REQUEST_TIMEOUT)
                 .header("Authorization", "Bearer " + tokenSupplier.get())
                 .header("Accept", "application/vnd.github+json")
                 .header("X-GitHub-Api-Version", API_VERSION)
