@@ -7,10 +7,14 @@ import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.BookmarksTree;
+import mesfavoris.persistence.IBookmarksDirtyStateListener;
 import mesfavoris.tests.commons.bookmarks.BookmarksTreeBuilder;
 import mesfavoris.tests.commons.waits.Waiter;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 import static mesfavoris.tests.commons.bookmarks.BookmarkBuilder.bookmark;
 import static mesfavoris.tests.commons.bookmarks.BookmarkBuilder.bookmarkFolder;
@@ -67,6 +71,21 @@ public class BookmarksAutoSaverTest extends BasePlatformTestCase {
         assertThat(bookmarksAutoSaver.getDirtyBookmarks()).containsExactly(new BookmarkId("bookmark1"));
     }
 
+
+    public void testDirtyStateNotifiedViaMessageBus() throws Exception {
+        List<Set<BookmarkId>> events = new ArrayList<>();
+        getProject().getMessageBus().connect(getTestRootDisposable())
+                .subscribe(IBookmarksDirtyStateListener.TOPIC, events::add);
+
+        bookmarkDatabase.modify(modifier -> modifier
+                .setPropertyValue(new BookmarkId("bookmark1"), Bookmark.PROPERTY_NAME, "bookmark1 renamed"));
+
+        Waiter.waitUntil("dirty state not notified",
+                () -> events.stream().anyMatch(s -> s.contains(new BookmarkId("bookmark1"))),
+                Duration.ofMillis(5000));
+
+        assertThat(events).anySatisfy(s -> assertThat(s).contains(new BookmarkId("bookmark1")));
+    }
 
     private BookmarksTree getInitialTree() {
         BookmarksTreeBuilder bookmarksTreeBuilder = bookmarksTree("rootFolder");

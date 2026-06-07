@@ -54,14 +54,14 @@ public class BookmarksTreeCellRenderer extends ColoredTreeCellRenderer implement
         this.remoteBookmarksStoreManager = remoteBookmarksStoreManager;
         this.bookmarkLabelProvider = bookmarkLabelProvider;
         this.bookmarksDirtyStateTracker = bookmarksDirtyStateTracker;
-        bookmarksDirtyStateTracker.addListener(dirtyStateListener);
+        project.getMessageBus().connect(this)
+                .subscribe(IBookmarksDirtyStateListener.TOPIC, dirtyStateListener);
 
         Disposer.register(parentDisposable, this);
     }
 
     @Override
     public void dispose() {
-        bookmarksDirtyStateTracker.removeListener(dirtyStateListener);
     }
 
     @Override

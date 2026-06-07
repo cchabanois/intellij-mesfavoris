@@ -1,12 +1,13 @@
 package mesfavoris.persistence;
 
-import java.util.Set;
-
+import com.intellij.util.messages.Topic;
 import mesfavoris.model.BookmarkId;
 
-public interface IBookmarksDirtyStateListener {
+import java.util.Set;
 
-	public void dirtyBookmarks(Set<BookmarkId> dirtyBookmarks);
-	
-	
+public interface IBookmarksDirtyStateListener {
+	Topic<IBookmarksDirtyStateListener> TOPIC =
+			Topic.create("BookmarksDirtyStateListener", IBookmarksDirtyStateListener.class);
+
+	void dirtyBookmarks(Set<BookmarkId> dirtyBookmarks);
 }
