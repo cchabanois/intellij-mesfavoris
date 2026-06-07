@@ -171,3 +171,7 @@ MCP tool names follow the pattern `<verb>_<store>_bookmark_<noun>`:
 - `list_remote_bookmark_stores`, `connect_remote_bookmark_store`, etc.
 
 Always include the store qualifier (`github`, `gdrive`) in store-specific tool names so tools from different toolsets are unambiguous.
+
+### Commit Messages
+
+Keep commit messages short — one line, no body. Example: `Use MessageBus for dirty bookmarks state notifications`

@@ -12,8 +12,4 @@ public interface IBookmarksDirtyStateTracker extends IDirtyBookmarksProvider {
 		return !getDirtyBookmarks().isEmpty();
 	}
 
-	void addListener(IBookmarksDirtyStateListener listener);
-
-	void removeListener(IBookmarksDirtyStateListener listener);
-
 }

@@ -6,7 +6,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.util.containers.ContainerUtil;
 import mesfavoris.BookmarksException;
 import mesfavoris.internal.jobs.BackgroundBookmarksModificationsHandler;
 import mesfavoris.internal.jobs.BackgroundBookmarksModificationsHandler.IBookmarksModificationsHandler;
@@ -32,14 +31,15 @@ public class BookmarksAutoSaver implements IBookmarksDirtyStateTracker, Disposab
     private static final Logger LOG = Logger.getInstance(BookmarksAutoSaver.class);
     private static final int SAVE_DELAY = 2000;
     private final BookmarkDatabase bookmarkDatabase;
+    private final Project project;
     private final BackgroundBookmarksModificationsHandler backgroundBookmarksModificationsHandler;
     private final LocalBookmarksSaver localBookmarksSaver;
     private final RemoteBookmarksSaver remoteBookmarksSaver;
     private final IBookmarksListener bookmarksListener;
-    private final List<IBookmarksDirtyStateListener> listenerList = ContainerUtil.createLockFreeCopyOnWriteList();
     private final AtomicReference<Set<BookmarkId>> dirtyBookmarksRef = new AtomicReference<>(Collections.emptySet());
 
     public BookmarksAutoSaver(Project project, BookmarkDatabase bookmarkDatabase, LocalBookmarksSaver localBookmarksSaver, RemoteBookmarksSaver remoteBookmarksSaver) {
+        this.project = project;
         this.bookmarkDatabase = bookmarkDatabase;
         this.localBookmarksSaver = localBookmarksSaver;
         this.remoteBookmarksSaver = remoteBookmarksSaver;
@@ -86,24 +86,9 @@ public class BookmarksAutoSaver implements IBookmarksDirtyStateTracker, Disposab
         dirtyBookmarksRef.set(ImmutableSet.copyOf(dirtyBookmarks));
     }
 
-    @Override
-    public void addListener(IBookmarksDirtyStateListener listener) {
-        listenerList.add(listener);
-    }
-
-    @Override
-    public void removeListener(IBookmarksDirtyStateListener listener) {
-        listenerList.remove(listener);
-    }
-
     private void fireDirtyBookmarksChanged(Set<BookmarkId> dirtyBookmarks) {
-        for (IBookmarksDirtyStateListener listener : listenerList) {
-            try {
-                listener.dirtyBookmarks(dirtyBookmarks);
-            } catch (Exception | LinkageError | AssertionError e) {
-                LOG.error("Error in bookmarks dirty state listener", e);
-            }
-        }
+        project.getMessageBus().syncPublisher(IBookmarksDirtyStateListener.TOPIC)
+                .dirtyBookmarks(dirtyBookmarks);
     }
 
     public BackgroundBookmarksModificationsHandler getBackgroundBookmarksModificationsHandler() {
