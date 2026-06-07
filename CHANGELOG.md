@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+### Changed
+
+- `GistApiClient` is now created and owned by `GithubConnectionManager` (shared instance with HTTP connection pooling).
+- HTTP connect timeout (10s) and request timeout (30s) added to GitHub API calls.
+- GitHub connection is automatically disconnected on network timeout or unreachable host.
+- Dirty bookmarks state notifications now use IntelliJ MessageBus instead of manual listeners.
+
 ## [0.7.0] - 2026-06-01
 
 ### Added
