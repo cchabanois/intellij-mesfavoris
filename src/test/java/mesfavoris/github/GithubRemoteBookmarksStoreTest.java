@@ -116,6 +116,8 @@ public class GithubRemoteBookmarksStoreTest extends BasePlatformTestCase {
         // Load to get the current etag (updated_at may differ from what add() returned)
         RemoteBookmarksTree remote = store.load(bookmarksTree.getRootFolder().getId(), new EmptyProgressIndicator());
 
+        // GitHub timestamps have second precision — sleep >1s so updated_at advances on the first save
+        Thread.sleep(1100);
         BookmarksTree tree2 = bookmarksTree.setPropertyValue(bookmarksTree.getRootFolder().getId(),
                 "myProperty", "value1");
         store.save(tree2, tree2.getRootFolder().getId(), remote.getEtag(), new EmptyProgressIndicator());
