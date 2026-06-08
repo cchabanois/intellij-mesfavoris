@@ -45,7 +45,7 @@ public class GistApiClientTest extends AbstractGithubOperationTest {
         GistApiClient.GistResponse created = apiClient.createGist("test gist", "bookmarks.json", "{}");
         trackGist(created.id);
         GistApiClient.GistResponse current = apiClient.loadGist(created.id);
-
+        Thread.sleep(1100); // updated_at has second precision
         GistApiClient.GistResponse updated = apiClient.updateGist(created.id, "bookmarks.json",
                 "{\"v\":1}", current.updated_at);
 

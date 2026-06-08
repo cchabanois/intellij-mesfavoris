@@ -86,7 +86,9 @@ public class UrlBookmarkPropertiesProvider extends AbstractBookmarkPropertiesPro
 	private Optional<Document> parse(URL url, ProgressIndicator progress) {
 		progress.setText("Getting html document");
 		try {
-			Response response = Jsoup.connect(url.toString()).followRedirects(false).timeout(2000)
+			Response response = Jsoup.connect(url.toString())
+					.userAgent("Mozilla/5.0 (compatible; mesfavoris)")
+					.followRedirects(true).timeout(5000)
 					.maxBodySize(MAX_BODY_SIZE).execute();
 			if (response.statusCode() != 200) {
 				return Optional.empty();
