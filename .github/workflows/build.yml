@@ -54,6 +54,13 @@ jobs:
       # Setup Gradle
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
+        with:
+          # The extracted IntelliJ Platform (artifact transforms) is ~8 GiB and blows up
+          # the runner disk on restore. Don't cache it: it is regenerated locally from the
+          # IDE zip kept in the 'dependencies' cache (no re-download).
+          gradle-home-cache-excludes: |
+            caches/*/transforms
+            caches/transforms-*
 
       # Set environment variables
       - name: Export Properties
@@ -114,6 +121,13 @@ jobs:
       # Setup Gradle
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
+        with:
+          # The extracted IntelliJ Platform (artifact transforms) is ~8 GiB and blows up
+          # the runner disk on restore. Don't cache it: it is regenerated locally from the
+          # IDE zip kept in the 'dependencies' cache (no re-download).
+          gradle-home-cache-excludes: |
+            caches/*/transforms
+            caches/transforms-*
 
       # Run tests
       - name: Run Tests
