@@ -29,6 +29,7 @@ public class GistApiClient {
     public static HttpClient newHttpClient() {
         return HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
+                .followRedirects(HttpClient.Redirect.NORMAL)
                 .build();
     }
 
