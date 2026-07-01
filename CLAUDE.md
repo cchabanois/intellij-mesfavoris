@@ -22,6 +22,8 @@ Mesfavoris is an advanced bookmark management plugin for IntelliJ IDEA. It provi
 
 Google Drive integration tests require environment variables: `USER1_GDRIVE_USERNAME`, `USER1_GDRIVE_REFRESH_TOKEN`, `USER2_GDRIVE_USERNAME`, `USER2_GDRIVE_REFRESH_TOKEN` — they are skipped if absent.
 
+GitHub integration tests require the environment variable `USER1_GITHUB_TOKEN` — they are skipped if absent.
+
 ## Architecture
 
 ### Public API vs Internal
@@ -50,11 +52,11 @@ Two extension points defined in `plugin.xml`:
    - `IGotoBookmark` — handles navigation
    - `IBookmarkMarkerAttributesProvider` — gutter marker styling
    - `IBookmarkDetailPart` — custom detail panel UI
-2. **`remoteBookmarksStore`** (`RemoteBookmarksStoreExtension`) — pluggable remote sync backends (Google Drive is the built-in one)
+2. **`remoteBookmarksStore`** (`RemoteBookmarksStoreExtension`) — pluggable remote sync backends (Google Drive and GitHub Gist are the built-in ones)
 
 ### Bookmark Type Implementations
 
-Each feature module under `mesfavoris/` is a self-contained bookmark type:
+Each feature module under `mesfavoris/` is a self-contained feature — a bookmark type, or a remote store (last two):
 - `texteditor/` — file + line bookmarks with resilient location tracking (Bitap algorithm)
 - `url/` — URL bookmarks
 - `snippets/` — code snippet bookmarks
@@ -62,6 +64,7 @@ Each feature module under `mesfavoris/` is a self-contained bookmark type:
 - `intellij/` — wraps native IntelliJ bookmarks
 - `notes/` — Markdown note support
 - `gdrive/` — Google Drive remote store
+- `github/` — GitHub Gist remote store
 
 ### Path Placeholders
 
@@ -102,7 +105,9 @@ Virtual folders are not an extension point — they are hardcoded in `MesFavoris
 ### Persistence
 
 - **Local:** JSON via `BookmarksTreeJsonSerializer` / `BookmarksTreeJsonDeserializer`
-- **Remote:** Google Drive with mapping tracked in `gdrive/` package; uses IntelliJ's `PersistentStateComponent` for connection state
+- **Remote:** pluggable stores (see the `remoteBookmarksStore` extension point):
+  - **Google Drive** — mapping tracked in `gdrive/` package; uses IntelliJ's `PersistentStateComponent` for connection state
+  - **GitHub Gist** — mapping tracked in `github/mappings/` (`GistMappingsStore`), connection/user state in `github/connection/` (`GithubUserInfoStore`); both persist to `mesfavoris.xml` via `PersistentStateComponent`
 - **Auto-save:** `internal/persistence/` with configurable dirty-state tracking
 
 ### UI
@@ -144,8 +149,6 @@ Test helpers in `src/test/java/mesfavoris/tests/commons/`:
 - `toolwindow/` — tool window interaction helpers
 
 Test data (sample projects for PSI-level tests) lives in `src/test/testData/`.
-
-GitHub integration tests (`src/test/java/mesfavoris/github/`) require the environment variable `USER1_GITHUB_TOKEN` — they are skipped if absent.
 
 For async assertions in tests, use `Waiter.waitUntil()` (`mesfavoris.tests.commons.waits.Waiter`) instead of `Thread.sleep()`.
 
