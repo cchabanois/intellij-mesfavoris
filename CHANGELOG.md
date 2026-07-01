@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Importing a bookmark folder from a large (truncated) GitHub Gist no longer fails with an HTTP 302: the raw-content fetch now follows redirects.
+
 ### Changed
 
 - `GistApiClient` is now created and owned by `GithubConnectionManager` (shared instance with HTTP connection pooling).
