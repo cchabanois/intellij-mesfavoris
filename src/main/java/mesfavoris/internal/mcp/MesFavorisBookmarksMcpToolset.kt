@@ -29,6 +29,8 @@ import mesfavoris.model.BookmarkId
 import mesfavoris.service.IBookmarksService
 import mesfavoris.service.MoveLocation
 
+private const val MAX_PAGE_SIZE = 500
+
 class MesFavorisBookmarksMcpToolset : McpToolset {
 
     private suspend fun currentProject(): Project =
@@ -50,6 +52,23 @@ class MesFavorisBookmarksMcpToolset : McpToolset {
         val trimmed = returnProperties.trim()
         if (trimmed == "*") return null
         return trimmed.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+    }
+
+    private data class Page<T>(val items: List<T>, val nextCursor: String?, val total: Int)
+
+    /**
+     * Slices [items] into a bounded page. [cursor] is an opaque offset (empty = start);
+     * [maxResults] is the page size, clamped to [1, MAX_PAGE_SIZE]. The returned [Page.nextCursor]
+     * is non-null when more items remain.
+     */
+    private fun <T> paginate(items: List<T>, cursor: String, maxResults: Int): Page<T> {
+        val total = items.size
+        val offset = cursor.toIntOrNull()?.coerceAtLeast(0) ?: 0
+        val limit = maxResults.coerceIn(1, MAX_PAGE_SIZE)
+        val page = items.drop(offset).take(limit)
+        val nextOffset = offset + page.size
+        val nextCursor = if (nextOffset < total) nextOffset.toString() else null
+        return Page(page, nextCursor, total)
     }
 
     @McpTool
@@ -112,13 +131,14 @@ class MesFavorisBookmarksMcpToolset : McpToolset {
     }
 
     @McpTool
-    @McpDescription(description = "Search bookmarks (favoris) by text.")
+    @McpDescription(description = "Search bookmarks (favoris) by text. Results are paginated: at most 'maxResults' entries are returned along with the 'total' number of matches and a 'nextCursor'; when 'nextCursor' is non-null there are more matches — call again passing it as 'cursor' to get the next page.")
     suspend fun search_bookmarks(
         @McpDescription(description = "ID of the bookmark folder to search in (default: entire tree)") parentId: String = "",
         @McpDescription(description = "Text to search for (case-insensitive)") query: String,
         @McpDescription(description = "Whether to search recursively in subfolders (default: true)") recursive: Boolean = true,
         @McpDescription(description = "Comma-separated list of property names to search in (default: all properties)") attributes: String = "",
-        @McpDescription(description = "Maximum number of results to return (default: 100)") maxResults: Int = 100,
+        @McpDescription(description = "Maximum number of matches to return in this page (default: 100, max: 500)") maxResults: Int = 100,
+        @McpDescription(description = "Opaque cursor from a previous call's 'nextCursor' to fetch the next page (default: start from the first match)") cursor: String = "",
         @McpDescription(description = "Comma-separated property names to include in each result (default: 'name'). Use '*' for all properties except large excluded ones (e.g. base64 icons); list an excluded property explicitly to force its inclusion.") returnProperties: String = "name"
     ): BookmarksResult {
         val service = bookmarksService()
@@ -140,20 +160,21 @@ class MesFavorisBookmarksMcpToolset : McpToolset {
                                else attributes.split(",").map { it.trim() }.filter { it.isNotEmpty() }
         val lowerQuery = query.lowercase()
 
-        val results = mutableListOf<BookmarkResult>()
-        for (bookmark in candidates) {
-            if (results.size >= maxResults) break
-            if (bookmark.id == startFolderId) continue
+        val matched = candidates.filter { bookmark ->
+            if (bookmark.id == startFolderId) return@filter false
             val props = bookmark.properties
-            val matches = if (targetAttributes.isEmpty()) {
+            if (targetAttributes.isEmpty()) {
                 props.values.any { it.lowercase().contains(lowerQuery) }
             } else {
                 targetAttributes.any { attr -> props[attr]?.lowercase()?.contains(lowerQuery) == true }
             }
-            if (!matches) continue
-            results.add(bookmarkToResult(tree, bookmark, descriptors, requested))
         }
-        return BookmarksResult(results)
+        val (page, nextCursor, total) = paginate(matched, cursor, maxResults)
+        return BookmarksResult(
+            page.map { bookmarkToResult(tree, it, descriptors, requested) },
+            nextCursor,
+            total
+        )
     }
 
     @McpTool
@@ -191,11 +212,13 @@ class MesFavorisBookmarksMcpToolset : McpToolset {
     }
 
     @McpTool
-    @McpDescription(description = "List bookmarks (favoris) in a bookmark folder. Returns direct children, or all descendants if recursive. The bookmark tree can be modified by the user at any time outside of this conversation, so always verify the current state rather than relying on memory of previous interactions.")
+    @McpDescription(description = "List bookmarks (favoris) in a bookmark folder. Returns direct children, or all descendants if recursive. Results are paginated: at most 'maxResults' entries are returned along with the 'total' count and a 'nextCursor'; when 'nextCursor' is non-null there are more entries — call again passing it as 'cursor' to get the next page. The bookmark tree can be modified by the user at any time outside of this conversation, so always verify the current state rather than relying on memory of previous interactions.")
     suspend fun list_bookmark_folder(
         @McpDescription(description = "ID of the bookmark folder to list (default: root folder)") folderId: String = "",
         @McpDescription(description = "Whether to list recursively (default: false)") recursive: Boolean = false,
-        @McpDescription(description = "Comma-separated property names to include in each result (default: 'name'). Use '*' for all properties except large excluded ones (e.g. base64 icons); list an excluded property explicitly to force its inclusion.") returnProperties: String = "name"
+        @McpDescription(description = "Comma-separated property names to include in each result (default: 'name'). Use '*' for all properties except large excluded ones (e.g. base64 icons); list an excluded property explicitly to force its inclusion.") returnProperties: String = "name",
+        @McpDescription(description = "Maximum number of entries to return in this page (default: 100, max: 500)") maxResults: Int = 100,
+        @McpDescription(description = "Opaque cursor from a previous call's 'nextCursor' to fetch the next page (default: start from the first entry)") cursor: String = ""
     ): BookmarksResult {
         val service = bookmarksService()
         val tree = service.getBookmarksTree()
@@ -209,11 +232,15 @@ class MesFavorisBookmarksMcpToolset : McpToolset {
         } else {
             tree.rootFolder.id
         }
-        val children: Iterable<Bookmark> = if (recursive) tree.subTree(resolvedFolderId)
-                                           else tree.getChildren(resolvedFolderId)
-        return BookmarksResult(children
+        val children: List<Bookmark> = (if (recursive) tree.subTree(resolvedFolderId)
+                                        else tree.getChildren(resolvedFolderId))
             .filter { it.id != resolvedFolderId }
-            .map { bookmarkToResult(tree, it, descriptors, requested) })
+        val (page, nextCursor, total) = paginate(children, cursor, maxResults)
+        return BookmarksResult(
+            page.map { bookmarkToResult(tree, it, descriptors, requested) },
+            nextCursor,
+            total
+        )
     }
 
     @McpTool

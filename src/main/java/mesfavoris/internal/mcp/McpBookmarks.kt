@@ -34,7 +34,11 @@ data class BookmarkResult(
 @Serializable
 data class BookmarksResult(
     @property:McpDescription("The list of bookmarks (favoris)")
-    val bookmarks: List<BookmarkResult>
+    val bookmarks: List<BookmarkResult>,
+    @property:McpDescription("Opaque cursor to pass back to fetch the next page; null when there are no more results")
+    val nextCursor: String? = null,
+    @property:McpDescription("Total number of matching entries available (across all pages); null when the call is not paginated")
+    val total: Int? = null
 )
 
 /**
