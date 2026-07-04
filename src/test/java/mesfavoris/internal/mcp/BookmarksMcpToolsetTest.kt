@@ -289,6 +289,70 @@ class MesFavorisBookmarksMcpToolsetTest : BasePlatformTestCase() {
         }
     }
 
+    // --- search_bookmarks pagination ---
+
+    @Test
+    fun testSearchPaginatesWithCursorAndTotal() {
+        runBlocking {
+            // "o" matches several names (work, personal, projects, My Project, My Blog, ...)
+            val first = toolset.search_bookmarks(query = "o", maxResults = 2)
+
+            assertThat(first.total).isNotNull().isGreaterThan(2)
+            assertThat(first.bookmarks.size).isEqualTo(2)
+            assertThat(first.nextCursor).isNotNull()
+
+            val ids = first.bookmarks.map { it.id }.toMutableList()
+            var cursor = first.nextCursor
+            while (cursor != null) {
+                val page = toolset.search_bookmarks(query = "o", maxResults = 2, cursor = cursor)
+                assertThat(page.bookmarks.size).isLessThanOrEqualTo(2)
+                ids.addAll(page.bookmarks.map { it.id })
+                cursor = page.nextCursor
+            }
+
+            assertThat(ids).hasSize(first.total!!)
+            assertThat(ids).doesNotHaveDuplicates()
+        }
+    }
+
+    // --- list_bookmark_folder pagination ---
+
+    @Test
+    fun testListFolderPaginatesWithCursorAndTotal() {
+        runBlocking {
+            val first = toolset.list_bookmark_folder(recursive = true, maxResults = 2)
+
+            assertThat(first.bookmarks.size).isEqualTo(2)
+            assertThat(first.total).isNotNull().isGreaterThan(2)
+            assertThat(first.nextCursor).isNotNull()
+
+            // page through the rest, collecting all ids
+            val ids = first.bookmarks.map { it.id }.toMutableList()
+            var cursor = first.nextCursor
+            while (cursor != null) {
+                val page = toolset.list_bookmark_folder(recursive = true, maxResults = 2, cursor = cursor)
+                assertThat(page.bookmarks.size).isLessThanOrEqualTo(2)
+                ids.addAll(page.bookmarks.map { it.id })
+                cursor = page.nextCursor
+            }
+
+            assertThat(ids).hasSize(first.total!!)
+            assertThat(ids).doesNotHaveDuplicates()
+        }
+    }
+
+    @Test
+    fun testListFolderNoNextCursorWhenUnderCap() {
+        runBlocking {
+            val result = toolset.list_bookmark_folder(folderId = workFolderId.toString())
+
+            // "work" has 2 direct children: the "projects" folder and the "Daily Task" bookmark
+            assertThat(result.bookmarks.size).isEqualTo(2)
+            assertThat(result.total).isEqualTo(2)
+            assertThat(result.nextCursor).isNull()
+        }
+    }
+
     // --- create_bookmark_folder ---
 
     @Test
