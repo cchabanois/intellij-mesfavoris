@@ -43,7 +43,16 @@ public class BookmarkPropertyDescriptorTest extends BasePlatformTestCase {
                     assertThat(d.getType()).isEqualTo(BookmarkPropertyDescriptor.BookmarkPropertyType.STRING); // Default
                     assertThat(d.isUpdatable()).isTrue(); // Default
                     assertThat(d.getDescription()).isNull(); // Default
+                    assertThat(d.isExcludedFromMcp()).isFalse(); // Default
                 });
+    }
+
+    public void testBookmarkPropertyDescriptorExcludedFromMcp() {
+        BookmarkPropertyDescriptor descriptor = bookmarkPropertyDescriptor("iconProperty")
+                .excludedFromMcp(true)
+                .build();
+
+        assertThat(descriptor.isExcludedFromMcp()).isTrue();
     }
 
     public void testBookmarkPropertyDescriptorBuilderValidation() {

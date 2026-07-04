@@ -25,10 +25,19 @@ public class UrlBookmarkTypeExtension extends AbstractBookmarkTypeExtension {
                 .updatable(true)
                 .build());
 
-        addProperty(bookmarkPropertyDescriptor("favicon")
+        // Base64-encoded icon: excluded from MCP output by default (large blob, no value for an agent)
+        addProperty(bookmarkPropertyDescriptor(UrlBookmarkProperties.PROP_ICON)
                 .type(STRING)
                 .updatable(true)
-                .description("icon")
+                .description("icon (base64)")
+                .excludedFromMcp(true)
+                .build());
+
+        addProperty(bookmarkPropertyDescriptor(UrlBookmarkProperties.PROP_FAVICON)
+                .type(STRING)
+                .updatable(true)
+                .description("favicon (base64, deprecated — use icon)")
+                .excludedFromMcp(true)
                 .build());
 
         addLabelProvider(new UrlBookmarkLabelProvider());
