@@ -213,10 +213,79 @@ class MesFavorisBookmarksMcpToolsetTest : BasePlatformTestCase() {
         }
 
         runBlocking {
-            val results = toolset.search_bookmarks(query = "Path Bookmark").bookmarks
+            val results = toolset.search_bookmarks(query = "Path Bookmark", returnProperties = "filePath").bookmarks
 
             assertThat(results.size).isEqualTo(1)
             assertThat(results[0].properties[PROP_FILE_PATH]).isEqualTo(homeDir.resolve("test.txt").toString())
+        }
+    }
+
+    // --- returnProperties projection ---
+
+    @Test
+    fun testSearchReturnsOnlyNameByDefault() {
+        runBlocking {
+            val results = toolset.search_bookmarks(query = "Daily Task").bookmarks
+
+            assertThat(results.size).isEqualTo(1)
+            // "Daily Task" also has a "comment" property, which must be omitted by default
+            assertThat(results[0].properties.keys).containsExactly("name")
+            assertThat(results[0].properties["name"]).isEqualTo("Daily Task")
+        }
+    }
+
+    @Test
+    fun testSearchWithStarReturnsAllProperties() {
+        runBlocking {
+            val results = toolset.search_bookmarks(query = "Daily Task", returnProperties = "*").bookmarks
+
+            assertThat(results.size).isEqualTo(1)
+            assertThat(results[0].properties).containsKeys("name", "comment")
+        }
+    }
+
+    @Test
+    fun testSearchWithExplicitPropertiesListReturnsOnlyThose() {
+        runBlocking {
+            val results = toolset.search_bookmarks(query = "Daily Task", returnProperties = "name,comment").bookmarks
+
+            assertThat(results.size).isEqualTo(1)
+            assertThat(results[0].properties.keys).containsExactlyInAnyOrder("name", "comment")
+        }
+    }
+
+    @Test
+    fun testListFolderReturnsOnlyNameByDefault() {
+        runBlocking {
+            val results = toolset.list_bookmark_folder(folderId = workFolderId.toString()).bookmarks
+
+            val task = results.firstOrNull { it.id == taskBookmarkId.toString() }
+            assertThat(task).isNotNull
+            assertThat(task!!.properties.keys).containsExactly("name")
+        }
+    }
+
+    @Test
+    fun testExcludedPropertyIsOmittedByStarButIncludedWhenRequested() {
+        val iconBookmarkId = BookmarkId()
+        bookmarkDatabase.modify { modifier ->
+            modifier.addBookmarks(rootFolderId, listOf(
+                bookmark(iconBookmarkId, "Icon Bookmark")
+                    .withProperty("icon", "BASE64ICONDATA")
+                    .build()
+            ))
+        }
+
+        runBlocking {
+            // '*' returns all properties except those marked excludedFromMcp (icon)
+            val starred = toolset.search_bookmarks(query = "Icon Bookmark", returnProperties = "*").bookmarks
+            assertThat(starred.size).isEqualTo(1)
+            assertThat(starred[0].properties).doesNotContainKey("icon")
+
+            // explicitly requesting the excluded property forces its inclusion
+            val explicit = toolset.search_bookmarks(query = "Icon Bookmark", returnProperties = "name,icon").bookmarks
+            assertThat(explicit.size).isEqualTo(1)
+            assertThat(explicit[0].properties["icon"]).isEqualTo("BASE64ICONDATA")
         }
     }
 

@@ -3,6 +3,8 @@ package mesfavoris.internal.mcp
 import com.intellij.mcpserver.annotations.McpDescription
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import mesfavoris.bookmarktype.IBookmarkPropertyDescriptors
+import mesfavoris.internal.bookmarktypes.extension.ExtensionBookmarkPropertyDescriptors
 import mesfavoris.internal.placeholders.PathPlaceholderResolver
 import mesfavoris.internal.settings.placeholders.PathPlaceholdersStore
 import mesfavoris.model.Bookmark
@@ -35,15 +37,32 @@ data class BookmarksResult(
     val bookmarks: List<BookmarkResult>
 )
 
-fun bookmarkToResult(tree: BookmarksTree, bookmark: Bookmark): BookmarkResult {
+/**
+ * Converts a bookmark to its MCP result form, projecting its properties.
+ *
+ * @param requested when non-null, only these property keys are returned (explicitly requested keys are
+ *   included even if their descriptor is marked excluded); when null, all properties are returned except
+ *   those whose descriptor is marked [BookmarkPropertyDescriptor.isExcludedFromMcp].
+ */
+fun bookmarkToResult(
+    tree: BookmarksTree,
+    bookmark: Bookmark,
+    descriptors: IBookmarkPropertyDescriptors = ExtensionBookmarkPropertyDescriptors(),
+    requested: Set<String>? = null
+): BookmarkResult {
     val resolver = PathPlaceholderResolver(PathPlaceholdersStore.getInstance())
-    val expandedProperties = bookmark.properties.mapValues { (k, v) ->
-        if (k == PROP_FILE_PATH) resolver.expand(v)?.toString() ?: v else v
-    }
+    val properties = bookmark.properties
+        .filterKeys { key ->
+            if (requested != null) key in requested
+            else descriptors.getPropertyDescriptor(key)?.isExcludedFromMcp != true
+        }
+        .mapValues { (k, v) ->
+            if (k == PROP_FILE_PATH) resolver.expand(v)?.toString() ?: v else v
+        }
     return BookmarkResult(
         id = bookmark.id.toString(),
         type = if (bookmark is BookmarkFolder) BookmarkType.FOLDER else BookmarkType.BOOKMARK,
-        properties = expandedProperties,
+        properties = properties,
         folderPath = buildFolderPath(tree, bookmark.id)
     )
 }
