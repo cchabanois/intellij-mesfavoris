@@ -26,6 +26,7 @@ import mesfavoris.internal.toolwindow.MesFavorisToolWindowUtils
 import mesfavoris.model.Bookmark
 import mesfavoris.model.BookmarkFolder
 import mesfavoris.model.BookmarkId
+import mesfavoris.model.BookmarksTree
 import mesfavoris.service.IBookmarksService
 import mesfavoris.service.MoveLocation
 
@@ -54,21 +55,28 @@ class MesFavorisBookmarksMcpToolset : McpToolset {
         return trimmed.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
     }
 
-    private data class Page<T>(val items: List<T>, val nextCursor: String?, val total: Int)
-
     /**
-     * Slices [items] into a bounded page. [cursor] is an opaque offset (empty = start);
-     * [maxResults] is the page size, clamped to [1, MAX_PAGE_SIZE]. The returned [Page.nextCursor]
-     * is non-null when more items remain.
+     * Slices [bookmarks] into a bounded page and projects it into a [BookmarksResult].
+     * [cursor] is an opaque offset (empty = start); [maxResults] is the page size, clamped
+     * to [1, MAX_PAGE_SIZE]. The result's nextCursor is non-null when more items remain.
      */
-    private fun <T> paginate(items: List<T>, cursor: String, maxResults: Int): Page<T> {
-        val total = items.size
-        val offset = cursor.toIntOrNull()?.coerceAtLeast(0) ?: 0
-        val limit = maxResults.coerceIn(1, MAX_PAGE_SIZE)
-        val page = items.drop(offset).take(limit)
-        val nextOffset = offset + page.size
-        val nextCursor = if (nextOffset < total) nextOffset.toString() else null
-        return Page(page, nextCursor, total)
+    private fun bookmarksPage(
+        bookmarks: List<Bookmark>,
+        cursor: String,
+        maxResults: Int,
+        tree: BookmarksTree,
+        descriptors: IBookmarkPropertyDescriptors,
+        requested: Set<String>?
+    ): BookmarksResult {
+        val total = bookmarks.size
+        val offset = (cursor.toIntOrNull()?.coerceAtLeast(0) ?: 0).coerceAtMost(total)
+        val end = (offset + maxResults.coerceIn(1, MAX_PAGE_SIZE)).coerceAtMost(total)
+        val nextCursor = if (end < total) end.toString() else null
+        return BookmarksResult(
+            bookmarks.subList(offset, end).map { bookmarkToResult(tree, it, descriptors, requested) },
+            nextCursor,
+            total
+        )
     }
 
     @McpTool
@@ -169,12 +177,7 @@ class MesFavorisBookmarksMcpToolset : McpToolset {
                 targetAttributes.any { attr -> props[attr]?.lowercase()?.contains(lowerQuery) == true }
             }
         }
-        val (page, nextCursor, total) = paginate(matched, cursor, maxResults)
-        return BookmarksResult(
-            page.map { bookmarkToResult(tree, it, descriptors, requested) },
-            nextCursor,
-            total
-        )
+        return bookmarksPage(matched, cursor, maxResults, tree, descriptors, requested)
     }
 
     @McpTool
@@ -235,12 +238,7 @@ class MesFavorisBookmarksMcpToolset : McpToolset {
         val children: List<Bookmark> = (if (recursive) tree.subTree(resolvedFolderId)
                                         else tree.getChildren(resolvedFolderId))
             .filter { it.id != resolvedFolderId }
-        val (page, nextCursor, total) = paginate(children, cursor, maxResults)
-        return BookmarksResult(
-            page.map { bookmarkToResult(tree, it, descriptors, requested) },
-            nextCursor,
-            total
-        )
+        return bookmarksPage(children, cursor, maxResults, tree, descriptors, requested)
     }
 
     @McpTool
