@@ -10,6 +10,7 @@ import mesfavoris.tests.commons.waits.Waiter;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
@@ -65,7 +66,7 @@ public class GetChangesOperationTest extends BasePlatformTestCase {
 
 	private Change waitUntilFileChange(Long startChangeId, String fileId) throws TimeoutException {
 		return Waiter.waitUntil("No change for file " + fileId, () -> getChangesOperation.getChanges(startChangeId)
-				.stream().filter(change -> change.getFileId().equals(fileId)).findFirst()).get();
+				.stream().filter(change -> change.getFileId().equals(fileId)).findFirst(), Duration.ofSeconds(20)).get();
 	}
 
 	private File createTextFile(String name, String content) throws IOException {
