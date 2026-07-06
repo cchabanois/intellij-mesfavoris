@@ -7,9 +7,12 @@
 ### Fixed
 
 - Importing a bookmark folder from a large (truncated) GitHub Gist no longer fails with an HTTP 302: the raw-content fetch now follows redirects.
+- URL bookmark title fetch now sends a `User-Agent` header and follows redirects, so page titles are resolved correctly on sites that previously returned an empty or wrong title.
 
 ### Changed
 
+- MCP `search_bookmarks` and `list_bookmark_folder` are now paginated (`maxResults` + `cursor` parameters, `total` in the response) to keep large result sets manageable.
+- MCP bookmark output is trimmed: property descriptors can be excluded from MCP responses, and a `returnProperties` projection lets callers request only the properties they need.
 - `GistApiClient` is now created and owned by `GithubConnectionManager` (shared instance with HTTP connection pooling).
 - HTTP connect timeout (10s) and request timeout (30s) added to GitHub API calls.
 - GitHub connection is automatically disconnected on network timeout or unreachable host.

@@ -1,9 +1,11 @@
 package mesfavoris.github.operations;
 
 import mesfavoris.remote.ConflictException;
+import mesfavoris.tests.commons.waits.Waiter;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -18,8 +20,11 @@ public class UpdateGistOperationTest extends AbstractGithubOperationTest {
 
         op.updateGist(created.id, "{\"v\":1}".getBytes(StandardCharsets.UTF_8), null, null);
 
-        GistApiClient.GistResponse loaded = apiClient.loadGist(created.id);
-        assertThat(loaded.files.get("bookmarks.json").content).isEqualTo("{\"v\":1}");
+        // GitHub's Gist GET endpoint can serve stale content for a short window after a PATCH,
+        // so poll until the fresh load reflects the update instead of reading exactly once.
+        Waiter.waitUntil("Gist content was not updated", () ->
+                        "{\"v\":1}".equals(apiClient.loadGist(created.id).files.get("bookmarks.json").content),
+                Duration.ofSeconds(10));
     }
 
     @Test
