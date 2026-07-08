@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-07-06
+
 ### Fixed
 
 - Importing a bookmark folder from a large (truncated) GitHub Gist no longer fails with an HTTP 302: the raw-content fetch now follows redirects.
@@ -237,7 +239,8 @@
   - Bookmark label providers for custom rendering
   - Bookmark properties providers for extracting metadata
 
-[Unreleased]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.7.0...HEAD
+[Unreleased]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.7.1...HEAD
+[0.7.1]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.7.0...0.7.1
 [0.7.0]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.6.0...0.7.0
 [0.6.0]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.5.0...0.6.0
 [0.5.0]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.0.1-beta.5...0.5.0
