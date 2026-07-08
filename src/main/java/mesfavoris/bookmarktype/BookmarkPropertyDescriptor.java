@@ -15,6 +15,7 @@ public class BookmarkPropertyDescriptor implements IBookmarkPropertyObsolescence
 	private final BookmarkPropertyType type;
 	private final boolean updatable;
 	private final String description;
+	private final boolean excludedFromMcp;
 	private final IBookmarkPropertyObsolescenceSeverityProvider bookmarkPropertyObsolescenceSeverityProvider;
 
 	public enum BookmarkPropertyType {
@@ -22,11 +23,13 @@ public class BookmarkPropertyDescriptor implements IBookmarkPropertyObsolescence
 	}
 
 	public BookmarkPropertyDescriptor(String name, BookmarkPropertyType type, boolean updatable, String description,
+			boolean excludedFromMcp,
 			IBookmarkPropertyObsolescenceSeverityProvider bookmarkPropertyObsolescenceSeverityProvider) {
 		this.name = name;
 		this.type = type;
 		this.updatable = updatable;
 		this.description = description;
+		this.excludedFromMcp = excludedFromMcp;
 		this.bookmarkPropertyObsolescenceSeverityProvider = bookmarkPropertyObsolescenceSeverityProvider;
 	}
 
@@ -49,6 +52,14 @@ public class BookmarkPropertyDescriptor implements IBookmarkPropertyObsolescence
 
 	public boolean isUpdatable() {
 		return updatable;
+	}
+
+	/**
+	 * Whether this property is excluded from MCP tool output by default (e.g. large base64 blobs).
+	 * MCP tools still return it when it is explicitly requested.
+	 */
+	public boolean isExcludedFromMcp() {
+		return excludedFromMcp;
 	}
 
 	@Override
@@ -104,6 +115,7 @@ public class BookmarkPropertyDescriptor implements IBookmarkPropertyObsolescence
 		private BookmarkPropertyType type = BookmarkPropertyType.STRING;
 		private boolean updatable = true;
 		private String description = null;
+		private boolean excludedFromMcp = false;
 		private IBookmarkPropertyObsolescenceSeverityProvider obsolescenceSeverityProvider = null;
 
 		private Builder(String name) {
@@ -144,6 +156,16 @@ public class BookmarkPropertyDescriptor implements IBookmarkPropertyObsolescence
 		}
 
 		/**
+		 * Marks the property as excluded from MCP tool output by default (unless explicitly requested)
+		 * @param excludedFromMcp True to exclude the property from MCP output by default
+		 * @return This builder instance
+		 */
+		public Builder excludedFromMcp(boolean excludedFromMcp) {
+			this.excludedFromMcp = excludedFromMcp;
+			return this;
+		}
+
+		/**
 		 * Sets the obsolescence severity provider
 		 * @param provider The obsolescence severity provider
 		 * @return This builder instance
@@ -158,7 +180,8 @@ public class BookmarkPropertyDescriptor implements IBookmarkPropertyObsolescence
 		 * @return A new BookmarkPropertyDescriptor instance
 		 */
 		public BookmarkPropertyDescriptor build() {
-			return new BookmarkPropertyDescriptor(name, type, updatable, description, obsolescenceSeverityProvider);
+			return new BookmarkPropertyDescriptor(name, type, updatable, description, excludedFromMcp,
+					obsolescenceSeverityProvider);
 		}
 	}
 

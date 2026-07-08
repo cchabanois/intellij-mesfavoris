@@ -213,10 +213,143 @@ class MesFavorisBookmarksMcpToolsetTest : BasePlatformTestCase() {
         }
 
         runBlocking {
-            val results = toolset.search_bookmarks(query = "Path Bookmark").bookmarks
+            val results = toolset.search_bookmarks(query = "Path Bookmark", returnProperties = "filePath").bookmarks
 
             assertThat(results.size).isEqualTo(1)
             assertThat(results[0].properties[PROP_FILE_PATH]).isEqualTo(homeDir.resolve("test.txt").toString())
+        }
+    }
+
+    // --- returnProperties projection ---
+
+    @Test
+    fun testSearchReturnsOnlyNameByDefault() {
+        runBlocking {
+            val results = toolset.search_bookmarks(query = "Daily Task").bookmarks
+
+            assertThat(results.size).isEqualTo(1)
+            // "Daily Task" also has a "comment" property, which must be omitted by default
+            assertThat(results[0].properties.keys).containsExactly("name")
+            assertThat(results[0].properties["name"]).isEqualTo("Daily Task")
+        }
+    }
+
+    @Test
+    fun testSearchWithStarReturnsAllProperties() {
+        runBlocking {
+            val results = toolset.search_bookmarks(query = "Daily Task", returnProperties = "*").bookmarks
+
+            assertThat(results.size).isEqualTo(1)
+            assertThat(results[0].properties).containsKeys("name", "comment")
+        }
+    }
+
+    @Test
+    fun testSearchWithExplicitPropertiesListReturnsOnlyThose() {
+        runBlocking {
+            val results = toolset.search_bookmarks(query = "Daily Task", returnProperties = "name,comment").bookmarks
+
+            assertThat(results.size).isEqualTo(1)
+            assertThat(results[0].properties.keys).containsExactlyInAnyOrder("name", "comment")
+        }
+    }
+
+    @Test
+    fun testListFolderReturnsOnlyNameByDefault() {
+        runBlocking {
+            val results = toolset.list_bookmark_folder(folderId = workFolderId.toString()).bookmarks
+
+            val task = results.firstOrNull { it.id == taskBookmarkId.toString() }
+            assertThat(task).isNotNull
+            assertThat(task!!.properties.keys).containsExactly("name")
+        }
+    }
+
+    @Test
+    fun testExcludedPropertyIsOmittedByStarButIncludedWhenRequested() {
+        val iconBookmarkId = BookmarkId()
+        bookmarkDatabase.modify { modifier ->
+            modifier.addBookmarks(rootFolderId, listOf(
+                bookmark(iconBookmarkId, "Icon Bookmark")
+                    .withProperty("icon", "BASE64ICONDATA")
+                    .build()
+            ))
+        }
+
+        runBlocking {
+            // '*' returns all properties except those marked excludedFromMcp (icon)
+            val starred = toolset.search_bookmarks(query = "Icon Bookmark", returnProperties = "*").bookmarks
+            assertThat(starred.size).isEqualTo(1)
+            assertThat(starred[0].properties).doesNotContainKey("icon")
+
+            // explicitly requesting the excluded property forces its inclusion
+            val explicit = toolset.search_bookmarks(query = "Icon Bookmark", returnProperties = "name,icon").bookmarks
+            assertThat(explicit.size).isEqualTo(1)
+            assertThat(explicit[0].properties["icon"]).isEqualTo("BASE64ICONDATA")
+        }
+    }
+
+    // --- search_bookmarks pagination ---
+
+    @Test
+    fun testSearchPaginatesWithCursorAndTotal() {
+        runBlocking {
+            // "o" matches several names (work, personal, projects, My Project, My Blog, ...)
+            val first = toolset.search_bookmarks(query = "o", maxResults = 2)
+
+            assertThat(first.total).isNotNull().isGreaterThan(2)
+            assertThat(first.bookmarks.size).isEqualTo(2)
+            assertThat(first.nextCursor).isNotNull()
+
+            val ids = first.bookmarks.map { it.id }.toMutableList()
+            var cursor = first.nextCursor
+            while (cursor != null) {
+                val page = toolset.search_bookmarks(query = "o", maxResults = 2, cursor = cursor)
+                assertThat(page.bookmarks.size).isLessThanOrEqualTo(2)
+                ids.addAll(page.bookmarks.map { it.id })
+                cursor = page.nextCursor
+            }
+
+            assertThat(ids).hasSize(first.total!!)
+            assertThat(ids).doesNotHaveDuplicates()
+        }
+    }
+
+    // --- list_bookmark_folder pagination ---
+
+    @Test
+    fun testListFolderPaginatesWithCursorAndTotal() {
+        runBlocking {
+            val first = toolset.list_bookmark_folder(recursive = true, maxResults = 2)
+
+            assertThat(first.bookmarks.size).isEqualTo(2)
+            assertThat(first.total).isNotNull().isGreaterThan(2)
+            assertThat(first.nextCursor).isNotNull()
+
+            // page through the rest, collecting all ids
+            val ids = first.bookmarks.map { it.id }.toMutableList()
+            var cursor = first.nextCursor
+            while (cursor != null) {
+                val page = toolset.list_bookmark_folder(recursive = true, maxResults = 2, cursor = cursor)
+                assertThat(page.bookmarks.size).isLessThanOrEqualTo(2)
+                ids.addAll(page.bookmarks.map { it.id })
+                cursor = page.nextCursor
+            }
+
+            assertThat(ids).hasSize(first.total!!)
+            assertThat(ids).doesNotHaveDuplicates()
+        }
+    }
+
+    @Test
+    fun testListFolderNoNextCursorWhenUnderCap() {
+        runBlocking {
+            val result = toolset.list_bookmark_folder(folderId = workFolderId.toString())
+
+            // "work" has 2 direct children: the "projects" folder and the "Daily Task" bookmark
+            assertThat(result.bookmarks.size).isEqualTo(2)
+            assertThat(result.total).isEqualTo(2)
+            assertThat(result.nextCursor).isNull()
         }
     }
 

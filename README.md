@@ -354,8 +354,8 @@ Mes Favoris adds tools to the [MCP (Model Context Protocol)](https://www.jetbrai
 
 | Tool | Description |
 |------|-------------|
-| `list_bookmark_folder` | List direct children (or all descendants) of a bookmark folder |
-| `search_bookmarks` | Search bookmarks by text across all properties or specific ones |
+| `list_bookmark_folder` | List direct children (or all descendants) of a bookmark folder (paginated via `maxResults` / `cursor`) |
+| `search_bookmarks` | Search bookmarks by text across all properties or specific ones (paginated via `maxResults` / `cursor`; `returnProperties` selects which properties to return) |
 | `create_bookmark_folder` | Create a new bookmark folder |
 | `add_file_bookmark` | Add a file bookmark at a specific line |
 | `modify_bookmark` | Update properties of an existing bookmark |

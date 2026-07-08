@@ -38,7 +38,7 @@ jobs:
 
       # Check out the current repository
       - name: Fetch Sources
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # Validate wrapper
       - name: Gradle Wrapper Validation
@@ -54,6 +54,13 @@ jobs:
       # Setup Gradle
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
+        with:
+          # The extracted IntelliJ Platform (artifact transforms) is ~8 GiB and blows up
+          # the runner disk on restore. Don't cache it: it is regenerated locally from the
+          # IDE zip kept in the 'dependencies' cache (no re-download).
+          gradle-home-cache-excludes: |
+            caches/*/transforms
+            caches/transforms-*
 
       # Set environment variables
       - name: Export Properties
@@ -102,7 +109,7 @@ jobs:
 
       # Check out the current repository
       - name: Fetch Sources
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # Set up Java environment for the next steps
       - name: Setup Java
@@ -114,6 +121,13 @@ jobs:
       # Setup Gradle
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
+        with:
+          # The extracted IntelliJ Platform (artifact transforms) is ~8 GiB and blows up
+          # the runner disk on restore. Don't cache it: it is regenerated locally from the
+          # IDE zip kept in the 'dependencies' cache (no re-download).
+          gradle-home-cache-excludes: |
+            caches/*/transforms
+            caches/transforms-*
 
       # Run tests
       - name: Run Tests
@@ -160,7 +174,7 @@ jobs:
 
       # Check out the current repository
       - name: Fetch Sources
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}  # to check out the actual pull request commit, not the merge commit
           fetch-depth: 0  # a full history is required for pull request analysis
@@ -202,7 +216,7 @@ jobs:
 
       # Check out the current repository
       - name: Fetch Sources
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # Set up Java environment for the next steps
       - name: Setup Java
@@ -217,7 +231,7 @@ jobs:
 
       # Cache Plugin Verifier IDEs
       - name: Setup Plugin Verifier IDEs Cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ needs.build.outputs.pluginVerifierHomeDir }}/ides
           key: plugin-verifier-${{ hashFiles('build/listProductsReleases.txt') }}
@@ -247,7 +261,7 @@ jobs:
 
       # Check out the current repository
       - name: Fetch Sources
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # Remove old release drafts by using the curl request for the available releases with a draft flag
       - name: Remove Old Release Drafts
