@@ -289,6 +289,28 @@ class MesFavorisBookmarksMcpToolsetTest : BasePlatformTestCase() {
         }
     }
 
+    @Test
+    fun testSearchIgnoresExcludedPropertyValues() {
+        val iconBookmarkId = BookmarkId()
+        bookmarkDatabase.modify { modifier ->
+            modifier.addBookmarks(rootFolderId, listOf(
+                bookmark(iconBookmarkId, "Plain Name")
+                    .withProperty("icon", "ZZUNIQUEBLOBZZ")
+                    .build()
+            ))
+        }
+
+        runBlocking {
+            // The query only appears inside the excluded 'icon' blob — it must not match by default.
+            val results = toolset.search_bookmarks(query = "ZZUNIQUEBLOBZZ").bookmarks
+            assertThat(results).isEmpty()
+
+            // Explicitly targeting the excluded property still lets the user search it.
+            val explicit = toolset.search_bookmarks(query = "ZZUNIQUEBLOBZZ", attributes = "icon").bookmarks
+            assertThat(explicit.map { it.id }).containsExactly(iconBookmarkId.toString())
+        }
+    }
+
     // --- search_bookmarks pagination ---
 
     @Test
@@ -571,7 +593,7 @@ class MesFavorisBookmarksMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testMoveBookmarksIntoFolder() {
         runBlocking {
-            toolset.move_bookmarks(ids = taskBookmarkId.toString(), targetId = personalFolderId.toString(), location = "INTO")
+            toolset.move_bookmarks(ids = listOf(taskBookmarkId.toString()), targetId = personalFolderId.toString(), location = "INTO")
 
             assertThat(bookmarkDatabase.getBookmarksTree().getParentBookmark(taskBookmarkId)?.id).isEqualTo(personalFolderId)
         }
@@ -581,7 +603,7 @@ class MesFavorisBookmarksMcpToolsetTest : BasePlatformTestCase() {
     fun testMoveBookmarksBeforeTarget() {
         runBlocking {
             // Move projectBookmarkId before taskBookmarkId (both end up in workFolderId)
-            toolset.move_bookmarks(ids = projectBookmarkId.toString(), targetId = taskBookmarkId.toString(), location = "BEFORE")
+            toolset.move_bookmarks(ids = listOf(projectBookmarkId.toString()), targetId = taskBookmarkId.toString(), location = "BEFORE")
 
             val children = bookmarkDatabase.getBookmarksTree().getChildren(workFolderId).map { it.id }
             assertThat(children.indexOf(projectBookmarkId)).isLessThan(children.indexOf(taskBookmarkId))
@@ -592,7 +614,7 @@ class MesFavorisBookmarksMcpToolsetTest : BasePlatformTestCase() {
     fun testMoveBookmarksAfterTarget() {
         runBlocking {
             // Move projectBookmarkId after taskBookmarkId (both end up in workFolderId)
-            toolset.move_bookmarks(ids = projectBookmarkId.toString(), targetId = taskBookmarkId.toString(), location = "AFTER")
+            toolset.move_bookmarks(ids = listOf(projectBookmarkId.toString()), targetId = taskBookmarkId.toString(), location = "AFTER")
 
             val children = bookmarkDatabase.getBookmarksTree().getChildren(workFolderId).map { it.id }
             assertThat(children.indexOf(projectBookmarkId)).isGreaterThan(children.indexOf(taskBookmarkId))
@@ -603,7 +625,7 @@ class MesFavorisBookmarksMcpToolsetTest : BasePlatformTestCase() {
     fun testMoveMultipleBookmarks() {
         runBlocking {
             toolset.move_bookmarks(
-                ids = "${taskBookmarkId},${projectBookmarkId}",
+                ids = listOf(taskBookmarkId.toString(), projectBookmarkId.toString()),
                 targetId = personalFolderId.toString(),
                 location = "INTO"
             )
@@ -618,7 +640,7 @@ class MesFavorisBookmarksMcpToolsetTest : BasePlatformTestCase() {
     fun testMoveBookmarksWithInvalidIdFails() {
         assertMcpFails("not found") {
             runBlocking {
-                toolset.move_bookmarks(ids = "nonexistent", targetId = personalFolderId.toString(), location = "INTO")
+                toolset.move_bookmarks(ids = listOf("nonexistent"), targetId = personalFolderId.toString(), location = "INTO")
             }
         }
     }
@@ -627,7 +649,7 @@ class MesFavorisBookmarksMcpToolsetTest : BasePlatformTestCase() {
     fun testMoveBookmarksWithInvalidTargetFails() {
         assertMcpFails("not found") {
             runBlocking {
-                toolset.move_bookmarks(ids = taskBookmarkId.toString(), targetId = "nonexistent", location = "INTO")
+                toolset.move_bookmarks(ids = listOf(taskBookmarkId.toString()), targetId = "nonexistent", location = "INTO")
             }
         }
     }
@@ -636,7 +658,7 @@ class MesFavorisBookmarksMcpToolsetTest : BasePlatformTestCase() {
     fun testMoveBookmarksIntoNonFolderFails() {
         assertMcpFails("not a folder") {
             runBlocking {
-                toolset.move_bookmarks(ids = projectBookmarkId.toString(), targetId = taskBookmarkId.toString(), location = "INTO")
+                toolset.move_bookmarks(ids = listOf(projectBookmarkId.toString()), targetId = taskBookmarkId.toString(), location = "INTO")
             }
         }
     }
@@ -645,33 +667,44 @@ class MesFavorisBookmarksMcpToolsetTest : BasePlatformTestCase() {
     fun testMoveBookmarksWithInvalidLocationFails() {
         assertMcpFails("invalid location") {
             runBlocking {
-                toolset.move_bookmarks(ids = taskBookmarkId.toString(), targetId = personalFolderId.toString(), location = "SIDEWAYS")
+                toolset.move_bookmarks(ids = listOf(taskBookmarkId.toString()), targetId = personalFolderId.toString(), location = "SIDEWAYS")
             }
         }
     }
 
-    // --- delete_bookmark ---
+    // --- delete_bookmarks ---
 
     @Test
     fun testDeleteBookmarkRemovesItFromTree() {
         runBlocking {
-            toolset.delete_bookmark(id = taskBookmarkId.toString())
+            toolset.delete_bookmarks(ids = listOf(taskBookmarkId.toString()))
 
             assertThat(bookmarkDatabase.getBookmarksTree().getBookmark(taskBookmarkId)).isNull()
         }
     }
 
     @Test
+    fun testDeleteMultipleBookmarksRemovesThemFromTree() {
+        runBlocking {
+            toolset.delete_bookmarks(ids = listOf(taskBookmarkId.toString(), projectBookmarkId.toString()))
+
+            val tree = bookmarkDatabase.getBookmarksTree()
+            assertThat(tree.getBookmark(taskBookmarkId)).isNull()
+            assertThat(tree.getBookmark(projectBookmarkId)).isNull()
+        }
+    }
+
+    @Test
     fun testDeleteFolderWithoutRecursiveFails() {
         assertMcpFails("") {
-            runBlocking { toolset.delete_bookmark(id = workFolderId.toString(), recursive = false) }
+            runBlocking { toolset.delete_bookmarks(ids = listOf(workFolderId.toString()), recursive = false) }
         }
     }
 
     @Test
     fun testDeleteFolderRecursivelyRemovesFolderAndContents() {
         runBlocking {
-            toolset.delete_bookmark(id = workFolderId.toString(), recursive = true)
+            toolset.delete_bookmarks(ids = listOf(workFolderId.toString()), recursive = true)
 
             val tree = bookmarkDatabase.getBookmarksTree()
             assertThat(tree.getBookmark(workFolderId)).isNull()
@@ -683,7 +716,14 @@ class MesFavorisBookmarksMcpToolsetTest : BasePlatformTestCase() {
     @Test
     fun testDeleteWithInvalidIdFails() {
         assertMcpFails("not found") {
-            runBlocking { toolset.delete_bookmark(id = "nonexistent") }
+            runBlocking { toolset.delete_bookmarks(ids = listOf("nonexistent")) }
+        }
+    }
+
+    @Test
+    fun testDeleteWithEmptyIdsFails() {
+        assertMcpFails("No bookmark IDs provided") {
+            runBlocking { toolset.delete_bookmarks(ids = emptyList()) }
         }
     }
 
