@@ -15,6 +15,7 @@ import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkFolder;
 import mesfavoris.model.BookmarksTree;
 import mesfavoris.service.IBookmarksService;
+import mesfavoris.tags.Tags;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -139,13 +140,24 @@ public class BookmarksSearchEverywhereContributor implements SearchEverywhereCon
     }
 
     private boolean matchesSearchText(@NotNull Bookmark bookmark, @NotNull String searchText) {
+        // explicit tag query (tag:xxx or #xxx) matches only against tags
+        String tagTerm = Tags.extractTagQuery(searchText);
+        if (tagTerm != null) {
+            return Tags.hasTagMatching(bookmark, tagTerm);
+        }
+
         String name = bookmark.getPropertyValue(Bookmark.PROPERTY_NAME);
         if (name != null && name.toLowerCase().contains(searchText)) {
             return true;
         }
 
         String comment = bookmark.getPropertyValue(Bookmark.PROPERTY_COMMENT);
-        return comment != null && comment.toLowerCase().contains(searchText);
+        if (comment != null && comment.toLowerCase().contains(searchText)) {
+            return true;
+        }
+
+        // free text also matches tags
+        return Tags.hasTagMatching(bookmark, searchText);
     }
 
     @NotNull

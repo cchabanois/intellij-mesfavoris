@@ -727,6 +727,27 @@ class MesFavorisBookmarksMcpToolsetTest : BasePlatformTestCase() {
         }
     }
 
+    @Test
+    fun testModifyBookmarkSetsTags() {
+        runBlocking {
+            toolset.modify_bookmark(id = taskBookmarkId.toString(), properties = mapOf("tags" to "bug,perf"))
+
+            val bookmark = bookmarkDatabase.getBookmarksTree().getBookmark(taskBookmarkId)
+            assertThat(bookmark?.getPropertyValue("tags")).isEqualTo("bug,perf")
+        }
+    }
+
+    @Test
+    fun testTagsAreReturnedWhenRequested() {
+        runBlocking {
+            toolset.modify_bookmark(id = taskBookmarkId.toString(), properties = mapOf("tags" to "bug,perf"))
+
+            val results = toolset.search_bookmarks(query = "Daily Task", returnProperties = "name,tags").bookmarks
+            assertThat(results).isNotEmpty
+            assertThat(results[0].properties["tags"]).isEqualTo("bug,perf")
+        }
+    }
+
     // --- update_bookmark ---
 
     @Test
