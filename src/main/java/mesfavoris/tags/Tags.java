@@ -15,8 +15,8 @@ import static mesfavoris.tags.TagsBookmarkProperties.PROP_TAGS;
 
 /**
  * Pure helpers to read, write and query bookmark tags. Tags are stored in the {@code tags} property as a
- * comma-separated string. Tag names cannot contain commas and are compared case-insensitively (their
- * display casing is preserved).
+ * comma-separated string. Tag names cannot contain commas and are normalized to lower case (tags are
+ * case-insensitive and always displayed in lower case).
  */
 public class Tags {
 	private static final String SEPARATOR = ",";
@@ -25,36 +25,35 @@ public class Tags {
 	}
 
 	/**
-	 * Parses a raw tags string into an ordered, de-duplicated (case-insensitive) list of tag names.
-	 * Blank entries are dropped and each name is trimmed.
+	 * Parses a raw tags string into an ordered, de-duplicated list of lower-case tag names. Blank entries
+	 * are dropped and each name is trimmed.
 	 */
 	public static List<String> parse(String raw) {
 		if (raw == null || raw.isBlank()) {
 			return List.of();
 		}
-		Set<String> lowerSeen = new LinkedHashSet<>();
-		List<String> result = new ArrayList<>();
+		Set<String> tags = new LinkedHashSet<>();
 		for (String part : raw.split(SEPARATOR)) {
-			String tag = part.trim();
-			if (tag.isEmpty()) {
-				continue;
-			}
-			if (lowerSeen.add(tag.toLowerCase())) {
-				result.add(tag);
+			String tag = part.trim().toLowerCase();
+			if (!tag.isEmpty()) {
+				tags.add(tag);
 			}
 		}
-		return result;
+		return new ArrayList<>(tags);
 	}
 
 	/**
-	 * Formats a collection of tags into a canonical, case-insensitively sorted, comma-separated string.
-	 * Returns {@code null} when the result would be empty (so the property gets removed).
+	 * Formats a collection of tags into a canonical, sorted, lower-case comma-separated string. Returns
+	 * {@code null} when the result would be empty (so the property gets removed).
 	 */
 	public static String format(Collection<String> tags) {
-		SortedSet<String> sorted = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+		SortedSet<String> sorted = new TreeSet<>();
 		for (String tag : tags) {
-			if (tag != null && !tag.trim().isEmpty()) {
-				sorted.add(tag.trim());
+			if (tag != null) {
+				String normalized = tag.trim().toLowerCase();
+				if (!normalized.isEmpty()) {
+					sorted.add(normalized);
+				}
 			}
 		}
 		if (sorted.isEmpty()) {
@@ -64,24 +63,23 @@ public class Tags {
 	}
 
 	/**
-	 * Returns the raw string with {@code tag} added (no-op if already present, case-insensitively).
+	 * Returns the raw string with {@code tag} added (no-op if already present).
 	 */
 	public static String addTag(String raw, String tag) {
 		List<String> tags = new ArrayList<>(parse(raw));
-		String trimmed = tag == null ? "" : tag.trim();
-		if (!trimmed.isEmpty() && tags.stream().noneMatch(t -> t.equalsIgnoreCase(trimmed))) {
-			tags.add(trimmed);
+		String normalized = tag == null ? "" : tag.trim().toLowerCase();
+		if (!normalized.isEmpty() && !tags.contains(normalized)) {
+			tags.add(normalized);
 		}
 		return format(tags);
 	}
 
 	/**
-	 * Returns the raw string with {@code tag} removed (case-insensitively).
+	 * Returns the raw string with {@code tag} removed.
 	 */
 	public static String removeTag(String raw, String tag) {
 		List<String> tags = new ArrayList<>(parse(raw));
-		String trimmed = tag == null ? "" : tag.trim();
-		tags.removeIf(t -> t.equalsIgnoreCase(trimmed));
+		tags.remove(tag == null ? "" : tag.trim().toLowerCase());
 		return format(tags);
 	}
 
@@ -93,10 +91,10 @@ public class Tags {
 	}
 
 	/**
-	 * Collects every distinct tag used across the whole tree, ordered case-insensitively.
+	 * Collects every distinct tag used across the whole tree, sorted.
 	 */
 	public static SortedSet<String> collectAllTags(BookmarksTree tree) {
-		SortedSet<String> all = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+		SortedSet<String> all = new TreeSet<>();
 		for (Bookmark bookmark : tree) {
 			all.addAll(getTags(bookmark));
 		}
@@ -113,7 +111,7 @@ public class Tags {
 		if (lower.isEmpty()) {
 			return !tags.isEmpty();
 		}
-		return tags.stream().anyMatch(t -> t.toLowerCase().contains(lower));
+		return tags.stream().anyMatch(t -> t.contains(lower));
 	}
 
 	/**

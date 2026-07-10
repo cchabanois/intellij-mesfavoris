@@ -22,8 +22,8 @@ public class TagsTest {
 	}
 
 	@Test
-	public void testParseDeduplicatesCaseInsensitivelyKeepingFirst() {
-		assertEquals(List.of("Bug", "perf"), Tags.parse("Bug, bug, perf, PERF"));
+	public void testParseLowercasesAndDeduplicates() {
+		assertEquals(List.of("bug", "perf"), Tags.parse("Bug, bug, perf, PERF"));
 	}
 
 	@Test
@@ -33,9 +33,8 @@ public class TagsTest {
 	}
 
 	@Test
-	public void testFormatSortsCaseInsensitivelyAndDeduplicates() {
-		// case-insensitive sort + dedup; first-seen casing wins ("PERF" before "perf")
-		assertEquals("bug,PERF,zebra", Tags.format(List.of("zebra", "bug", "PERF", "perf")));
+	public void testFormatLowercasesSortsAndDeduplicates() {
+		assertEquals("bug,perf,zebra", Tags.format(List.of("zebra", "bug", "PERF", "perf")));
 	}
 
 	@Test

@@ -38,12 +38,10 @@ import static mesfavoris.tags.TagsBookmarkProperties.PROP_TAGS;
 @Service(Service.Level.PROJECT)
 public final class TagsIndex implements IBookmarksListener, Disposable {
 	private final BookmarkDatabase bookmarkDatabase;
-	// lowercase tag -> display form (first seen)
-	private final Map<String, String> displayByLowerTag = new HashMap<>();
-	// lowercase tag -> ids of bookmarks carrying it
-	private final Map<String, Set<BookmarkId>> idsByLowerTag = new HashMap<>();
-	// bookmark id -> lowercase tags it currently carries (the index's own view, for idempotent updates)
-	private final Map<BookmarkId, Set<String>> lowerTagsByBookmark = new HashMap<>();
+	// tag -> ids of bookmarks carrying it (tags are lower case, see Tags)
+	private final Map<String, Set<BookmarkId>> idsByTag = new HashMap<>();
+	// bookmark id -> tags it currently carries (the index's own view, for idempotent updates)
+	private final Map<BookmarkId, Set<String>> tagsByBookmark = new HashMap<>();
 	private boolean initialized = false;
 
 	@SuppressWarnings("unused") // instantiated by the platform as a project service
@@ -65,9 +63,7 @@ public final class TagsIndex implements IBookmarksListener, Disposable {
 	 */
 	public synchronized SortedSet<String> getAllTags() {
 		ensureInitialized();
-		SortedSet<String> tags = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-		tags.addAll(displayByLowerTag.values());
-		return tags;
+		return new TreeSet<>(idsByTag.keySet());
 	}
 
 	/**
@@ -78,7 +74,7 @@ public final class TagsIndex implements IBookmarksListener, Disposable {
 		if (tag == null) {
 			return Set.of();
 		}
-		Set<BookmarkId> ids = idsByLowerTag.get(tag.trim().toLowerCase());
+		Set<BookmarkId> ids = idsByTag.get(tag.trim().toLowerCase());
 		return ids == null ? Set.of() : new HashSet<>(ids);
 	}
 
@@ -130,46 +126,36 @@ public final class TagsIndex implements IBookmarksListener, Disposable {
 	 * the same tags is a no-op.
 	 */
 	private void reindexBookmark(BookmarkId bookmarkId, List<String> newTags) {
-		Set<String> newLowerTags = new HashSet<>();
-		Map<String, String> displayByLower = new HashMap<>();
-		for (String tag : newTags) {
-			String lower = tag.toLowerCase();
-			if (newLowerTags.add(lower)) {
-				displayByLower.put(lower, tag);
+		Set<String> newTagSet = new HashSet<>(newTags);
+		Set<String> oldTagSet = tagsByBookmark.getOrDefault(bookmarkId, Set.of());
+		for (String tag : oldTagSet) {
+			if (!newTagSet.contains(tag)) {
+				removeAssignment(tag, bookmarkId);
+			}
+		}
+		for (String tag : newTagSet) {
+			if (!oldTagSet.contains(tag)) {
+				addAssignment(tag, bookmarkId);
 			}
 		}
 
-		Set<String> oldLowerTags = lowerTagsByBookmark.getOrDefault(bookmarkId, Set.of());
-		for (String lower : oldLowerTags) {
-			if (!newLowerTags.contains(lower)) {
-				removeAssignment(lower, bookmarkId);
-			}
-		}
-		for (String lower : newLowerTags) {
-			if (!oldLowerTags.contains(lower)) {
-				addAssignment(lower, displayByLower.get(lower), bookmarkId);
-			}
-		}
-
-		if (newLowerTags.isEmpty()) {
-			lowerTagsByBookmark.remove(bookmarkId);
+		if (newTagSet.isEmpty()) {
+			tagsByBookmark.remove(bookmarkId);
 		} else {
-			lowerTagsByBookmark.put(bookmarkId, newLowerTags);
+			tagsByBookmark.put(bookmarkId, newTagSet);
 		}
 	}
 
-	private void addAssignment(String lowerTag, String displayTag, BookmarkId bookmarkId) {
-		idsByLowerTag.computeIfAbsent(lowerTag, k -> new HashSet<>()).add(bookmarkId);
-		displayByLowerTag.putIfAbsent(lowerTag, displayTag);
+	private void addAssignment(String tag, BookmarkId bookmarkId) {
+		idsByTag.computeIfAbsent(tag, k -> new HashSet<>()).add(bookmarkId);
 	}
 
-	private void removeAssignment(String lowerTag, BookmarkId bookmarkId) {
-		Set<BookmarkId> ids = idsByLowerTag.get(lowerTag);
+	private void removeAssignment(String tag, BookmarkId bookmarkId) {
+		Set<BookmarkId> ids = idsByTag.get(tag);
 		if (ids != null) {
 			ids.remove(bookmarkId);
 			if (ids.isEmpty()) {
-				idsByLowerTag.remove(lowerTag);
-				displayByLowerTag.remove(lowerTag);
+				idsByTag.remove(tag);
 			}
 		}
 	}
