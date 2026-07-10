@@ -13,6 +13,7 @@ import com.intellij.util.ui.JBUI;
 import mesfavoris.internal.actions.RemoteStoreActionGroup;
 import mesfavoris.internal.markers.BookmarkWithMarkerLabelProvider;
 import mesfavoris.internal.recent.RecentBookmarksVirtualFolder;
+import mesfavoris.internal.tags.TagsIndex;
 import mesfavoris.internal.tags.TagsRootVirtualFolder;
 import mesfavoris.internal.toolwindow.search.BookmarksTreeFilter;
 import mesfavoris.internal.toolwindow.search.SearchBookmarksTextField;
@@ -68,7 +69,8 @@ public class MesFavorisPanel extends JPanel implements DataProvider, Disposable 
                 bookmarkDatabase, visitedBookmarksProvider, rootId, 20);
         MostVisitedBookmarksVirtualFolder mostVisitedBookmarksVirtualFolder = new MostVisitedBookmarksVirtualFolder(project,
                 bookmarkDatabase, visitedBookmarksProvider, rootId, 20);
-        TagsRootVirtualFolder tagsRootVirtualFolder = new TagsRootVirtualFolder(bookmarkDatabase, rootId);
+        TagsRootVirtualFolder tagsRootVirtualFolder = new TagsRootVirtualFolder(bookmarkDatabase,
+                TagsIndex.getInstance(project), rootId);
 
         tree = new BookmarksTreeComponent(bookmarkDatabase, treeFilter, List.of(recentBookmarksVirtualFolder,
                 latestVisitedBookmarksVirtualFolder, mostVisitedBookmarksVirtualFolder, tagsRootVirtualFolder),this);

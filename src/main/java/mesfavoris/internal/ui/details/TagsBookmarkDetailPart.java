@@ -10,6 +10,7 @@ import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import mesfavoris.BookmarksException;
+import mesfavoris.internal.tags.TagsIndex;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkFolder;
@@ -36,17 +37,19 @@ import static mesfavoris.tags.TagsBookmarkProperties.PROP_TAGS;
  * box adds the tag to the current bookmark, unchecking removes it). Only leaf bookmarks can be tagged.
  */
 public class TagsBookmarkDetailPart extends AbstractBookmarkDetailPart {
+    private final TagsIndex tagsIndex;
     private JPanel component;
     private JBTextField tagsField;
     private CheckBoxList<String> tagsList;
     private boolean updating = false;
 
     public TagsBookmarkDetailPart(Project project) {
-        this(project, project.getService(IBookmarksService.class).getBookmarkDatabase());
+        this(project, project.getService(IBookmarksService.class).getBookmarkDatabase(), TagsIndex.getInstance(project));
     }
 
-    public TagsBookmarkDetailPart(Project project, BookmarkDatabase bookmarkDatabase) {
+    public TagsBookmarkDetailPart(Project project, BookmarkDatabase bookmarkDatabase, TagsIndex tagsIndex) {
         super(project, bookmarkDatabase);
+        this.tagsIndex = tagsIndex;
     }
 
     @Override
@@ -196,7 +199,7 @@ public class TagsBookmarkDetailPart extends AbstractBookmarkDetailPart {
                 for (String tag : Tags.getTags(bookmark)) {
                     current.add(tag.toLowerCase());
                 }
-                for (String tag : Tags.collectAllTags(bookmarkDatabase.getBookmarksTree())) {
+                for (String tag : tagsIndex.getAllTags()) {
                     items.put(tag, current.contains(tag.toLowerCase()));
                 }
             }

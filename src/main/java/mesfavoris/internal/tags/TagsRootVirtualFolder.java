@@ -5,7 +5,6 @@ import mesfavoris.internal.ui.virtual.VirtualBookmarkFolder;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.IBookmarksListener;
-import mesfavoris.tags.Tags;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -20,13 +19,15 @@ import java.util.SortedSet;
  */
 public class TagsRootVirtualFolder extends VirtualBookmarkFolder {
 	private final BookmarkDatabase bookmarkDatabase;
+	private final TagsIndex tagsIndex;
 	// reuse TagVirtualFolder instances across refreshes to keep tree node identity/expansion stable
 	private final Map<String, TagVirtualFolder> tagFolders = new LinkedHashMap<>();
 	private final IBookmarksListener bookmarksListener = modifications -> fireChildrenChanged();
 
-	public TagsRootVirtualFolder(BookmarkDatabase bookmarkDatabase, BookmarkId parentId) {
+	public TagsRootVirtualFolder(BookmarkDatabase bookmarkDatabase, TagsIndex tagsIndex, BookmarkId parentId) {
 		super(parentId, "Tags");
 		this.bookmarkDatabase = bookmarkDatabase;
+		this.tagsIndex = tagsIndex;
 	}
 
 	@Override
@@ -37,13 +38,13 @@ public class TagsRootVirtualFolder extends VirtualBookmarkFolder {
 
 	@Override
 	public synchronized List<VirtualBookmarkFolder> getChildFolders() {
-		SortedSet<String> tags = Tags.collectAllTags(bookmarkDatabase.getBookmarksTree());
+		SortedSet<String> tags = tagsIndex.getAllTags();
 		// drop folders for tags that no longer exist (tags is case-insensitive)
 		tagFolders.keySet().removeIf(tag -> !tags.contains(tag));
 		List<VirtualBookmarkFolder> result = new ArrayList<>();
 		for (String tag : tags) {
 			result.add(tagFolders.computeIfAbsent(tag,
-					t -> new TagVirtualFolder(bookmarkFolder.getId(), bookmarkDatabase, t)));
+					t -> new TagVirtualFolder(bookmarkFolder.getId(), bookmarkDatabase, tagsIndex, t)));
 		}
 		return result;
 	}

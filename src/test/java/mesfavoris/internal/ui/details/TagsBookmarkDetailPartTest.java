@@ -6,6 +6,7 @@ import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.components.JBTextField;
 import mesfavoris.BookmarksException;
+import mesfavoris.internal.tags.TagsIndex;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkFolder;
@@ -45,7 +46,7 @@ public class TagsBookmarkDetailPartTest extends BasePlatformTestCase {
         addBookmark(new Bookmark(b1, ImmutableMap.of(PROPERTY_NAME, "B1", PROP_TAGS, "bug,perf")));
         addBookmark(new Bookmark(b2, ImmutableMap.of(PROPERTY_NAME, "B2", PROP_TAGS, "ui")));
 
-        detailPart = new TagsBookmarkDetailPart(getProject(), bookmarkDatabase);
+        detailPart = new TagsBookmarkDetailPart(getProject(), bookmarkDatabase, new TagsIndex(bookmarkDatabase));
         detailPart.init();
         component = (JComponent) detailPart.createComponent();
     }

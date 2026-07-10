@@ -7,7 +7,6 @@ import mesfavoris.model.BookmarkDatabase;
 import mesfavoris.model.BookmarkFolder;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.model.BookmarksTree;
-import mesfavoris.tags.Tags;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,11 +18,13 @@ import java.util.List;
  */
 public class TagVirtualFolder extends VirtualBookmarkFolder {
 	private final BookmarkDatabase bookmarkDatabase;
+	private final TagsIndex tagsIndex;
 	private final String tag;
 
-	public TagVirtualFolder(BookmarkId parentId, BookmarkDatabase bookmarkDatabase, String tag) {
+	public TagVirtualFolder(BookmarkId parentId, BookmarkDatabase bookmarkDatabase, TagsIndex tagsIndex, String tag) {
 		super(parentId, tag);
 		this.bookmarkDatabase = bookmarkDatabase;
+		this.tagsIndex = tagsIndex;
 		this.tag = tag;
 	}
 
@@ -35,13 +36,12 @@ public class TagVirtualFolder extends VirtualBookmarkFolder {
 	public List<BookmarkLink> getChildren() {
 		BookmarksTree bookmarksTree = bookmarkDatabase.getBookmarksTree();
 		List<BookmarkLink> links = new ArrayList<>();
-		for (Bookmark bookmark : bookmarksTree) {
-			if (bookmark instanceof BookmarkFolder) {
+		for (BookmarkId bookmarkId : tagsIndex.getBookmarkIds(tag)) {
+			Bookmark bookmark = bookmarksTree.getBookmark(bookmarkId);
+			if (bookmark == null || bookmark instanceof BookmarkFolder) {
 				continue;
 			}
-			if (Tags.getTags(bookmark).stream().anyMatch(t -> t.equalsIgnoreCase(tag))) {
-				links.add(new BookmarkLink(bookmarkFolder.getId(), bookmark));
-			}
+			links.add(new BookmarkLink(bookmarkFolder.getId(), bookmark));
 		}
 		return links;
 	}

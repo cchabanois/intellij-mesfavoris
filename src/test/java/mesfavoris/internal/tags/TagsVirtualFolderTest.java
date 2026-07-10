@@ -34,7 +34,7 @@ public class TagsVirtualFolderTest {
 						bookmark(b3, "B3"))
 				.build();
 		bookmarkDatabase = new BookmarkDatabase("test", tree);
-		tagsRoot = new TagsRootVirtualFolder(bookmarkDatabase, rootId);
+		tagsRoot = new TagsRootVirtualFolder(bookmarkDatabase, new TagsIndex(bookmarkDatabase), rootId);
 	}
 
 	@Test
