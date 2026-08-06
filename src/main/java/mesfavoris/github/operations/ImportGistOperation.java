@@ -2,6 +2,7 @@ package mesfavoris.github.operations;
 
 import com.intellij.openapi.progress.ProgressIndicator;
 import mesfavoris.BookmarksException;
+import mesfavoris.github.client.IGistApiClient;
 import mesfavoris.github.mappings.GistMappingPropertiesProvider;
 import mesfavoris.github.mappings.GistMappingsStore;
 import mesfavoris.model.BookmarkId;
@@ -16,12 +17,12 @@ import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 
 public class ImportGistOperation {
-    private final GistApiClient apiClient;
+    private final IGistApiClient apiClient;
     private final GistMappingsStore gistMappingsStore;
     private final IBookmarksService bookmarksService;
     private final GistMappingPropertiesProvider propertiesProvider;
 
-    public ImportGistOperation(GistApiClient apiClient, GistMappingsStore gistMappingsStore,
+    public ImportGistOperation(IGistApiClient apiClient, GistMappingsStore gistMappingsStore,
                                IBookmarksService bookmarksService) {
         this.apiClient = apiClient;
         this.gistMappingsStore = gistMappingsStore;
@@ -37,7 +38,8 @@ public class ImportGistOperation {
             indicator.setFraction(0.0);
         }
 
-        LoadGistOperation.GistContents contents = new LoadGistOperation(apiClient).loadGist(gistId, indicator);
+        LoadGistOperation.GistContents contents =
+                new LoadGistOperation(apiClient).loadGist(gistId, indicator);
 
         if (indicator != null) indicator.setFraction(0.6);
 

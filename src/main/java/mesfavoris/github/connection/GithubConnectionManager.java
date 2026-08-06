@@ -7,13 +7,17 @@ import com.intellij.openapi.project.Project;
 import mesfavoris.github.GithubRemoteBookmarksStoreExtension;
 import mesfavoris.github.integration.IGithubAccountResolver;
 import mesfavoris.github.operations.GetAuthenticatedUserOperation;
-import mesfavoris.github.operations.GistApiClient;
+import mesfavoris.github.client.GistApiClient;
+import mesfavoris.github.client.IGistApiClient;
+import mesfavoris.github.client.IGistFileContentProvider;
+import mesfavoris.github.client.content.DefaultGistFileContentProvider;
 import mesfavoris.remote.IRemoteBookmarksStore.State;
 import mesfavoris.remote.RemoteStoreConfigurationException;
 import mesfavoris.remote.UserInfo;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.net.http.HttpClient;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -32,7 +36,7 @@ public class GithubConnectionManager {
     private volatile String accessToken;
     private volatile String apiBaseUrl;
     private volatile UserInfo userInfo;
-    private volatile GistApiClient gistApiClient;
+    private volatile IGistApiClient gistApiClient;
 
     public GithubConnectionManager(Project project) {
         this(project, project.getService(GithubUserInfoStore.class));
@@ -86,8 +90,11 @@ public class GithubConnectionManager {
             this.accessToken = accountInfo.accessToken();
             this.apiBaseUrl = accountInfo.apiBaseUrl();
             this.userInfo = authenticatedUser;
+            HttpClient httpClient = GistApiClient.newHttpClient();
+            IGistFileContentProvider contentProvider =
+                    DefaultGistFileContentProvider.create(project, httpClient, this::getAccessToken);
             this.gistApiClient = new GistApiClient(this::getAccessToken, this::getApiBaseUrl,
-                    GistApiClient.newHttpClient(), GithubRemoteBookmarksStoreExtension.USER_AGENT);
+                    httpClient, GithubRemoteBookmarksStoreExtension.USER_AGENT, contentProvider);
 
             state.set(State.connected);
 
@@ -124,7 +131,7 @@ public class GithubConnectionManager {
     }
 
     @Nullable
-    public GistApiClient getGistApiClient() {
+    public IGistApiClient getGistApiClient() {
         return gistApiClient;
     }
 

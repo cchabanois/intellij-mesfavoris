@@ -1,4 +1,6 @@
 package mesfavoris.github.operations;
+import mesfavoris.github.client.UserResponse;
+import mesfavoris.github.client.IGistApiClient;
 
 import com.intellij.openapi.progress.ProgressIndicator;
 import mesfavoris.remote.UserInfo;
@@ -7,9 +9,9 @@ import java.io.IOException;
 
 /** Fetches the authenticated user's login and name; used to verify the token on connect. */
 public class GetAuthenticatedUserOperation {
-    private final GistApiClient apiClient;
+    private final IGistApiClient apiClient;
 
-    public GetAuthenticatedUserOperation(GistApiClient apiClient) {
+    public GetAuthenticatedUserOperation(IGistApiClient apiClient) {
         this.apiClient = apiClient;
     }
 
@@ -17,7 +19,7 @@ public class GetAuthenticatedUserOperation {
         if (indicator != null) {
             indicator.setText("Getting authenticated GitHub user info");
         }
-        GistApiClient.UserResponse response = apiClient.getAuthenticatedUser();
+        UserResponse response = apiClient.getAuthenticatedUser();
         String displayName = response.name != null ? response.name : response.login;
         return new UserInfo(response.login, displayName);
     }

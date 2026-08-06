@@ -5,7 +5,7 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import mesfavoris.github.GithubTestUser;
 import mesfavoris.github.mappings.GistMappingsStore;
-import mesfavoris.github.operations.GistApiClient;
+import mesfavoris.github.client.GistApiClient;
 import mesfavoris.github.operations.LoadGistOperation;
 import mesfavoris.github.test.GithubConnectionRule;
 import mesfavoris.model.BookmarkId;

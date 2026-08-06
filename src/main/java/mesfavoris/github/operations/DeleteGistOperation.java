@@ -1,4 +1,5 @@
 package mesfavoris.github.operations;
+import mesfavoris.github.client.IGistApiClient;
 
 import com.intellij.openapi.progress.ProgressIndicator;
 
@@ -6,9 +7,9 @@ import java.io.IOException;
 
 /** Deletes a Gist; a 404 response is treated as success (idempotent). */
 public class DeleteGistOperation {
-    private final GistApiClient apiClient;
+    private final IGistApiClient apiClient;
 
-    public DeleteGistOperation(GistApiClient apiClient) {
+    public DeleteGistOperation(IGistApiClient apiClient) {
         this.apiClient = apiClient;
     }
 

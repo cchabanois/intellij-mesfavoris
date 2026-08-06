@@ -1,4 +1,6 @@
 package mesfavoris.github.operations;
+import mesfavoris.github.client.UserResponse;
+import mesfavoris.github.client.GistResponse;
 
 import mesfavoris.remote.ConflictException;
 import org.junit.Test;
@@ -15,7 +17,7 @@ public class GistApiClientTest extends AbstractGithubOperationTest {
 
     @Test
     public void testCreateGist_success() throws Exception {
-        GistApiClient.GistResponse response = apiClient.createGist("test gist", "bookmarks.json", "{}");
+        GistResponse response = apiClient.createGist("test gist", "bookmarks.json", "{}");
         trackGist(response.id);
 
         assertThat(response.id).isNotNull();
@@ -28,7 +30,7 @@ public class GistApiClientTest extends AbstractGithubOperationTest {
 
     @Test
     public void testUpdateGist_conflict_whenEtagIsStale() throws Exception {
-        GistApiClient.GistResponse created = apiClient.createGist("test gist", "bookmarks.json", "{}");
+        GistResponse created = apiClient.createGist("test gist", "bookmarks.json", "{}");
         trackGist(created.id);
         String staleEtag = created.updated_at;
         Thread.sleep(1100); // updated_at has second precision
@@ -42,11 +44,11 @@ public class GistApiClientTest extends AbstractGithubOperationTest {
 
     @Test
     public void testUpdateGist_success_whenEtagIsCurrent() throws Exception {
-        GistApiClient.GistResponse created = apiClient.createGist("test gist", "bookmarks.json", "{}");
+        GistResponse created = apiClient.createGist("test gist", "bookmarks.json", "{}");
         trackGist(created.id);
-        GistApiClient.GistResponse current = apiClient.loadGist(created.id);
+        GistResponse current = apiClient.loadGist(created.id);
         Thread.sleep(1100); // updated_at has second precision
-        GistApiClient.GistResponse updated = apiClient.updateGist(created.id, "bookmarks.json",
+        GistResponse updated = apiClient.updateGist(created.id, "bookmarks.json",
                 "{\"v\":1}", current.updated_at);
 
         assertThat(updated.updated_at).isNotEqualTo(current.updated_at);
@@ -54,10 +56,10 @@ public class GistApiClientTest extends AbstractGithubOperationTest {
 
     @Test
     public void testUpdateGist_noConflictCheck_whenEtagIsNull() throws Exception {
-        GistApiClient.GistResponse created = apiClient.createGist("test gist", "bookmarks.json", "{}");
+        GistResponse created = apiClient.createGist("test gist", "bookmarks.json", "{}");
         trackGist(created.id);
 
-        GistApiClient.GistResponse updated = apiClient.updateGist(created.id, "bookmarks.json",
+        GistResponse updated = apiClient.updateGist(created.id, "bookmarks.json",
                 "{\"v\":1}", null);
 
         assertThat(updated.id).isEqualTo(created.id);
@@ -67,11 +69,11 @@ public class GistApiClientTest extends AbstractGithubOperationTest {
 
     @Test
     public void testLoadGist_success() throws Exception {
-        GistApiClient.GistResponse created = apiClient.createGist("test gist", "bookmarks.json",
+        GistResponse created = apiClient.createGist("test gist", "bookmarks.json",
                 "{\"version\":\"1.0\"}");
         trackGist(created.id);
 
-        GistApiClient.GistResponse loaded = apiClient.loadGist(created.id);
+        GistResponse loaded = apiClient.loadGist(created.id);
 
         assertThat(loaded.id).isEqualTo(created.id);
         assertThat(loaded.files.get("bookmarks.json").content).isEqualTo("{\"version\":\"1.0\"}");
@@ -89,7 +91,7 @@ public class GistApiClientTest extends AbstractGithubOperationTest {
 
     @Test
     public void testDeleteGist_success() throws Exception {
-        GistApiClient.GistResponse created = apiClient.createGist("test gist", "bookmarks.json", "{}");
+        GistResponse created = apiClient.createGist("test gist", "bookmarks.json", "{}");
 
         apiClient.deleteGist(created.id);
 
@@ -107,7 +109,7 @@ public class GistApiClientTest extends AbstractGithubOperationTest {
 
     @Test
     public void testConditionalGetEtag_notModified_returnsNull() throws Exception {
-        GistApiClient.GistResponse created = apiClient.createGist("test gist", "bookmarks.json", "{}");
+        GistResponse created = apiClient.createGist("test gist", "bookmarks.json", "{}");
         trackGist(created.id);
         String etag = apiClient.conditionalGetEtag(created.id, null);
 
@@ -118,7 +120,7 @@ public class GistApiClientTest extends AbstractGithubOperationTest {
 
     @Test
     public void testConditionalGetEtag_modified_returnsNewEtag() throws Exception {
-        GistApiClient.GistResponse created = apiClient.createGist("test gist", "bookmarks.json", "{}");
+        GistResponse created = apiClient.createGist("test gist", "bookmarks.json", "{}");
         trackGist(created.id);
         String etag = apiClient.conditionalGetEtag(created.id, null);
         apiClient.updateGist(created.id, "bookmarks.json", "{\"v\":1}", null);
@@ -132,7 +134,7 @@ public class GistApiClientTest extends AbstractGithubOperationTest {
 
     @Test
     public void testGetAuthenticatedUser_success() throws Exception {
-        GistApiClient.UserResponse user = apiClient.getAuthenticatedUser();
+        UserResponse user = apiClient.getAuthenticatedUser();
 
         assertThat(user.login).isNotNull();
     }

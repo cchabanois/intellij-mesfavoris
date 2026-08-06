@@ -1,4 +1,6 @@
 package mesfavoris.github.operations;
+import mesfavoris.github.client.IGistApiClient;
+import mesfavoris.github.client.GistResponse;
 
 import com.intellij.openapi.progress.ProgressIndicator;
 import mesfavoris.remote.ConflictException;
@@ -9,13 +11,13 @@ import java.nio.charset.StandardCharsets;
 
 /** Updates a Gist's {@code bookmarks.json}, throwing {@link mesfavoris.remote.ConflictException} if the remote was modified since {@code etag}. */
 public class UpdateGistOperation {
-    private final GistApiClient apiClient;
+    private final IGistApiClient apiClient;
 
-    public UpdateGistOperation(GistApiClient apiClient) {
+    public UpdateGistOperation(IGistApiClient apiClient) {
         this.apiClient = apiClient;
     }
 
-    public GistApiClient.GistResponse updateGist(String gistId, byte[] content,
+    public GistResponse updateGist(String gistId, byte[] content,
                                                   @Nullable String etag,
                                                   ProgressIndicator indicator)
             throws IOException, ConflictException {

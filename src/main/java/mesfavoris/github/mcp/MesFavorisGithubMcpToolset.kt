@@ -12,7 +12,7 @@ import kotlinx.serialization.Serializable
 import mesfavoris.github.BookmarksGithubService
 import mesfavoris.github.dialogs.AddGistLinkDialog
 import mesfavoris.github.mappings.GistMappingsStore
-import mesfavoris.github.operations.GistApiClient
+import mesfavoris.github.client.IGistApiClient
 import mesfavoris.github.operations.ImportGistOperation
 import mesfavoris.model.BookmarkFolder
 import mesfavoris.model.BookmarkId
@@ -35,7 +35,7 @@ class MesFavorisGithubMcpToolset : McpToolset {
         currentProject().getService(GistMappingsStore::class.java)
             ?: mcpFail("Gist mappings store unavailable")
 
-    private suspend fun requireConnected(): GistApiClient {
+    private suspend fun requireConnected(): IGistApiClient {
         val project = currentProject()
         val service = project.getService(BookmarksGithubService::class.java)
             ?: mcpFail("GitHub service unavailable")

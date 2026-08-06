@@ -9,7 +9,8 @@ import mesfavoris.github.connection.GithubConnectionListener;
 import mesfavoris.github.connection.GithubConnectionManager;
 import mesfavoris.github.mappings.GistMapping;
 import mesfavoris.github.mappings.IGistMappings;
-import mesfavoris.github.operations.GistApiClient;
+import mesfavoris.github.client.GistApiClient;
+import mesfavoris.github.client.IGistApiClient;
 import mesfavoris.remote.IRemoteBookmarksStore.State;
 
 import java.io.IOException;
@@ -123,7 +124,7 @@ public class GistChangeManager implements Disposable {
                 if (connectionManager.getState() != State.connected) {
                     return;
                 }
-                GistApiClient apiClient = connectionManager.getGistApiClient();
+                IGistApiClient apiClient = connectionManager.getGistApiClient();
                 if (apiClient == null) {
                     return;
                 }

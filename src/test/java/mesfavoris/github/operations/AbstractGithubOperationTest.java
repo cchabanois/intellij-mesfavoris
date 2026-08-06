@@ -1,6 +1,8 @@
 package mesfavoris.github.operations;
 
 import mesfavoris.github.GithubTestUser;
+import mesfavoris.github.client.GistApiClient;
+import mesfavoris.github.client.content.DefaultGistFileContentProvider;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
@@ -20,7 +22,11 @@ public abstract class AbstractGithubOperationTest {
         Assume.assumeTrue("USER1_GITHUB_TOKEN not set", GithubTestUser.USER1.getToken().isPresent());
         String token = GithubTestUser.USER1.getToken().get();
         String apiBaseUrl = GithubTestUser.USER1.getApiBaseUrl();
-        apiClient = new GistApiClient(() -> token, () -> apiBaseUrl, HttpClient.newHttpClient());
+        // No IDE/project in these plain-JUnit tests, so getFileContent uses the small + raw-HTTP chain,
+        // sharing a single (redirect-following) HttpClient with the API client.
+        HttpClient httpClient = GistApiClient.newHttpClient();
+        apiClient = new GistApiClient(() -> token, () -> apiBaseUrl, httpClient, "",
+                DefaultGistFileContentProvider.create(null, httpClient, () -> token));
     }
 
     @After
