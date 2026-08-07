@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### Added
+
+- **Bookmark tags** — tag any bookmark, then browse your bookmarks grouped by tag under a new "Tags" virtual folder, filter and search by tag, and view or edit a bookmark's tags from the details panel. Tags are also shown in the bookmarks tree.
+
+### Fixed
+
+- Loading a bookmark folder from a large (truncated) GitHub Gist now reliably retrieves the full content: when the raw download is unavailable — files over 10 MB, or hosts that redirect the raw request to a login page — it falls back to cloning the Gist repository.
+
 ## [0.7.1] - 2026-07-06
 
 ### Fixed
