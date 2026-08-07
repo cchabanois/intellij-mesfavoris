@@ -6,7 +6,12 @@
 
 ### Added
 
-- **Bookmark tags** — tag any bookmark, then browse your bookmarks grouped by tag under a new "Tags" virtual folder, filter and search by tag, and view or edit a bookmark's tags from the details panel. Tags are also shown in the bookmarks tree.
+- **Bookmark tags** — tag any bookmark, then browse your bookmarks grouped by tag under a new "Tags" virtual folder, filter and search by tag, and view or edit a bookmark's tags from the details panel. Tags are shown in the bookmarks tree, and can also be set when creating a bookmark over MCP.
+
+### Changed
+
+- MCP bookmark tools that operate by ID now accept a list of IDs, so several bookmarks or folders can be moved or deleted in a single call.
+- MCP `search_bookmarks` no longer matches against or returns properties excluded from MCP (e.g. large base64 icons).
 
 ### Fixed
 
