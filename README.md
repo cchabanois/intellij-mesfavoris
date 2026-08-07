@@ -369,7 +369,7 @@ Mes Favoris adds tools to the [MCP (Model Context Protocol)](https://www.jetbrai
 | `modify_bookmark` | Update properties of an existing bookmark |
 | `update_bookmark` | Re-capture the file location of a file bookmark (new file path + line number) |
 | `move_bookmarks` | Move bookmarks INTO a folder or BEFORE/AFTER another bookmark |
-| `delete_bookmark` | Delete a bookmark or folder (optionally recursive) |
+| `delete_bookmarks` | Delete one or more bookmarks or folders (optionally recursive) |
 | `goto_bookmark` | Navigate the IDE to a bookmark by its ID |
 | `select_bookmark` | Select a bookmark in the tree without navigating |
 | `show_bookmarks` | Filter the bookmark tree to show only specific bookmarks; click × in the search bar to restore the full view |

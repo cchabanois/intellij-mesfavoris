@@ -172,7 +172,12 @@ class MesFavorisBookmarksMcpToolset : McpToolset {
             if (bookmark.id == startFolderId) return@filter false
             val props = bookmark.properties
             if (targetAttributes.isEmpty()) {
-                props.values.any { it.lowercase().contains(lowerQuery) }
+                // Search every property except those excluded from MCP (e.g. large base64 icon
+                // blobs), which would waste work and produce spurious matches.
+                props.entries.any { (key, value) ->
+                    descriptors.getPropertyDescriptor(key)?.isExcludedFromMcp != true &&
+                        value.lowercase().contains(lowerQuery)
+                }
             } else {
                 targetAttributes.any { attr -> props[attr]?.lowercase()?.contains(lowerQuery) == true }
             }
@@ -244,12 +249,12 @@ class MesFavorisBookmarksMcpToolset : McpToolset {
     @McpTool
     @McpDescription(description = "Move bookmarks (favoris) to a new location. Returns a confirmation message.")
     suspend fun move_bookmarks(
-        @McpDescription(description = "Comma-separated list of bookmark IDs to move") ids: String,
+        @McpDescription(description = "IDs of the bookmarks to move") ids: List<String>,
         @McpDescription(description = "Target bookmark ID") targetId: String,
         @McpDescription(description = "Where to place the bookmarks: INTO (into a bookmark folder), BEFORE or AFTER (relative to target)") location: String = "INTO"
     ): String {
         val service = bookmarksService()
-        val bookmarkIds = ids.split(",").map { it.trim() }.filter { it.isNotEmpty() }.map { BookmarkId(it) }
+        val bookmarkIds = ids.map { it.trim() }.filter { it.isNotEmpty() }.map { BookmarkId(it) }
         if (bookmarkIds.isEmpty()) mcpFail("No bookmark IDs provided")
 
         val loc = when (location.uppercase()) {
@@ -273,18 +278,21 @@ class MesFavorisBookmarksMcpToolset : McpToolset {
     }
 
     @McpTool
-    @McpDescription(description = "Delete a bookmark (favori) or bookmark folder by its ID. IMPORTANT: When recursive=true, always ask the user for confirmation before calling this tool.")
-    suspend fun delete_bookmark(
-        @McpDescription(description = "The bookmark ID to delete") id: String,
+    @McpDescription(description = "Delete one or more bookmarks (favoris) or bookmark folders by ID. IMPORTANT: When recursive=true, always ask the user for confirmation before calling this tool.")
+    suspend fun delete_bookmarks(
+        @McpDescription(description = "IDs of the bookmarks or folders to delete") ids: List<String>,
         @McpDescription(description = "Whether to delete bookmark folder contents recursively (default: false)") recursive: Boolean = false
     ): String {
         val service = bookmarksService()
-        service.getBookmarksTree().getBookmark(BookmarkId(id)) ?: mcpFail("Bookmark not found: $id")
+        val bookmarkIds = ids.map { it.trim() }.filter { it.isNotEmpty() }.map { BookmarkId(it) }
+        if (bookmarkIds.isEmpty()) mcpFail("No bookmark IDs provided")
+        val tree = service.getBookmarksTree()
+        bookmarkIds.forEach { id -> tree.getBookmark(id) ?: mcpFail("Bookmark not found: $id") }
         return try {
-            service.deleteBookmarks(listOf(BookmarkId(id)), recursive)
-            "Deleted bookmark: $id"
+            service.deleteBookmarks(bookmarkIds, recursive)
+            "Deleted ${bookmarkIds.size} bookmark(s)"
         } catch (e: BookmarksException) {
-            mcpFail("Could not delete bookmark '$id': ${e.message}")
+            mcpFail("Could not delete bookmarks: ${e.message}")
         }
     }
 
