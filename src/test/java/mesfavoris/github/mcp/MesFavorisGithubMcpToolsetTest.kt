@@ -1,11 +1,12 @@
 package mesfavoris.github.mcp
+import mesfavoris.github.client.GistResponse
 
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
 import kotlinx.coroutines.runBlocking
 import mesfavoris.github.BookmarksGithubService
 import mesfavoris.github.GithubTestUser
-import mesfavoris.github.operations.GistApiClient
+import mesfavoris.github.client.GistApiClient
 import mesfavoris.github.test.GithubConnectionRule
 import mesfavoris.model.BookmarkFolder
 import mesfavoris.model.BookmarkId
@@ -151,7 +152,7 @@ class MesFavorisGithubMcpToolsetTest : BasePlatformTestCase() {
         }
     }
 
-    private fun createBookmarksGist(name: String, folderId: BookmarkId = BookmarkId()): GistApiClient.GistResponse {
+    private fun createBookmarksGist(name: String, folderId: BookmarkId = BookmarkId()): GistResponse {
         val tree = BookmarksTree(BookmarkFolder(folderId, mapOf("name" to name)))
         val writer = StringWriter()
         BookmarksTreeJsonSerializer(false).serialize(tree, folderId, writer)

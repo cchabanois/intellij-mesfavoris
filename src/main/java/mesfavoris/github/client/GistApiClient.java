@@ -1,7 +1,6 @@
-package mesfavoris.github.operations;
+package mesfavoris.github.client;
 
 import com.google.gson.Gson;
-import com.google.gson.annotations.SerializedName;
 import mesfavoris.remote.ConflictException;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,9 +18,10 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * Low-level HTTP client for the GitHub Gist REST API.
+ * Low-level HTTP client for the GitHub Gist REST API. Implements {@link IGistApiClient} so callers can
+ * depend on the interface and be unit-tested with a mock.
  */
-public class GistApiClient {
+public class GistApiClient implements IGistApiClient {
     private static final String DEFAULT_BASE_URL = "https://api.github.com";
     private static final String API_VERSION = "2022-11-28";
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(30);
@@ -38,6 +38,8 @@ public class GistApiClient {
     private final Supplier<String> tokenSupplier;
     private final Supplier<String> baseUrlSupplier;
     private final String userAgent;
+    @Nullable
+    private final IGistFileContentProvider contentProvider;
 
     public GistApiClient(Supplier<String> tokenSupplier) {
         this(tokenSupplier, () -> DEFAULT_BASE_URL, newHttpClient(), "");
@@ -54,13 +56,39 @@ public class GistApiClient {
 
     public GistApiClient(Supplier<String> tokenSupplier, Supplier<String> baseUrlSupplier,
                          HttpClient httpClient, String userAgent) {
+        this(tokenSupplier, baseUrlSupplier, httpClient, userAgent, null);
+    }
+
+    /**
+     * @param contentProvider recovers full file content (see {@link #getFileContent}); may be {@code null}
+     *                        for clients that only perform REST operations and never fetch file content.
+     */
+    public GistApiClient(Supplier<String> tokenSupplier, Supplier<String> baseUrlSupplier,
+                         HttpClient httpClient, String userAgent,
+                         @Nullable IGistFileContentProvider contentProvider) {
         this.tokenSupplier = tokenSupplier;
         this.baseUrlSupplier = baseUrlSupplier;
         this.httpClient = httpClient;
         this.userAgent = userAgent;
+        this.contentProvider = contentProvider;
         this.gson = new Gson();
     }
 
+    /** The OAuth token used to authenticate against the API; needed to authenticate git clones of a Gist. */
+    @Override
+    public String getToken() {
+        return tokenSupplier.get();
+    }
+
+    @Override
+    public byte[] getFileContent(GistResponse gist, GistFile file) throws IOException {
+        if (contentProvider == null) {
+            throw new IOException("This GistApiClient was created without a content provider");
+        }
+        return contentProvider.getFileContent(gist, file);
+    }
+
+    @Override
     public GistResponse createGist(String description, String fileName, String content) throws IOException {
         String body = gson.toJson(Map.of(
                 "description", description,
@@ -77,6 +105,7 @@ public class GistApiClient {
         return gson.fromJson(response.body(), GistResponse.class);
     }
 
+    @Override
     public GistResponse updateGist(String gistId, String fileName, String content,
                                    @Nullable String expectedUpdatedAt)
             throws IOException, ConflictException {
@@ -99,6 +128,7 @@ public class GistApiClient {
         return gson.fromJson(response.body(), GistResponse.class);
     }
 
+    @Override
     public GistResponse loadGist(String gistId) throws IOException {
         HttpRequest request = authorizedRequest(baseUrlSupplier.get() + "/gists/" + gistId)
                 .GET()
@@ -110,18 +140,7 @@ public class GistApiClient {
         return gson.fromJson(response.body(), GistResponse.class);
     }
 
-    public String fetchRawContent(String rawUrl) throws IOException {
-        HttpRequest request = HttpRequest.newBuilder(URI.create(rawUrl))
-                .header("User-Agent", userAgent)
-                .GET()
-                .build();
-        HttpResponse<String> response = send(request);
-        if (response.statusCode() != 200) {
-            throw new IOException("Failed to fetch raw gist content: HTTP " + response.statusCode());
-        }
-        return response.body();
-    }
-
+    @Override
     public void deleteGist(String gistId) throws IOException {
         HttpRequest request = authorizedRequest(baseUrlSupplier.get() + "/gists/" + gistId)
                 .DELETE()
@@ -133,6 +152,7 @@ public class GistApiClient {
     }
 
     @Nullable
+    @Override
     public String conditionalGetEtag(String gistId, @Nullable String ifNoneMatch) throws IOException {
         HttpRequest.Builder builder = authorizedRequest(baseUrlSupplier.get() + "/gists/" + gistId).GET();
         if (ifNoneMatch != null) {
@@ -149,6 +169,7 @@ public class GistApiClient {
         return response.headers().firstValue("ETag").orElse(null);
     }
 
+    @Override
     public List<GistResponse> listGists() throws IOException {
         List<GistResponse> all = new ArrayList<>();
         String url = baseUrlSupplier.get() + "/gists?per_page=100";
@@ -176,6 +197,7 @@ public class GistApiClient {
         return null;
     }
 
+    @Override
     public UserResponse getAuthenticatedUser() throws IOException {
         HttpRequest request = authorizedRequest(baseUrlSupplier.get() + "/user").GET().build();
         HttpResponse<String> response = send(request);
@@ -207,30 +229,4 @@ public class GistApiClient {
         }
     }
 
-    // Response POJOs
-
-    public static class GistResponse {
-        public String id;
-        public String description;
-        public String updated_at;
-        public String html_url;
-        public GistOwner owner;
-        public Map<String, GistFile> files;
-
-        public static class GistOwner {
-            public String login;
-        }
-    }
-
-    public static class GistFile {
-        public String content;
-        public String raw_url;
-        @SerializedName("truncated")
-        public Boolean truncated;
-    }
-
-    public static class UserResponse {
-        public String login;
-        public String name;
-    }
 }

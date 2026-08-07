@@ -1,4 +1,5 @@
 package mesfavoris.github.operations;
+import mesfavoris.github.client.GistResponse;
 
 import mesfavoris.remote.ConflictException;
 import mesfavoris.tests.commons.waits.Waiter;
@@ -14,7 +15,7 @@ public class UpdateGistOperationTest extends AbstractGithubOperationTest {
 
     @Test
     public void testUpdateGist_success() throws Exception {
-        GistApiClient.GistResponse created = apiClient.createGist("test", "bookmarks.json", "{}");
+        GistResponse created = apiClient.createGist("test", "bookmarks.json", "{}");
         trackGist(created.id);
         UpdateGistOperation op = new UpdateGistOperation(apiClient);
 
@@ -29,9 +30,9 @@ public class UpdateGistOperationTest extends AbstractGithubOperationTest {
 
     @Test
     public void testUpdateGist_propagatesConflictException() throws Exception {
-        GistApiClient.GistResponse created = apiClient.createGist("test", "bookmarks.json", "{}");
+        GistResponse created = apiClient.createGist("test", "bookmarks.json", "{}");
         trackGist(created.id);
-        GistApiClient.GistResponse current = apiClient.loadGist(created.id);
+        GistResponse current = apiClient.loadGist(created.id);
         UpdateGistOperation op = new UpdateGistOperation(apiClient);
         // GitHub timestamps have second precision — sleep >1s so updated_at advances on the first update
         Thread.sleep(1100);
@@ -46,11 +47,11 @@ public class UpdateGistOperationTest extends AbstractGithubOperationTest {
 
     @Test
     public void testUpdateGist_withNullEtag_succeeds() throws Exception {
-        GistApiClient.GistResponse created = apiClient.createGist("test", "bookmarks.json", "{}");
+        GistResponse created = apiClient.createGist("test", "bookmarks.json", "{}");
         trackGist(created.id);
         UpdateGistOperation op = new UpdateGistOperation(apiClient);
 
-        GistApiClient.GistResponse updated = op.updateGist(created.id,
+        GistResponse updated = op.updateGist(created.id,
                 "{\"v\":1}".getBytes(StandardCharsets.UTF_8), null, null);
 
         assertThat(updated.id).isEqualTo(created.id);

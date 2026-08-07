@@ -10,7 +10,7 @@ import mesfavoris.github.connection.GithubUserInfoStore;
 import mesfavoris.github.integration.IGithubAccountResolver;
 import mesfavoris.github.mappings.GistMapping;
 import mesfavoris.github.mappings.GistMappingsStore;
-import mesfavoris.github.operations.GistApiClient;
+import mesfavoris.github.client.GistApiClient;
 import mesfavoris.remote.IRemoteBookmarksStore.State;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -1,18 +1,19 @@
 package mesfavoris.github.dialogs;
+import mesfavoris.github.client.GistResponse;
 
 import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBList;
-import mesfavoris.github.operations.GistApiClient;
+import mesfavoris.github.client.GistApiClient;
 import mesfavoris.icons.MesFavorisIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.util.List;
 
-public class GistListViewer extends JBList<GistApiClient.GistResponse> {
-    private final CollectionListModel<GistApiClient.GistResponse> listModel;
+public class GistListViewer extends JBList<GistResponse> {
+    private final CollectionListModel<GistResponse> listModel;
 
     public GistListViewer() {
         this.listModel = new CollectionListModel<>();
@@ -21,24 +22,24 @@ public class GistListViewer extends JBList<GistApiClient.GistResponse> {
         setCellRenderer(new GistCellRenderer());
     }
 
-    public void setGists(List<GistApiClient.GistResponse> gists) {
+    public void setGists(List<GistResponse> gists) {
         listModel.replaceAll(gists);
     }
 
-    public void addGist(GistApiClient.GistResponse gist) {
+    public void addGist(GistResponse gist) {
         if (listModel.getElementIndex(gist) < 0) {
             listModel.add(listModel.getSize(), gist);
         }
     }
 
-    public List<GistApiClient.GistResponse> getSelectedGists() {
+    public List<GistResponse> getSelectedGists() {
         return getSelectedValuesList();
     }
 
-    private static class GistCellRenderer extends ColoredListCellRenderer<GistApiClient.GistResponse> {
+    private static class GistCellRenderer extends ColoredListCellRenderer<GistResponse> {
         @Override
-        protected void customizeCellRenderer(@NotNull JList<? extends GistApiClient.GistResponse> list,
-                                             GistApiClient.GistResponse gist, int index,
+        protected void customizeCellRenderer(@NotNull JList<? extends GistResponse> list,
+                                             GistResponse gist, int index,
                                              boolean selected, boolean hasFocus) {
             setIcon(MesFavorisIcons.bookmarks);
             String label = (gist.description != null && !gist.description.isBlank())
