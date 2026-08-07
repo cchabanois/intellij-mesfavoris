@@ -133,8 +133,12 @@ public class ExtendedBookmarksTreeModel extends BaseTreeModel<Object> implements
         Map<BookmarkId, BookmarkLinkNode> folderCache =
             linkNodeCache.computeIfAbsent(virtualBookmarkFolder, k -> new ConcurrentHashMap<>());
 
+        List<Object> result = new ArrayList<>();
+
+        // Nested virtual folders come first (they are non-leaf, expandable)
+        result.addAll(virtualBookmarkFolder.getChildFolders());
+
         // Convert BookmarkLink to BookmarkLinkNode using cache
-        List<Object> result = new ArrayList<>(links.size());
         for (BookmarkLink link : links) {
             BookmarkLinkNode node = folderCache.computeIfAbsent(
                 link.getBookmark().getId(),

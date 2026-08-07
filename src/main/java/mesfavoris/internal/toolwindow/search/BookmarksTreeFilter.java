@@ -1,6 +1,7 @@
 package mesfavoris.internal.toolwindow.search;
 
 import mesfavoris.model.*;
+import mesfavoris.tags.Tags;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -153,13 +154,24 @@ public class BookmarksTreeFilter {
     }
 
     private boolean matchesSearchText(@NotNull Bookmark bookmark) {
+        // explicit tag query (tag:xxx or #xxx) matches only against tags
+        String tagTerm = Tags.extractTagQuery(searchText);
+        if (tagTerm != null) {
+            return Tags.hasTagMatching(bookmark, tagTerm);
+        }
+
         String name = bookmark.getPropertyValue(Bookmark.PROPERTY_NAME);
         if (name != null && name.toLowerCase().contains(searchText)) {
             return true;
         }
 
         String comment = bookmark.getPropertyValue(Bookmark.PROPERTY_COMMENT);
-        return comment != null && comment.toLowerCase().contains(searchText);
+        if (comment != null && comment.toLowerCase().contains(searchText)) {
+            return true;
+        }
+
+        // free text also matches tags
+        return Tags.hasTagMatching(bookmark, searchText);
     }
 
     private void makeAncestorsVisible(@NotNull BookmarksTree bookmarksTree, @NotNull Bookmark bookmark) {

@@ -8,6 +8,7 @@ import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.LayeredIcon;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import mesfavoris.bookmarktype.IBookmarkLabelProvider;
 import mesfavoris.commons.Adapters;
@@ -22,6 +23,7 @@ import mesfavoris.persistence.IBookmarksDirtyStateListener;
 import mesfavoris.persistence.IBookmarksDirtyStateTracker;
 import mesfavoris.remote.IRemoteBookmarksStore;
 import mesfavoris.remote.RemoteBookmarksStoreManager;
+import mesfavoris.tags.Tags;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -39,6 +41,9 @@ public class BookmarksTreeCellRenderer extends ColoredTreeCellRenderer implement
     private final IBookmarksDirtyStateTracker bookmarksDirtyStateTracker;
     private final Color commentColor = new JBColor(new Color(63, 127, 95), new Color(63, 127, 95));
     private static final Color AI_BADGE_COLOR = new JBColor(new Color(155, 89, 214), new Color(176, 127, 232));
+    // discreet grey tags: grey text with a thin grey outline, no fill
+    private static final Color TAG_FG_COLOR = new JBColor(new Color(120, 120, 120), new Color(140, 140, 140));
+    private static final Color TAG_BORDER_COLOR = new JBColor(new Color(180, 180, 180), new Color(90, 90, 90));
     private final IBookmarksDirtyStateListener dirtyStateListener = dirtyBookmarks -> ApplicationManager.getApplication().invokeLater(() -> {
         JTree tree = getTree();
         if (tree == null || !tree.isShowing()) {
@@ -70,6 +75,25 @@ public class BookmarksTreeCellRenderer extends ColoredTreeCellRenderer implement
         styledText.appendTo(this);
         Icon icon = getIcon(value);
         setIcon(icon);
+    }
+
+    @Override
+    protected void doPaintFragmentBackground(@NotNull Graphics2D g, int index, @NotNull Color bgColor, int x, int y, int width, int height) {
+        // draw tag fragments as rounded "pills" instead of the default rectangle
+        Object oldAntialiasing = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        try {
+            int verticalInset = JBUI.scale(3);
+            int pillHeight = height - 2 * verticalInset;
+            int top = y + verticalInset;
+            int arc = JBUI.scale(9);
+            // outline only (no fill) for a discreet look
+            g.setColor(TAG_BORDER_COLOR);
+            g.drawRoundRect(x, top, width - 1, pillHeight - 1, arc, arc);
+        } finally {
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                    oldAntialiasing != null ? oldAntialiasing : RenderingHints.VALUE_ANTIALIAS_DEFAULT);
+        }
     }
 
     private Icon getIcon(final Object element) {
@@ -107,6 +131,18 @@ public class BookmarksTreeCellRenderer extends ColoredTreeCellRenderer implement
                 && McpBookmarkProperties.ORIGIN_MCP.equals(bookmark.getPropertyValue(McpBookmarkProperties.PROPERTY_ORIGIN))) {
             Color badgeColor = isDisabled ? UIUtil.getInactiveTextColor() : AI_BADGE_COLOR;
             styledString = styledString.append(" [AI]", new SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, badgeColor));
+        }
+
+        if (!(bookmark instanceof BookmarkFolder)) {
+            Color tagFg = isDisabled ? UIUtil.getInactiveTextColor() : TAG_FG_COLOR;
+            // STYLE_OPAQUE (with a non-null bg) is required so SimpleColoredComponent invokes
+            // doPaintFragmentBackground, where we draw the outline; the bg itself is not filled.
+            SimpleTextAttributes tagAttributes = new SimpleTextAttributes(TAG_BORDER_COLOR, tagFg, null,
+                    SimpleTextAttributes.STYLE_SMALLER | SimpleTextAttributes.STYLE_OPAQUE);
+            for (String tag : Tags.getTags(bookmark)) {
+                styledString = styledString.append(" ");
+                styledString = styledString.append(" " + tag + " ", tagAttributes);
+            }
         }
 
         if (hasComment) {
