@@ -7,10 +7,12 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,6 +29,9 @@ public class GistApiClient implements IGistApiClient {
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(30);
     /** GitHub asks clients to wait at least one second between mutative requests (secondary rate limit). */
     private static final Duration MIN_WRITE_INTERVAL = Duration.ofSeconds(1);
+    private static final int MAX_RATE_LIMIT_RETRIES = 3;
+    /** Beyond this wait we give up rather than block a background thread (e.g. a far-away primary reset). */
+    private static final Duration MAX_RATE_LIMIT_WAIT = Duration.ofMinutes(2);
 
     public static HttpClient newHttpClient() {
         return HttpClient.newBuilder()
@@ -44,6 +49,8 @@ public class GistApiClient implements IGistApiClient {
     private final IGistFileContentProvider contentProvider;
     private final Object writeGate = new Object();
     private long lastWriteNanos = 0;
+    private final Object rateLimitGate = new Object();
+    private long blockedUntilNanos = 0;
 
     public GistApiClient(Supplier<String> tokenSupplier) {
         this(tokenSupplier, () -> DEFAULT_BASE_URL, newHttpClient(), "");
@@ -226,12 +233,89 @@ public class GistApiClient implements IGistApiClient {
 
     private HttpResponse<String> send(HttpRequest request) throws IOException {
         throttleIfMutating(request.method());
+        for (int attempt = 0; ; attempt++) {
+            awaitRateLimitGate();
+            HttpResponse<String> response = sendOnce(request);
+            Duration delay = rateLimitDelay(response);
+            if (delay == null) {
+                return response;
+            }
+            // Record a client-wide block so concurrent/subsequent requests also back off instead of piling
+            // on while we are rate limited (GitHub may ban integrations that keep requesting when limited).
+            blockRequestsFor(delay);
+            if (attempt >= MAX_RATE_LIMIT_RETRIES) {
+                throw new IOException("GitHub rate limit still hit after %d attempt(s) (HTTP %d)".formatted(attempt + 1, response.statusCode()));
+            }
+        }
+    }
+
+    private HttpResponse<String> sendOnce(HttpRequest request) throws IOException {
         try {
             return httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IOException("Request interrupted", e);
         }
+    }
+
+    /**
+     * Blocks until the client-wide rate-limit window has elapsed, so that no request is sent while GitHub has
+     * told us we are rate limited. Gives up (throws) rather than blocking a background thread for too long
+     * when the reset is far away (e.g. a primary rate limit).
+     */
+    private void awaitRateLimitGate() throws IOException {
+        long waitNanos;
+        synchronized (rateLimitGate) {
+            waitNanos = blockedUntilNanos - System.nanoTime();
+        }
+        if (waitNanos <= 0) {
+            return;
+        }
+        if (waitNanos > MAX_RATE_LIMIT_WAIT.toNanos()) {
+            throw new IOException("GitHub rate limit: reset is more than %d minute(s) away".formatted(MAX_RATE_LIMIT_WAIT.toMinutes()));
+        }
+        sleep(Duration.ofNanos(waitNanos));
+    }
+
+    private void blockRequestsFor(Duration delay) {
+        synchronized (rateLimitGate) {
+            blockedUntilNanos = Math.max(blockedUntilNanos, System.nanoTime() + delay.toNanos());
+        }
+    }
+
+    /**
+     * How long to wait before retrying, per GitHub's guidance, or {@code null} when {@code response} is not a
+     * retryable rate-limit error (so the caller should not retry). Detection is header-based only: the
+     * {@code retry-after} header, then {@code x-ratelimit-remaining: 0} + {@code x-ratelimit-reset}. A 403/429
+     * without either marker (bad credentials, missing resource, or a secondary limit carrying no headers) is
+     * not treated as a retryable rate limit.
+     */
+    private static Duration rateLimitDelay(HttpResponse<String> response) {
+        int status = response.statusCode();
+        if (status != 403 && status != 429) {
+            return null;
+        }
+        HttpHeaders headers = response.headers();
+        String retryAfter = headers.firstValue("retry-after").orElse(null);
+        if (retryAfter != null) {
+            try {
+                return Duration.ofSeconds(Math.max(1, Long.parseLong(retryAfter.trim())));
+            } catch (NumberFormatException ignored) {
+                // not a delay-seconds value; fall through
+            }
+        }
+        if ("0".equals(headers.firstValue("x-ratelimit-remaining").orElse(null))) {
+            String reset = headers.firstValue("x-ratelimit-reset").orElse(null);
+            if (reset != null) {
+                try {
+                    long secondsUntilReset = Long.parseLong(reset.trim()) - Instant.now().getEpochSecond();
+                    return Duration.ofSeconds(Math.max(1, secondsUntilReset));
+                } catch (NumberFormatException ignored) {
+                    // not an epoch value; fall through
+                }
+            }
+        }
+        return null;
     }
 
     /**
