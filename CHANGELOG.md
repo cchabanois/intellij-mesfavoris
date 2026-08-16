@@ -12,6 +12,7 @@
 
 - MCP bookmark tools that operate by ID now accept a list of IDs, so several bookmarks or folders can be moved or deleted in a single call.
 - MCP `search_bookmarks` no longer matches against or returns properties excluded from MCP (e.g. large base64 icons).
+- GitHub Gist sync now paces write requests and backs off on GitHub rate-limit responses, so syncing many bookmark folders no longer fails with secondary rate-limit errors.
 
 ### Fixed
 
