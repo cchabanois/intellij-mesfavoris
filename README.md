@@ -13,6 +13,7 @@
 
 - **Hierarchical bookmarks** — organize in folders and subfolders with drag-and-drop
 - **Multiple bookmark types** — files, URLs, code snippets, Java members, notes, shortcuts, IDE actions
+- **Tags** — tag any bookmark and browse them grouped by tag
 - **Path placeholders** — portable bookmarks across machines using variables like `${HOME}`
 - **Remote sync** — share bookmarks with your team via Google Drive or GitHub Gists
 - **Resilient file bookmarks** — survive refactoring and edits thanks to the Bitap algorithm
@@ -39,6 +40,7 @@
   - [Note](#note)
   - [Shortcut](#shortcut)
   - [Action](#action)
+- [Tags](#tags)
 - [Markers](#markers)
 - [Search Everywhere](#search-everywhere)
 - [Comments in the editor](#comments-in-the-editor)
@@ -201,6 +203,12 @@ A shortcut is a pointer to another bookmark. Select a bookmark in the tree, righ
 An action bookmark wraps an IntelliJ IDE action. To create one, open Search Everywhere (<kbd>Shift</kbd>+<kbd>Shift</kbd>), switch to the **Actions** tab, find the action you want to bookmark, and press <kbd>F11</kbd>. Double-clicking the bookmark in the tree runs the action directly. Useful for keeping frequently used but hard-to-find actions at hand.
 
 ---
+
+## Tags
+
+Bookmarks can be tagged with one or more free-form labels to organize them across folders. Add or edit a bookmark's tags from the **details panel**; the tags are shown next to the bookmark in the tree.
+
+A **Tags** virtual folder groups your bookmarks by tag, so you can browse everything sharing a given tag in one place, independently of the folder hierarchy. You can also filter the tree and search by tag.
 
 ## Markers
 

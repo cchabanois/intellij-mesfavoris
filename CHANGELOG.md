@@ -4,6 +4,20 @@
 
 ## [Unreleased]
 
+### Added
+
+- **Bookmark tags** — tag any bookmark, then browse your bookmarks grouped by tag under a new "Tags" virtual folder, filter and search by tag, and view or edit a bookmark's tags from the details panel. Tags are shown in the bookmarks tree, and can also be set when creating a bookmark over MCP.
+
+### Changed
+
+- MCP bookmark tools that operate by ID now accept a list of IDs, so several bookmarks or folders can be moved or deleted in a single call.
+- MCP `search_bookmarks` no longer matches against or returns properties excluded from MCP (e.g. large base64 icons).
+- GitHub Gist sync now paces write requests and backs off on GitHub rate-limit responses, so syncing many bookmark folders no longer fails with secondary rate-limit errors.
+
+### Fixed
+
+- Loading a bookmark folder from a large (truncated) GitHub Gist now reliably retrieves the full content: when the raw download is unavailable — files over 10 MB, or hosts that redirect the raw request to a login page — it falls back to cloning the Gist repository.
+
 ## [0.7.1] - 2026-07-06
 
 ### Fixed
