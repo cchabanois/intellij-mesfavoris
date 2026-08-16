@@ -25,6 +25,8 @@ public class GistApiClient implements IGistApiClient {
     private static final String DEFAULT_BASE_URL = "https://api.github.com";
     private static final String API_VERSION = "2022-11-28";
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(30);
+    /** GitHub asks clients to wait at least one second between mutative requests (secondary rate limit). */
+    private static final Duration MIN_WRITE_INTERVAL = Duration.ofSeconds(1);
 
     public static HttpClient newHttpClient() {
         return HttpClient.newBuilder()
@@ -40,6 +42,8 @@ public class GistApiClient implements IGistApiClient {
     private final String userAgent;
     @Nullable
     private final IGistFileContentProvider contentProvider;
+    private final Object writeGate = new Object();
+    private long lastWriteNanos = 0;
 
     public GistApiClient(Supplier<String> tokenSupplier) {
         this(tokenSupplier, () -> DEFAULT_BASE_URL, newHttpClient(), "");
@@ -221,11 +225,43 @@ public class GistApiClient implements IGistApiClient {
     }
 
     private HttpResponse<String> send(HttpRequest request) throws IOException {
+        throttleIfMutating(request.method());
         try {
             return httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IOException("Request interrupted", e);
+        }
+    }
+
+    /**
+     * Spaces mutative requests (POST/PATCH/PUT/DELETE) by at least {@link #MIN_WRITE_INTERVAL} to avoid
+     * tripping GitHub's secondary rate limit; GET/HEAD are not delayed. Only back-to-back writes wait, so
+     * ordinary single operations are unaffected.
+     */
+    private void throttleIfMutating(String method) {
+        if (!isMutating(method)) {
+            return;
+        }
+        synchronized (writeGate) {
+            long waitNanos = MIN_WRITE_INTERVAL.toNanos() - (System.nanoTime() - lastWriteNanos);
+            if (lastWriteNanos != 0L && waitNanos > 0) {
+                sleep(Duration.ofNanos(waitNanos));
+            }
+            lastWriteNanos = System.nanoTime();
+        }
+    }
+
+    private static boolean isMutating(String method) {
+        return method.equals("POST") || method.equals("PATCH")
+                || method.equals("PUT") || method.equals("DELETE");
+    }
+
+    private static void sleep(Duration duration) {
+        try {
+            Thread.sleep(duration.toMillis());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
