@@ -5,6 +5,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.NioFiles;
 import git4idea.commands.Git;
 import git4idea.commands.GitCommandResult;
+import git4idea.commands.GitShallowCloneOptions;
 import mesfavoris.github.client.GistFile;
 import mesfavoris.github.client.GistResponse;
 
@@ -42,8 +43,10 @@ public class CloneGistFileContentProvider implements IGistFileContentProvider {
         Path tempParent = Files.createTempDirectory("mesfavoris-gist-");
         try {
             String url = authenticatedGitUrl(gist.git_pull_url, tokenSupplier.get());
+            // Shallow clone: we only read HEAD and discard the repo, so history is pure waste.
             GitCommandResult result = Git.getInstance()
-                    .clone(project, tempParent.toFile(), url, CLONE_DIR_NAME);
+                    .clone(project, tempParent.toFile(), url, CLONE_DIR_NAME,
+                            new GitShallowCloneOptions(1));
             if (!result.success()) {
                 // git strips the userinfo (token) from the URL in its stderr, so this is safe to surface as-is.
                 throw new IOException("Failed to clone gist: " + result.getErrorOutputAsJoinedString());
