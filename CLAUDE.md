@@ -175,6 +175,10 @@ MCP tool names follow the pattern `<verb>_<store>_bookmark_<noun>`:
 
 Always include the store qualifier (`github`, `gdrive`) in store-specific tool names so tools from different toolsets are unambiguous.
 
+### Code Comments
+
+Keep comments short — a single concise line whenever possible. Explain the "why", not the "what", and don't restate what the code already says. Avoid multi-paragraph Javadoc blocks unless a public API genuinely needs it.
+
 ### Commit Messages
 
 Keep commit messages short — one line, no body. Example: `Use MessageBus for dirty bookmarks state notifications`
