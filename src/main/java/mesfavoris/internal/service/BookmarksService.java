@@ -277,10 +277,11 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
         operation.cutToClipboard(selection);
     }
 
-    public void addBookmarksTree(BookmarkId parentBookmarkId, BookmarksTree sourceBookmarksTree,
-                                 Consumer<BookmarksTree> afterCommit) throws BookmarksException {
-        AddBookmarksTreeOperation operation = new AddBookmarksTreeOperation(bookmarkDatabase);
-        operation.addBookmarksTree(parentBookmarkId, sourceBookmarksTree, afterCommit);
+    public void importRemoteBookmarksTree(BookmarkId parentBookmarkId, BookmarksTree sourceBookmarksTree,
+                                          Consumer<BookmarksTree> afterCommit) throws BookmarksException {
+        ImportRemoteBookmarksTreeOperation operation = new ImportRemoteBookmarksTreeOperation(bookmarkDatabase,
+                remoteBookmarksStoreManager);
+        operation.importRemoteBookmarksTree(parentBookmarkId, sourceBookmarksTree, afterCommit);
     }
 
     public void addToRemoteBookmarksStore(String storeId, final BookmarkId bookmarkFolderId,
