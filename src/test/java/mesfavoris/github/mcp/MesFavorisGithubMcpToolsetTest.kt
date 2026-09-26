@@ -1,11 +1,12 @@
 package mesfavoris.github.mcp
+import mesfavoris.github.client.GistResponse
 
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
 import kotlinx.coroutines.runBlocking
 import mesfavoris.github.BookmarksGithubService
 import mesfavoris.github.GithubTestUser
-import mesfavoris.github.operations.GistApiClient
+import mesfavoris.github.client.GistApiClient
 import mesfavoris.github.test.GithubConnectionRule
 import mesfavoris.model.BookmarkFolder
 import mesfavoris.model.BookmarkId
@@ -14,7 +15,6 @@ import mesfavoris.persistence.json.BookmarksTreeJsonSerializer
 import mesfavoris.service.IBookmarksService
 import mesfavoris.tests.commons.waits.Waiter
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Assume
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -33,13 +33,14 @@ class MesFavorisGithubMcpToolsetTest : BasePlatformTestCase() {
     @Before
     override fun setUp() {
         super.setUp()
-        Assume.assumeTrue("USER1_GITHUB_TOKEN not set", GithubTestUser.USER1.token.isPresent)
 
         connectionRule = GithubConnectionRule(project, GithubTestUser.USER1, true)
         connectionRule.before()
 
-        val token = GithubTestUser.USER1.token.get()
-        apiClient = GistApiClient({ token }, GithubTestUser.USER1::getApiBaseUrl, HttpClient.newHttpClient())
+        // Follows the connection manager, so it targets the real API or the FakeGistApiServer transparently.
+        val connectionManager = connectionRule.connectionManager
+        apiClient = GistApiClient({ connectionManager.accessToken }, { connectionManager.apiBaseUrl },
+            HttpClient.newHttpClient())
 
         val mockGithubService = mock(BookmarksGithubService::class.java)
         `when`(mockGithubService.connectionManager).thenReturn(connectionRule.connectionManager)
@@ -151,7 +152,7 @@ class MesFavorisGithubMcpToolsetTest : BasePlatformTestCase() {
         }
     }
 
-    private fun createBookmarksGist(name: String, folderId: BookmarkId = BookmarkId()): GistApiClient.GistResponse {
+    private fun createBookmarksGist(name: String, folderId: BookmarkId = BookmarkId()): GistResponse {
         val tree = BookmarksTree(BookmarkFolder(folderId, mapOf("name" to name)))
         val writer = StringWriter()
         BookmarksTreeJsonSerializer(false).serialize(tree, folderId, writer)

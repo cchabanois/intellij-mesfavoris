@@ -1,5 +1,6 @@
 package mesfavoris.github.operations;
 
+import mesfavoris.github.client.GistResponse;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -13,7 +14,7 @@ public class LoadGistOperationTest extends AbstractGithubOperationTest {
     @Test
     public void testLoadGist_success() throws Exception {
         String content = "{\"version\":\"1.0\"}";
-        GistApiClient.GistResponse created = apiClient.createGist("test", "bookmarks.json", content);
+        GistResponse created = apiClient.createGist("test", "bookmarks.json", content);
         trackGist(created.id);
         LoadGistOperation op = new LoadGistOperation(apiClient);
 
@@ -25,8 +26,30 @@ public class LoadGistOperationTest extends AbstractGithubOperationTest {
     }
 
     @Test
+    public void testLoadGist_truncatedLargeFile_returnsFullContent() throws Exception {
+        String content = largeJson();
+        GistResponse created = apiClient.createGist("large gist", "bookmarks.json", content);
+        trackGist(created.id);
+        LoadGistOperation op = new LoadGistOperation(apiClient);
+
+        LoadGistOperation.GistContents result = op.loadGist(created.id, null);
+
+        assertThat(new String(result.content(), StandardCharsets.UTF_8)).isEqualTo(content);
+    }
+
+    /** Builds a JSON object larger than 1&nbsp;MB so the Gist API marks the file as truncated. */
+    private static String largeJson() {
+        StringBuilder sb = new StringBuilder("{\"version\":\"1.0\",\"items\":[");
+        for (int i = 0; i < 20000; i++) {
+            if (i > 0) sb.append(',');
+            sb.append("{\"id\":").append(i).append(",\"note\":\"").append("x".repeat(50)).append("\"}");
+        }
+        return sb.append("]}").toString();
+    }
+
+    @Test
     public void testLoadGist_missingBookmarksJson_throwsIOException() throws Exception {
-        GistApiClient.GistResponse created = apiClient.createGist("test", "other.json", "{}");
+        GistResponse created = apiClient.createGist("test", "other.json", "{}");
         trackGist(created.id);
         LoadGistOperation op = new LoadGistOperation(apiClient);
 

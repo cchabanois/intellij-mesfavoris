@@ -1,4 +1,5 @@
 package mesfavoris.github.actions;
+import mesfavoris.github.client.GistResponse;
 
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -14,7 +15,8 @@ import mesfavoris.github.BookmarksGithubService;
 import mesfavoris.github.connection.GithubConnectionManager;
 import mesfavoris.github.dialogs.ImportGistDialog;
 import mesfavoris.github.mappings.GistMappingsStore;
-import mesfavoris.github.operations.GistApiClient;
+import mesfavoris.github.client.GistApiClient;
+import mesfavoris.github.client.IGistApiClient;
 import mesfavoris.github.operations.ImportGistOperation;
 import mesfavoris.internal.actions.AbstractBookmarkAction;
 import mesfavoris.model.Bookmark;
@@ -69,7 +71,7 @@ public class ImportBookmarksFromGithubAction extends AbstractBookmarkAction {
 
         IBookmarksService bookmarksService = project.getService(IBookmarksService.class);
         GistMappingsStore gistMappingsStore = project.getService(GistMappingsStore.class);
-        GistApiClient apiClient = connectionManager.getGistApiClient();
+        IGistApiClient apiClient = connectionManager.getGistApiClient();
 
         List<Bookmark> selectedBookmarks = getSelectedBookmarks(event);
         BookmarkId targetFolderId = selectedBookmarks.isEmpty() || !(selectedBookmarks.getFirst() instanceof BookmarkFolder)
@@ -79,17 +81,17 @@ public class ImportBookmarksFromGithubAction extends AbstractBookmarkAction {
         ImportGistDialog dialog = new ImportGistDialog(project, apiClient, gistMappingsStore);
         if (!dialog.showAndGet()) return;
 
-        List<GistApiClient.GistResponse> gists = dialog.getSelectedGists();
+        List<GistResponse> gists = dialog.getSelectedGists();
         if (gists.isEmpty()) return;
 
         importGists(project, apiClient, gistMappingsStore, bookmarksService, targetFolderId, gists);
     }
 
-    private void importGists(@NotNull Project project, @NotNull GistApiClient apiClient,
+    private void importGists(@NotNull Project project, @NotNull IGistApiClient apiClient,
                              @NotNull GistMappingsStore gistMappingsStore,
                              @NotNull IBookmarksService bookmarksService,
                              @NotNull BookmarkId targetFolderId,
-                             @NotNull List<GistApiClient.GistResponse> gists) {
+                             @NotNull List<GistResponse> gists) {
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Importing Bookmarks", true) {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
@@ -97,7 +99,7 @@ public class ImportBookmarksFromGithubAction extends AbstractBookmarkAction {
                 ImportGistOperation op = new ImportGistOperation(apiClient, gistMappingsStore, bookmarksService);
                 for (int i = 0; i < gists.size(); i++) {
                     if (indicator.isCanceled()) break;
-                    GistApiClient.GistResponse gist = gists.get(i);
+                    GistResponse gist = gists.get(i);
                     indicator.setFraction((double) i / gists.size());
                     indicator.setText("Importing %s...".formatted(
                             gist.description != null ? gist.description : gist.id));

@@ -22,7 +22,7 @@ Mesfavoris is an advanced bookmark management plugin for IntelliJ IDEA. It provi
 
 Google Drive integration tests require environment variables: `USER1_GDRIVE_USERNAME`, `USER1_GDRIVE_REFRESH_TOKEN`, `USER2_GDRIVE_USERNAME`, `USER2_GDRIVE_REFRESH_TOKEN` — they are skipped if absent.
 
-GitHub integration tests require the environment variable `USER1_GITHUB_TOKEN` — they are skipped if absent.
+GitHub tests run against the real GitHub API when `USER1_GITHUB_TOKEN` is set, and otherwise offline against `FakeGistApiServer` (a WireMock Gist REST fake whose gists are also git repositories served by `FakeGistGitServer`).
 
 ## Architecture
 
@@ -174,6 +174,10 @@ MCP tool names follow the pattern `<verb>_<store>_bookmark_<noun>`:
 - `list_remote_bookmark_stores`, `connect_remote_bookmark_store`, etc.
 
 Always include the store qualifier (`github`, `gdrive`) in store-specific tool names so tools from different toolsets are unambiguous.
+
+### Code Comments
+
+Keep comments short — a single concise line whenever possible. Explain the "why", not the "what", and don't restate what the code already says. Avoid multi-paragraph Javadoc blocks unless a public API genuinely needs it.
 
 ### Commit Messages
 

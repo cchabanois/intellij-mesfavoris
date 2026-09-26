@@ -1,4 +1,5 @@
 package mesfavoris.github.operations;
+import mesfavoris.github.client.GistResponse;
 
 import org.junit.Test;
 
@@ -12,7 +13,7 @@ public class CreateGistOperationTest extends AbstractGithubOperationTest {
     public void testCreateGist_usesBookmarkFolderNameAsDescription() throws Exception {
         CreateGistOperation op = new CreateGistOperation(apiClient);
 
-        GistApiClient.GistResponse response = op.createGist("My Folder",
+        GistResponse response = op.createGist("My Folder",
                 "{}".getBytes(StandardCharsets.UTF_8), null);
         trackGist(response.id);
 
@@ -25,11 +26,11 @@ public class CreateGistOperationTest extends AbstractGithubOperationTest {
         CreateGistOperation op = new CreateGistOperation(apiClient);
         String content = "{\"name\":\"café\"}";
 
-        GistApiClient.GistResponse response = op.createGist("UTF-8 Test",
+        GistResponse response = op.createGist("UTF-8 Test",
                 content.getBytes(StandardCharsets.UTF_8), null);
         trackGist(response.id);
 
-        GistApiClient.GistResponse loaded = apiClient.loadGist(response.id);
+        GistResponse loaded = apiClient.loadGist(response.id);
         assertThat(loaded.files.get("bookmarks.json").content).isEqualTo(content);
     }
 }

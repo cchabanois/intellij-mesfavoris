@@ -2,10 +2,12 @@ package mesfavoris.internal.extensions;
 
 import mesfavoris.extensions.AbstractBookmarkTypeExtension;
 import mesfavoris.internal.ui.details.CommentBookmarkDetailPart;
+import mesfavoris.internal.ui.details.TagsBookmarkDetailPart;
 import mesfavoris.internal.ui.details.BookmarkPropertiesDetailPart;
 import mesfavoris.internal.ui.details.MarkerBookmarkDetailPart;
 import mesfavoris.internal.mcp.McpBookmarkProperties;
 import mesfavoris.model.Bookmark;
+import mesfavoris.tags.TagsBookmarkProperties;
 import mesfavoris.ui.renderers.BookmarkFolderLabelProvider;
 
 import static mesfavoris.bookmarktype.BookmarkPropertyDescriptor.BookmarkPropertyType.INSTANT;
@@ -47,10 +49,17 @@ public class DefaultBookmarkTypeExtension extends AbstractBookmarkTypeExtension 
                 .updatable(false)
                 .build());
 
+        addProperty(bookmarkPropertyDescriptor(TagsBookmarkProperties.PROP_TAGS)
+                .type(STRING)
+                .updatable(true)
+                .description("Comma-separated list of tags for the bookmark, e.g. \"bug,perf\". Tag names cannot contain commas.")
+                .build());
+
         addLabelProvider(new BookmarkFolderLabelProvider());
 
         // Add detail part providers
         addDetailPartProvider(CommentBookmarkDetailPart::new);
+        addDetailPartProvider(TagsBookmarkDetailPart::new);
         addDetailPartProvider(BookmarkPropertiesDetailPart::new);
         addDetailPartProvider(MarkerBookmarkDetailPart::new);
 

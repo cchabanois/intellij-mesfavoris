@@ -12,6 +12,7 @@ import java.util.Set;
 
 import static mesfavoris.tests.commons.bookmarks.BookmarkBuilder.bookmark;
 import static mesfavoris.tests.commons.bookmarks.BookmarkBuilder.bookmarkFolder;
+import static mesfavoris.tags.TagsBookmarkProperties.PROP_TAGS;
 import static mesfavoris.tests.commons.bookmarks.BookmarksTreeBuilder.bookmarksTree;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,9 +38,11 @@ public class BookmarksTreeFilterTest {
         BookmarksTree bookmarksTree = bookmarksTree("root")
                 .addBookmarks("root",
                         bookmark(bookmark1Id, "Java Tutorial")
-                                .withProperty(Bookmark.PROPERTY_COMMENT, "Learn Java basics"),
+                                .withProperty(Bookmark.PROPERTY_COMMENT, "Learn Java basics")
+                                .withProperty(PROP_TAGS, "favorite,beginner"),
                         bookmark(bookmark2Id, "Python Guide")
-                                .withProperty(Bookmark.PROPERTY_COMMENT, "Advanced Python"),
+                                .withProperty(Bookmark.PROPERTY_COMMENT, "Advanced Python")
+                                .withProperty(PROP_TAGS, "reference"),
                         bookmarkFolder(folder1Id, "Development"))
                 .addBookmarks(folder1Id,
                         bookmark(bookmark3Id, "IntelliJ IDEA")
@@ -142,6 +145,39 @@ public class BookmarksTreeFilterTest {
         assertThat(filter.matches(getBookmark(folder1Id))).isTrue();
         assertThat(filter.isVisible(getBookmark(bookmark3Id))).isTrue();
         assertThat(filter.matches(getBookmark(bookmark3Id))).isTrue();
+    }
+
+    @Test
+    public void testFilterByTagQuery() {
+        // When
+        filter.setSearchText("tag:favorite");
+
+        // Then - only the bookmark tagged "favorite" matches (not by name/comment)
+        assertThat(filter.isVisible(getBookmark(bookmark1Id))).isTrue();
+        assertThat(filter.matches(getBookmark(bookmark1Id))).isTrue();
+        assertThat(filter.isVisible(getBookmark(bookmark2Id))).isFalse();
+    }
+
+    @Test
+    public void testFilterByHashTagQuery() {
+        // When
+        filter.setSearchText("#reference");
+
+        // Then
+        assertThat(filter.isVisible(getBookmark(bookmark2Id))).isTrue();
+        assertThat(filter.matches(getBookmark(bookmark2Id))).isTrue();
+        assertThat(filter.isVisible(getBookmark(bookmark1Id))).isFalse();
+    }
+
+    @Test
+    public void testFreeTextAlsoMatchesTags() {
+        // When - free text (no tag: prefix) still matches a tag
+        filter.setSearchText("beginner");
+
+        // Then
+        assertThat(filter.isVisible(getBookmark(bookmark1Id))).isTrue();
+        assertThat(filter.matches(getBookmark(bookmark1Id))).isTrue();
+        assertThat(filter.isVisible(getBookmark(bookmark2Id))).isFalse();
     }
 
     @Test

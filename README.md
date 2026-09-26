@@ -13,6 +13,7 @@
 
 - **Hierarchical bookmarks** — organize in folders and subfolders with drag-and-drop
 - **Multiple bookmark types** — files, URLs, code snippets, Java members, notes, shortcuts, IDE actions
+- **Tags** — tag any bookmark and browse them grouped by tag
 - **Path placeholders** — portable bookmarks across machines using variables like `${HOME}`
 - **Remote sync** — share bookmarks with your team via Google Drive or GitHub Gists
 - **Resilient file bookmarks** — survive refactoring and edits thanks to the Bitap algorithm
@@ -39,6 +40,7 @@
   - [Note](#note)
   - [Shortcut](#shortcut)
   - [Action](#action)
+- [Tags](#tags)
 - [Markers](#markers)
 - [Search Everywhere](#search-everywhere)
 - [Comments in the editor](#comments-in-the-editor)
@@ -202,6 +204,12 @@ An action bookmark wraps an IntelliJ IDE action. To create one, open Search Ever
 
 ---
 
+## Tags
+
+Bookmarks can be tagged with one or more free-form labels to organize them across folders. Add or edit a bookmark's tags from the **details panel**; the tags are shown next to the bookmark in the tree.
+
+A **Tags** virtual folder groups your bookmarks by tag, so you can browse everything sharing a given tag in one place, independently of the folder hierarchy. You can also filter the tree and search by tag.
+
 ## Markers
 
 A **marker** is a small icon displayed in the editor gutter at the exact line where a file bookmark points. It gives you a visual reminder that the line is bookmarked without having to open the tool window.
@@ -361,7 +369,7 @@ Mes Favoris adds tools to the [MCP (Model Context Protocol)](https://www.jetbrai
 | `modify_bookmark` | Update properties of an existing bookmark |
 | `update_bookmark` | Re-capture the file location of a file bookmark (new file path + line number) |
 | `move_bookmarks` | Move bookmarks INTO a folder or BEFORE/AFTER another bookmark |
-| `delete_bookmark` | Delete a bookmark or folder (optionally recursive) |
+| `delete_bookmarks` | Delete one or more bookmarks or folders (optionally recursive) |
 | `goto_bookmark` | Navigate the IDE to a bookmark by its ID |
 | `select_bookmark` | Select a bookmark in the tree without navigating |
 | `show_bookmarks` | Filter the bookmark tree to show only specific bookmarks; click × in the search bar to restore the full view |

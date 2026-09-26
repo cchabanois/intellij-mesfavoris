@@ -1,4 +1,6 @@
 package mesfavoris.github;
+import mesfavoris.github.client.IGistApiClient;
+import mesfavoris.github.client.GistResponse;
 
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -55,7 +57,7 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
         this.propertiesProvider = new GistMappingPropertiesProvider();
     }
 
-    private GistApiClient getApiClient() {
+    private IGistApiClient getApiClient() {
         return connectionManager.getGistApiClient();
     }
 
@@ -129,7 +131,7 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
         if (indicator != null) {
             indicator.setFraction(0.2);
         }
-        GistApiClient.GistResponse response = new CreateGistOperation(getApiClient())
+        GistResponse response = new CreateGistOperation(getApiClient())
                 .createGist(folder.getPropertyValue(Bookmark.PROPERTY_NAME), content, indicator);
         BookmarksTree subTree = bookmarksTree.subTree(bookmarkFolderId);
         gistMappingsStore.add(bookmarkFolderId, response.id,
@@ -166,7 +168,8 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
             indicator.setFraction(0.0);
         }
         String gistId = requireGistId(bookmarkFolderId);
-        LoadGistOperation.GistContents contents = new LoadGistOperation(getApiClient()).loadGist(gistId, indicator);
+        LoadGistOperation.GistContents contents =
+                new LoadGistOperation(getApiClient()).loadGist(gistId, indicator);
         if (indicator != null) {
             indicator.setFraction(0.8);
         }
@@ -194,7 +197,7 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
         if (indicator != null) {
             indicator.setFraction(0.2);
         }
-        GistApiClient.GistResponse response = new UpdateGistOperation(getApiClient())
+        GistResponse response = new UpdateGistOperation(getApiClient())
                 .updateGist(gistId, content, etag, indicator);
         BookmarksTree subTree = bookmarksTree.subTree(bookmarkFolderId);
         gistMappingsStore.update(gistId, propertiesProvider.getProperties(response, subTree));

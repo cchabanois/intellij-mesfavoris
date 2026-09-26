@@ -38,6 +38,14 @@ public abstract class VirtualBookmarkFolder implements IAdaptable {
 
 	public abstract List<BookmarkLink> getChildren();
 
+	/**
+	 * Returns the virtual sub-folders of this folder. Default is none; override to expose nested virtual
+	 * folders (e.g. one folder per tag). Nested folders are shown before the {@link BookmarkLink} children.
+	 */
+	public List<VirtualBookmarkFolder> getChildFolders() {
+		return List.of();
+	}
+
 	public synchronized void addListener(IVirtualBookmarkFolderListener listener) {
 		if (listenerList.isEmpty()) {
 			initListening();

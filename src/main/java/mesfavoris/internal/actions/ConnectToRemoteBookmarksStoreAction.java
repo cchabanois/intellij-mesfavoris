@@ -152,12 +152,13 @@ public class ConnectToRemoteBookmarksStoreAction extends AnAction implements Dum
     }
 
     private void showConnectionErrorMessage(@NotNull Project project, @NotNull RemoteBookmarksStoreDescriptor descriptor, @NotNull IOException e) {
+        String reason = errorReason(e);
         if (e instanceof RemoteStoreConfigurationException ex) {
             ApplicationManager.getApplication().invokeLater(() -> {
                 Notification notification = new Notification(
                         "com.cchabanois.mesfavoris.errors",
                         "Connection Failed",
-                        "Failed to connect to %s: %s".formatted(descriptor.label(), e.getMessage()),
+                        "Failed to connect to %s: %s".formatted(descriptor.label(), reason),
                         NotificationType.ERROR
                 );
                 notification.addAction(NotificationAction.createSimple(
@@ -169,10 +170,22 @@ public class ConnectToRemoteBookmarksStoreAction extends AnAction implements Dum
         } else {
             ApplicationManager.getApplication().invokeLater(() -> Messages.showErrorDialog(
                     project,
-                    "Failed to connect to %s: %s".formatted(descriptor.label(), e.getMessage()),
+                    "Failed to connect to %s: %s".formatted(descriptor.label(), reason),
                     "Connection Failed"
             ));
         }
+    }
+
+    /** Never-null failure reason: some exceptions (e.g. a bare ConnectException) have a null message. */
+    static @NotNull String errorReason(@NotNull Throwable e) {
+        if (e.getMessage() != null) {
+            return e.getMessage();
+        }
+        Throwable cause = e.getCause();
+        if (cause != null && cause.getMessage() != null) {
+            return "%s: %s".formatted(e.getClass().getSimpleName(), cause.getMessage());
+        }
+        return e.getClass().getSimpleName();
     }
 
     private void showDisconnectionSuccessMessage(@NotNull Project project, @NotNull RemoteBookmarksStoreDescriptor descriptor) {
@@ -190,7 +203,7 @@ public class ConnectToRemoteBookmarksStoreAction extends AnAction implements Dum
     private void showDisconnectionErrorMessage(@NotNull Project project, @NotNull RemoteBookmarksStoreDescriptor descriptor, @NotNull IOException e) {
         ApplicationManager.getApplication().invokeLater(() -> Messages.showErrorDialog(
                 project,
-                "Failed to disconnect from %s: %s".formatted(descriptor.label(), e.getMessage()),
+                "Failed to disconnect from %s: %s".formatted(descriptor.label(), errorReason(e)),
                 "Disconnection Failed"
         ));
     }

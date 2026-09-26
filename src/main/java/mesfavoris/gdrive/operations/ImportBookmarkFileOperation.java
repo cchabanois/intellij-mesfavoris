@@ -62,7 +62,7 @@ public class ImportBookmarkFileOperation extends AbstractGDriveOperation {
 		BookmarksTree bookmarksTree = deserializer
 				.deserialize(new StringReader(new String(contents.getFileContents(), StandardCharsets.UTF_8)));
 
-		bookmarksService.addBookmarksTree(parentId, bookmarksTree, newBookmarksTree -> bookmarkMappingsStore.add(
+		bookmarksService.importRemoteBookmarksTree(parentId, bookmarksTree, newBookmarksTree -> bookmarkMappingsStore.add(
 				bookmarksTree.getRootFolder().getId(), contents.getFile().getId(),
 				bookmarkMappingPropertiesProvider.getBookmarkMappingProperties(contents.getFile(), bookmarksTree)));
 
