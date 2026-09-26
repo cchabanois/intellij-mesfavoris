@@ -8,8 +8,11 @@ import java.util.Objects;
 
 /** Immutable association between a bookmark folder and the GitHub Gist that stores its content. */
 public class GistMapping {
+    /** The gist file holding the mapped bookmark folder. */
+    public static final String BOOKMARKS_FILE_NAME = "bookmarks.json";
     public static final String PROP_GIST_URL = "gistUrl";
     public static final String PROP_OWNER_LOGIN = "ownerLogin";
+    public static final String PROP_GIT_URL = "gitUrl";
     public static final String PROP_BOOKMARKS_COUNT = RemoteBookmarkFolder.PROP_BOOKMARKS_COUNT;
 
     private final BookmarkId bookmarkFolderId;

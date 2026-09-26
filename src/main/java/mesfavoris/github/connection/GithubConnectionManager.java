@@ -9,15 +9,15 @@ import mesfavoris.github.integration.IGithubAccountResolver;
 import mesfavoris.github.operations.GetAuthenticatedUserOperation;
 import mesfavoris.github.client.GistApiClient;
 import mesfavoris.github.client.IGistApiClient;
-import mesfavoris.github.client.IGistFileContentProvider;
-import mesfavoris.github.client.content.DefaultGistFileContentProvider;
+import mesfavoris.github.repository.GistRepositories;
+import mesfavoris.github.repository.GistRepository;
+import mesfavoris.github.repository.IGistRepositoryProvider;
 import mesfavoris.remote.IRemoteBookmarksStore.State;
 import mesfavoris.remote.RemoteStoreConfigurationException;
 import mesfavoris.remote.UserInfo;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.net.http.HttpClient;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * cleared on disconnect so that a reconnect re-resolves the account (handles token rotation
  * or account switches transparently).
  */
-public class GithubConnectionManager {
+public class GithubConnectionManager implements IGistRepositoryProvider {
     private static final Logger LOG = Logger.getInstance(GithubConnectionManager.class);
 
     private final Project project;
@@ -90,11 +90,8 @@ public class GithubConnectionManager {
             this.accessToken = accountInfo.accessToken();
             this.apiBaseUrl = accountInfo.apiBaseUrl();
             this.userInfo = authenticatedUser;
-            HttpClient httpClient = GistApiClient.newHttpClient();
-            IGistFileContentProvider contentProvider =
-                    DefaultGistFileContentProvider.create(project, httpClient, this::getAccessToken);
             this.gistApiClient = new GistApiClient(this::getAccessToken, this::getApiBaseUrl,
-                    httpClient, GithubRemoteBookmarksStoreExtension.USER_AGENT, contentProvider);
+                    GistApiClient.newHttpClient(), GithubRemoteBookmarksStoreExtension.USER_AGENT);
 
             state.set(State.connected);
 
@@ -133,6 +130,14 @@ public class GithubConnectionManager {
     @Nullable
     public IGistApiClient getGistApiClient() {
         return gistApiClient;
+    }
+
+    /** The local clone of a gist, authenticated with this connection's token. */
+    @Override
+    public GistRepository getGistRepository(String gistId, String gitUrl) {
+        UserInfo user = userInfo;
+        return GistRepositories.getInstance().getRepository(project, gistId, gitUrl, this::getAccessToken,
+                user != null ? user.getEmailAddress() : null);
     }
 
     @Nullable

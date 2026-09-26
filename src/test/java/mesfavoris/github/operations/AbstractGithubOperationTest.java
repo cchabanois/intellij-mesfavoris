@@ -2,13 +2,11 @@ package mesfavoris.github.operations;
 
 import mesfavoris.github.GithubTestUser;
 import mesfavoris.github.client.GistApiClient;
-import mesfavoris.github.client.content.DefaultGistFileContentProvider;
 import mesfavoris.github.test.FakeGistApiServer;
 import org.junit.After;
 import org.junit.Before;
 
 import java.io.IOException;
-import java.net.http.HttpClient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -29,9 +27,7 @@ public abstract class AbstractGithubOperationTest {
         Optional<String> token = GithubTestUser.USER1.getToken();
         if (token.isPresent()) {
             String apiBaseUrl = GithubTestUser.USER1.getApiBaseUrl();
-            HttpClient httpClient = GistApiClient.newHttpClient();
-            apiClient = new GistApiClient(token::get, () -> apiBaseUrl, httpClient, "",
-                    DefaultGistFileContentProvider.create(null, httpClient, token::get));
+            apiClient = new GistApiClient(token::get, () -> apiBaseUrl, GistApiClient.newHttpClient());
         } else {
             fakeServer = new FakeGistApiServer();
             fakeServer.start();

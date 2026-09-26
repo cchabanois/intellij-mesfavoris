@@ -10,6 +10,7 @@ import com.intellij.openapi.project.ProjectManager
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.serialization.Serializable
 import mesfavoris.github.BookmarksGithubService
+import mesfavoris.github.connection.GithubConnectionManager
 import mesfavoris.github.dialogs.AddGistLinkDialog
 import mesfavoris.github.mappings.GistMappingsStore
 import mesfavoris.github.client.IGistApiClient
@@ -35,7 +36,7 @@ class MesFavorisGithubMcpToolset : McpToolset {
         currentProject().getService(GistMappingsStore::class.java)
             ?: mcpFail("Gist mappings store unavailable")
 
-    private suspend fun requireConnected(): IGistApiClient {
+    private suspend fun requireConnectionManager(): GithubConnectionManager {
         val project = currentProject()
         val service = project.getService(BookmarksGithubService::class.java)
             ?: mcpFail("GitHub service unavailable")
@@ -43,9 +44,11 @@ class MesFavorisGithubMcpToolset : McpToolset {
         if (connectionManager.state != IRemoteBookmarksStore.State.connected) {
             mcpFail("Not connected to GitHub. Use connect_remote_store with storeId 'github' first.")
         }
-        return connectionManager.gistApiClient
-            ?: mcpFail("GitHub API client not available")
+        return connectionManager
     }
+
+    private suspend fun requireConnected(): IGistApiClient =
+        requireConnectionManager().gistApiClient ?: mcpFail("GitHub API client not available")
 
     private suspend fun resolveParentId(parentId: String): BookmarkId {
         if (parentId.isBlank()) {
@@ -87,12 +90,13 @@ class MesFavorisGithubMcpToolset : McpToolset {
         @McpDescription(description = "Parent bookmark folder ID (default: auto-placed)") parentId: String = ""
     ): String {
         if (gistId.isBlank()) mcpFail("Gist ID cannot be blank")
+        val connectionManager = requireConnectionManager()
         val apiClient = requireConnected()
         val mappingsStore = gistMappingsStore()
         val bookmarksService = bookmarksService()
         val resolvedParentId = resolveParentId(parentId)
         return try {
-            ImportGistOperation(apiClient, mappingsStore, bookmarksService)
+            ImportGistOperation(apiClient, connectionManager, mappingsStore, bookmarksService)
                 .importGist(resolvedParentId, gistId, null)
             "Imported GitHub Gist: $gistId"
         } catch (e: Exception) {

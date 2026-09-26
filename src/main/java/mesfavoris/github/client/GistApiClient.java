@@ -45,8 +45,6 @@ public class GistApiClient implements IGistApiClient {
     private final Supplier<String> tokenSupplier;
     private final Supplier<String> baseUrlSupplier;
     private final String userAgent;
-    @Nullable
-    private final IGistFileContentProvider contentProvider;
     private final Object writeGate = new Object();
     private long lastWriteNanos = 0;
     private final Object rateLimitGate = new Object();
@@ -67,36 +65,11 @@ public class GistApiClient implements IGistApiClient {
 
     public GistApiClient(Supplier<String> tokenSupplier, Supplier<String> baseUrlSupplier,
                          HttpClient httpClient, String userAgent) {
-        this(tokenSupplier, baseUrlSupplier, httpClient, userAgent, null);
-    }
-
-    /**
-     * @param contentProvider recovers full file content (see {@link #getFileContent}); may be {@code null}
-     *                        for clients that only perform REST operations and never fetch file content.
-     */
-    public GistApiClient(Supplier<String> tokenSupplier, Supplier<String> baseUrlSupplier,
-                         HttpClient httpClient, String userAgent,
-                         @Nullable IGistFileContentProvider contentProvider) {
         this.tokenSupplier = tokenSupplier;
         this.baseUrlSupplier = baseUrlSupplier;
         this.httpClient = httpClient;
         this.userAgent = userAgent;
-        this.contentProvider = contentProvider;
         this.gson = new Gson();
-    }
-
-    /** The OAuth token used to authenticate against the API; needed to authenticate git clones of a Gist. */
-    @Override
-    public String getToken() {
-        return tokenSupplier.get();
-    }
-
-    @Override
-    public byte[] getFileContent(GistResponse gist, GistFile file) throws IOException {
-        if (contentProvider == null) {
-            throw new IOException("This GistApiClient was created without a content provider");
-        }
-        return contentProvider.getFileContent(gist, file);
     }
 
     @Override
@@ -165,7 +138,8 @@ public class GistApiClient implements IGistApiClient {
     @Nullable
     @Override
     public String conditionalGetEtag(String gistId, @Nullable String ifNoneMatch) throws IOException {
-        HttpRequest.Builder builder = authorizedRequest(baseUrlSupplier.get() + "/gists/" + gistId).GET();
+        // HEAD: same ETag as GET without downloading the gist content
+        HttpRequest.Builder builder = authorizedRequest(baseUrlSupplier.get() + "/gists/" + gistId).HEAD();
         if (ifNoneMatch != null) {
             builder.header("If-None-Match", ifNoneMatch);
         }

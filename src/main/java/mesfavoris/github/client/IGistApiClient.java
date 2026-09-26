@@ -12,21 +12,12 @@ import java.util.List;
  */
 public interface IGistApiClient {
 
-    /** The OAuth token used to authenticate requests; also needed to authenticate git clones of a Gist. */
-    String getToken();
-
     GistResponse createGist(String description, String fileName, String content) throws IOException;
 
     GistResponse updateGist(String gistId, String fileName, String content,
                             @Nullable String expectedUpdatedAt) throws IOException, ConflictException;
 
     GistResponse loadGist(String gistId) throws IOException;
-
-    /**
-     * Returns the full content of {@code file}, transparently recovering it (raw HTTP fetch, or git clone)
-     * when the API truncated it. Backed by the {@link IGistFileContentProvider} the client was created with.
-     */
-    byte[] getFileContent(GistResponse gist, GistFile file) throws IOException;
 
     void deleteGist(String gistId) throws IOException;
 

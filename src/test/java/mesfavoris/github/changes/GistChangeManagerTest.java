@@ -6,7 +6,7 @@ import com.intellij.util.messages.MessageBusConnection;
 import mesfavoris.github.GithubTestUser;
 import mesfavoris.github.mappings.GistMappingsStore;
 import mesfavoris.github.client.GistApiClient;
-import mesfavoris.github.operations.LoadGistOperation;
+import mesfavoris.github.mappings.GistMapping;
 import mesfavoris.github.test.GithubConnectionRule;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.tests.commons.waits.Waiter;
@@ -102,11 +102,11 @@ public class GistChangeManagerTest extends BasePlatformTestCase {
     }
 
     private String createGist(String content) throws IOException {
-        return apiClient().createGist("mesfavoris-test", LoadGistOperation.BOOKMARKS_FILE_NAME, content).id;
+        return apiClient().createGist("mesfavoris-test", GistMapping.BOOKMARKS_FILE_NAME, content).id;
     }
 
     private void updateGist(String gistId, String content) throws Exception {
-        apiClient().updateGist(gistId, LoadGistOperation.BOOKMARKS_FILE_NAME, content, null);
+        apiClient().updateGist(gistId, GistMapping.BOOKMARKS_FILE_NAME, content, null);
     }
 
     private GistApiClient apiClient() {

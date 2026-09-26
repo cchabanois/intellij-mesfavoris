@@ -107,7 +107,7 @@ Virtual folders are not an extension point — they are hardcoded in `MesFavoris
 - **Local:** JSON via `BookmarksTreeJsonSerializer` / `BookmarksTreeJsonDeserializer`
 - **Remote:** pluggable stores (see the `remoteBookmarksStore` extension point):
   - **Google Drive** — mapping tracked in `gdrive/` package; uses IntelliJ's `PersistentStateComponent` for connection state
-  - **GitHub Gist** — mapping tracked in `github/mappings/` (`GistMappingsStore`), connection/user state in `github/connection/` (`GithubUserInfoStore`); both persist to `mesfavoris.xml` via `PersistentStateComponent`
+  - **GitHub Gist** — mapping tracked in `github/mappings/` (`GistMappingsStore`), connection/user state in `github/connection/` (`GithubUserInfoStore`); both persist to `mesfavoris.xml` via `PersistentStateComponent`. Gist content goes through a local git clone per gist (`github/repository/`, shallow, cached in the IDE system dir): load = fetch, save = commit + push, the commit id is the etag; the REST API only creates/deletes gists, reads metadata and polls for changes
 - **Auto-save:** `internal/persistence/` with configurable dirty-state tracking
 
 ### UI
