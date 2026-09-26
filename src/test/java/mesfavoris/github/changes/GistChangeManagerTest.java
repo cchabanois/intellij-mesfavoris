@@ -12,6 +12,7 @@ import mesfavoris.model.BookmarkId;
 import mesfavoris.tests.commons.waits.Waiter;
 
 import java.io.IOException;
+import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -112,7 +113,7 @@ public class GistChangeManagerTest extends BasePlatformTestCase {
     private GistApiClient apiClient() {
         String token = connectionRule.getConnectionManager().getAccessToken();
         String apiBaseUrl = connectionRule.getConnectionManager().getApiBaseUrl();
-        return new GistApiClient(() -> token, () -> apiBaseUrl, java.net.http.HttpClient.newHttpClient());
+        return new GistApiClient(() -> token, () -> apiBaseUrl, HttpClient.newHttpClient());
     }
 
     private static class GistChangeListener implements IGistChangeListener {

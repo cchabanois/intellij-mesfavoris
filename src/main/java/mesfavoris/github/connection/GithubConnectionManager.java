@@ -16,6 +16,7 @@ import mesfavoris.remote.IRemoteBookmarksStore.State;
 import mesfavoris.remote.RemoteStoreConfigurationException;
 import mesfavoris.remote.UserInfo;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.github.ui.GithubSettingsConfigurable;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -72,7 +73,7 @@ public class GithubConnectionManager implements IGistRepositoryProvider {
                 throw new RemoteStoreConfigurationException(
                         "No GitHub account available. Please configure a GitHub account in " +
                         "Settings > Version Control > GitHub.",
-                        org.jetbrains.plugins.github.ui.GithubSettingsConfigurable.class);
+                        GithubSettingsConfigurable.class);
             }
 
             if (indicator != null) {
