@@ -202,15 +202,17 @@ public interface IBookmarksService {
     void cutToClipboard(List<BookmarkId> selection) throws BookmarksException;
 
     /**
-     * Add a bookmarks tree
+     * Graft a bookmarks tree imported from a remote store under a local folder. The invariant
+     * "a remote bookmark folder cannot be nested under another remote bookmark folder" is enforced:
+     * the operation fails if the parent folder is, or is under, a remote bookmark folder.
      *
      * @param parentBookmarkId    the parent bookmark ID
      * @param sourceBookmarksTree the source bookmarks tree
-     * @param afterCommit         callback to execute after commit
-     * @throws BookmarksException if the tree cannot be added
+     * @param afterCommit         callback to execute after commit (e.g. register the folder&rarr;remote mapping)
+     * @throws BookmarksException if the tree cannot be imported
      */
-    void addBookmarksTree(BookmarkId parentBookmarkId, BookmarksTree sourceBookmarksTree,
-                          Consumer<BookmarksTree> afterCommit) throws BookmarksException;
+    void importRemoteBookmarksTree(BookmarkId parentBookmarkId, BookmarksTree sourceBookmarksTree,
+                                   Consumer<BookmarksTree> afterCommit) throws BookmarksException;
 
     /**
      * Add to remote bookmarks store
