@@ -14,7 +14,6 @@ import mesfavoris.remote.ConflictException;
 import mesfavoris.remote.IRemoteBookmarksStore.State;
 import mesfavoris.remote.RemoteBookmarksStoreDescriptor;
 import mesfavoris.remote.RemoteBookmarksTree;
-import org.junit.Assume;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -34,7 +33,6 @@ public class GithubRemoteBookmarksStoreTest extends BasePlatformTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        Assume.assumeTrue("USER1_GITHUB_TOKEN not set", GithubTestUser.USER1.getToken().isPresent());
         ScheduledExecutorService executor = AppExecutorUtil.getAppScheduledExecutorService();
         connectionRule = new GithubConnectionRule(getProject(), GithubTestUser.USER1, false);
         connectionRule.before();

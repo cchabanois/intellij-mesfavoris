@@ -10,7 +10,6 @@ import mesfavoris.github.operations.LoadGistOperation;
 import mesfavoris.github.test.GithubConnectionRule;
 import mesfavoris.model.BookmarkId;
 import mesfavoris.tests.commons.waits.Waiter;
-import org.junit.Assume;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -32,7 +31,6 @@ public class GistChangeManagerTest extends BasePlatformTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        Assume.assumeTrue("USER1_GITHUB_TOKEN not set", GithubTestUser.USER1.getToken().isPresent());
         connectionRule = new GithubConnectionRule(getProject(), GithubTestUser.USER1, true);
         connectionRule.before();
         gistMappingsStore = connectionRule.getGistMappingsStore();
