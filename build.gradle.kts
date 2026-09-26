@@ -41,6 +41,7 @@ dependencies {
     testImplementation(libs.assertj)
     testImplementation(libs.mockito)
     testImplementation(libs.opentest4j)
+    testImplementation(libs.wiremock)
 
     // IntelliJ Platform Gradle Plugin Dependencies Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
     intellijPlatform {
@@ -159,11 +160,8 @@ tasks {
             logger.warn("Google Drive credentials not available - skipping GDrive tests")
         }
 
-        val hasGithubCredentials = !System.getenv("USER1_GITHUB_TOKEN").isNullOrBlank()
-        if (!hasGithubCredentials) {
-            exclude("**/github/**")
-            logger.warn("GitHub credentials not available - skipping GitHub E2E tests")
-        }
+        // All github tests now run offline against FakeGistApiServer when USER1_GITHUB_TOKEN is absent,
+        // and against the real GitHub API when it is set — so none of them need to be excluded.
     }
 }
 
