@@ -10,6 +10,8 @@ import mesfavoris.github.client.GistApiClient;
 import mesfavoris.github.client.content.DefaultGistFileContentProvider;
 import org.junit.rules.ExternalResource;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.http.HttpClient;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -26,22 +28,27 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
  * HTTP by an embedded WireMock server. Point a {@link GistApiClient} at {@link #baseUrl()} (or use
  * {@link #newApiClient()}) and it behaves as if talking to GitHub — create/load/update/delete round-trip, ETags
  * change on write and drive {@code If-None-Match} 304s, {@code updated_at} advances (second precision), and large
- * files are served truncated with a working {@code raw_url}. This lets the operation tests run offline, so they
- * never hit — and never get rate-limited or banned by — the real API.
+ * files are served truncated with a working {@code raw_url}. Each gist is also a real git repository served by a
+ * {@link FakeGistGitServer} ({@code git_pull_url} / {@code git_push_url}): REST writes are committed to it, and a
+ * push updates what the REST API returns, as on GitHub where the gist <em>is</em> the repository. This lets the
+ * tests run offline, so they never hit — and never get rate-limited or banned by — the real API.
  *
- * <p>Not covered: real auth (any token is accepted) and pagination of the gist list.
+ * <p>Not covered: REST auth (any token is accepted; git requires {@link #TOKEN}) and pagination of the gist list.
  */
 public class FakeGistApiServer extends ExternalResource {
 
-    /** Token handed to the API client; the fake accepts anything, this is just a placeholder. */
+    /** Token handed to the API client; the REST side accepts anything, git requires this exact token. */
     public static final String TOKEN = "fake-token";
 
     /** Files larger than this (chars) are served truncated, forcing the raw_url recovery path. */
     private static final int TRUNCATE_THRESHOLD = 1_000_000;
 
     private final Gson gson = new Gson();
+    /** Guards {@link #gists}: REST requests (WireMock threads) and pushes (git server threads) both mutate it. */
+    private final Object lock = new Object();
     private final Map<String, StoredGist> gists = new LinkedHashMap<>();
     private final AtomicInteger versionSeq = new AtomicInteger();
+    private final FakeGistGitServer gitServer = new FakeGistGitServer(TOKEN, this::onPush);
 
     private WireMockServer server;
 
@@ -57,6 +64,11 @@ public class FakeGistApiServer extends ExternalResource {
 
     /** Starts the embedded server. Called automatically when used as a JUnit {@code @Rule}. */
     public void start() {
+        try {
+            gitServer.start();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
         server = new WireMockServer(options().dynamicPort().extensions(new GistApiTransformer()));
         server.start();
         server.stubFor(any(anyUrl()).willReturn(aResponse().withTransformers("gist-api")));
@@ -67,6 +79,7 @@ public class FakeGistApiServer extends ExternalResource {
         if (server != null) {
             server.stop();
         }
+        gitServer.stop();
     }
 
     public String baseUrl() {
@@ -78,6 +91,32 @@ public class FakeGistApiServer extends ExternalResource {
         HttpClient httpClient = GistApiClient.newHttpClient();
         return new GistApiClient(() -> TOKEN, this::baseUrl, httpClient, "",
                 DefaultGistFileContentProvider.create(null, httpClient, () -> TOKEN));
+    }
+
+    /** A push replaced the gist's files: make the REST view follow the repository. */
+    private void onPush(String gistId, Map<String, String> files) {
+        synchronized (lock) {
+            StoredGist gist = gists.get(gistId);
+            if (gist == null) {
+                return;
+            }
+            gist.files.clear();
+            gist.files.putAll(files);
+            touch(gist);
+        }
+    }
+
+    private void touch(StoredGist gist) {
+        gist.updatedAt = Instant.now().truncatedTo(ChronoUnit.SECONDS).toString();
+        gist.etag = "\"v" + versionSeq.incrementAndGet() + "\"";
+    }
+
+    private void commitToGit(StoredGist gist) {
+        try {
+            gitServer.commit(gist.id, gist.files);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private static final class StoredGist {
@@ -105,7 +144,13 @@ public class FakeGistApiServer extends ExternalResource {
         }
 
         @Override
-        public synchronized ResponseDefinition transform(ServeEvent serveEvent) {
+        public ResponseDefinition transform(ServeEvent serveEvent) {
+            synchronized (lock) {
+                return route(serveEvent);
+            }
+        }
+
+        private ResponseDefinition route(ServeEvent serveEvent) {
             String method = serveEvent.getRequest().getMethod().getName();
             String url = serveEvent.getRequest().getUrl();
             String path = url.contains("?") ? url.substring(0, url.indexOf('?')) : url;
@@ -145,6 +190,7 @@ public class FakeGistApiServer extends ExternalResource {
                     ? request.get("description").getAsString() : null;
             putFiles(gist, request);
             touch(gist);
+            commitToGit(gist);
             gists.put(gist.id, gist);
             return json(201, gson.toJson(toJson(gist)), gist.etag);
         }
@@ -167,6 +213,7 @@ public class FakeGistApiServer extends ExternalResource {
             }
             putFiles(gist, gson.fromJson(body, JsonObject.class));
             touch(gist);
+            commitToGit(gist);
             return json(200, gson.toJson(toJson(gist)), gist.etag);
         }
 
@@ -174,6 +221,7 @@ public class FakeGistApiServer extends ExternalResource {
             if (gists.remove(id) == null) {
                 return json(404, "{\"message\":\"Not Found\"}", null);
             }
+            gitServer.delete(id);
             return aResponse().withStatus(204).build();
         }
 
@@ -213,18 +261,14 @@ public class FakeGistApiServer extends ExternalResource {
             }
         }
 
-        private void touch(StoredGist gist) {
-            gist.updatedAt = Instant.now().truncatedTo(ChronoUnit.SECONDS).toString();
-            gist.etag = "\"v" + versionSeq.incrementAndGet() + "\"";
-        }
-
         private JsonObject toJson(StoredGist gist) {
             JsonObject obj = new JsonObject();
             obj.addProperty("id", gist.id);
             obj.addProperty("description", gist.description);
             obj.addProperty("updated_at", gist.updatedAt);
             obj.addProperty("html_url", baseUrl() + "/" + gist.id);
-            obj.addProperty("git_pull_url", baseUrl() + "/" + gist.id + ".git");
+            obj.addProperty("git_pull_url", gitServer.repoUrl(gist.id));
+            obj.addProperty("git_push_url", gitServer.repoUrl(gist.id));
             JsonObject owner = new JsonObject();
             owner.addProperty("login", "test-user");
             obj.add("owner", owner);
