@@ -49,7 +49,7 @@ public class ImportGistOperation {
 
         if (indicator != null) indicator.setFraction(0.8);
 
-        bookmarksService.addBookmarksTree(parentFolderId, bookmarksTree, tree ->
+        bookmarksService.importRemoteBookmarksTree(parentFolderId, bookmarksTree, tree ->
                 gistMappingsStore.add(bookmarksTree.getRootFolder().getId(), gistId,
                         propertiesProvider.getProperties(contents.response(), bookmarksTree)));
 

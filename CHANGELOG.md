@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-08-16
+
 ### Added
 
 - **Bookmark tags** — tag any bookmark, then browse your bookmarks grouped by tag under a new "Tags" virtual folder, filter and search by tag, and view or edit a bookmark's tags from the details panel. Tags are shown in the bookmarks tree, and can also be set when creating a bookmark over MCP.
@@ -253,12 +255,13 @@
   - Bookmark label providers for custom rendering
   - Bookmark properties providers for extracting metadata
 
-[Unreleased]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.7.1...HEAD
-[0.7.1]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.7.0...0.7.1
-[0.7.0]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.6.0...0.7.0
-[0.6.0]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.5.0...0.6.0
-[0.5.0]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.0.1-beta.5...0.5.0
-[0.0.1-beta.5]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.0.1-beta.4...0.0.1-beta.5
-[0.0.1-beta.4]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.0.1-beta.3...0.0.1-beta.4
-[0.0.1-beta.3]: https://github.com/cchabanois/intellij-mesfavoris/compare/0.0.1-beta.1...0.0.1-beta.3
-[0.0.1-beta.1]: https://github.com/cchabanois/intellij-mesfavoris/commits/0.0.1-beta.1
+[Unreleased]: https://github.com/cchabanois/intellij-mesfavoris/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/cchabanois/intellij-mesfavoris/compare/v0.7.1...v0.8.0
+[0.7.1]: https://github.com/cchabanois/intellij-mesfavoris/compare/v0.7.0...v0.7.1
+[0.7.0]: https://github.com/cchabanois/intellij-mesfavoris/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/cchabanois/intellij-mesfavoris/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/cchabanois/intellij-mesfavoris/compare/v0.0.1-beta.5...v0.5.0
+[0.0.1-beta.5]: https://github.com/cchabanois/intellij-mesfavoris/compare/v0.0.1-beta.4...v0.0.1-beta.5
+[0.0.1-beta.4]: https://github.com/cchabanois/intellij-mesfavoris/compare/v0.0.1-beta.3...v0.0.1-beta.4
+[0.0.1-beta.3]: https://github.com/cchabanois/intellij-mesfavoris/compare/v0.0.1-beta.1...v0.0.1-beta.3
+[0.0.1-beta.1]: https://github.com/cchabanois/intellij-mesfavoris/commits/v0.0.1-beta.1
