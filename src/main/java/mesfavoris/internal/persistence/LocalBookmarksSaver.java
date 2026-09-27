@@ -8,8 +8,16 @@ import mesfavoris.persistence.IBookmarksTreeSerializer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 
 public class LocalBookmarksSaver {
     private static final Logger LOG = Logger.getInstance(LocalBookmarksSaver.class);
@@ -23,24 +31,35 @@ public class LocalBookmarksSaver {
 
     public void saveBookmarks(BookmarksTree bookmarksTree) {
         try {
-            // Create parent directories if they don't exist
-            File parentDir = file.getParentFile();
-            if (parentDir != null && !parentDir.exists()) {
-                if (!parentDir.mkdirs()) {
-                    LOG.error("Failed to create parent directories for bookmarks file: " + parentDir.getAbsolutePath());
-                    return;
+            Path target = file.toPath().toAbsolutePath();
+            Files.createDirectories(target.getParent());
+            // write to a temp file then move it, so a crash never leaves a truncated bookmarks file
+            // not Files.createTempFile: it would make the bookmarks file owner-only readable
+            Path temp = target.resolveSibling(target.getFileName() + ".tmp");
+            try {
+                try (FileChannel channel = FileChannel.open(temp, StandardOpenOption.CREATE,
+                        StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+                     Writer writer = Channels.newWriter(channel, StandardCharsets.UTF_8)) {
+                    bookmarksSerializer.serialize(bookmarksTree, bookmarksTree.getRootFolder().getId(), writer);
+                    writer.flush();
+                    channel.force(true);
                 }
+                replace(temp, target);
+            } finally {
+                Files.deleteIfExists(temp);
             }
-
-            try (FileWriter writer = new FileWriter(file)) {
-                bookmarksSerializer.serialize(bookmarksTree,
-                        bookmarksTree.getRootFolder().getId(), writer);
-
-                // Reload the file in any open editors
-                refreshFile();
-            }
+            // Reload the file in any open editors
+            refreshFile();
         } catch (IOException e) {
             LOG.error("Failed to save bookmarks", e);
+        }
+    }
+
+    private static void replace(Path source, Path target) throws IOException {
+        try {
+            Files.move(source, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } catch (AtomicMoveNotSupportedException e) {
+            Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
         }
     }
 

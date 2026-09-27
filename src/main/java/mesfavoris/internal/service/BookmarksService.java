@@ -1,10 +1,14 @@
 package mesfavoris.internal.service;
 
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -53,7 +57,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -70,6 +73,7 @@ import java.util.function.Consumer;
 
 @State(name = "BookmarksService", storages = @Storage(value = "mesfavoris.xml"))
 public final class BookmarksService implements IBookmarksService, Disposable, PersistentStateComponent<Element> {
+    private static final Logger LOG = Logger.getInstance(BookmarksService.class);
     private static final Duration DEFAULT_RECENT_DURATION = Duration.ofDays(5);
 
     private final Project project;
@@ -150,15 +154,14 @@ public final class BookmarksService implements IBookmarksService, Disposable, Pe
         File bookmarksFile = getBookmarksFilePath(project).toFile();
         BookmarksWorkspaceFactory bookmarksWorkspaceFactory = new BookmarksWorkspaceFactory(
                 new BookmarksTreeJsonDeserializer(), bookmarksModificationValidator);
-        if (bookmarksFile.exists()) {
-            try {
-                return bookmarksWorkspaceFactory.load(bookmarksFile);
-            } catch (FileNotFoundException e) {
-                return bookmarksWorkspaceFactory.create();
-            }
-        } else {
-            return bookmarksWorkspaceFactory.create();
-        }
+        return bookmarksWorkspaceFactory.loadOrCreate(bookmarksFile, (corruptedFile, e) -> {
+            LOG.warn("Could not read bookmarks file, moved it to " + corruptedFile, e);
+            Notifications.Bus.notify(new Notification("com.cchabanois.mesfavoris.errors",
+                    "Could not read bookmarks",
+                    "The bookmarks file is invalid (" + e.getMessage() + "). It has been moved to "
+                            + corruptedFile + " and bookmarks have been reset.",
+                    NotificationType.ERROR), project);
+        });
     }
 
     public BookmarkDatabase getBookmarkDatabase() {

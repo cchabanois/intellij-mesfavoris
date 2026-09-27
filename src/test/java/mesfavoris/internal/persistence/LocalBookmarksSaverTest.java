@@ -15,6 +15,7 @@ import mesfavoris.persistence.json.BookmarksTreeJsonSerializer;
 import mesfavoris.tests.commons.waits.Waiter;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
@@ -96,6 +97,29 @@ public class LocalBookmarksSaverTest extends BasePlatformTestCase {
                    documentContent.contains("root") &&
                    !documentContent.contains("initial content");
         });
+    }
+
+    public void testSaveBookmarksReplacesExistingFileWithoutLeavingTempFile() throws Exception {
+        // Given
+        BookmarkFolder rootFolder = new BookmarkFolder(new BookmarkId("root"), "Root");
+        BookmarksTree originalTree = new BookmarksTree(rootFolder);
+        Map<String, String> bookmarkProperties = new HashMap<>();
+        bookmarkProperties.put(Bookmark.PROPERTY_NAME, "Bookmark été");
+        Bookmark bookmark = new Bookmark(new BookmarkId("test"), bookmarkProperties);
+        originalTree = originalTree.addBookmarks(rootFolder.getId(), asList(bookmark));
+
+        VirtualFile virtualFile = myFixture.getTempDirFixture().createFile("test-bookmarks.json", "previous content");
+        File file = new File(virtualFile.getPath());
+
+        LocalBookmarksSaver saver = new LocalBookmarksSaver(file, new BookmarksTreeJsonSerializer(true));
+
+        // When
+        saver.saveBookmarks(originalTree);
+
+        // Then
+        String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+        assertThat(content).contains("Bookmark été").doesNotContain("previous content");
+        assertThat(new File(file.getPath() + ".tmp")).doesNotExist();
     }
 
     public void testSaveBookmarksCreatesParentDirectories() throws Exception {

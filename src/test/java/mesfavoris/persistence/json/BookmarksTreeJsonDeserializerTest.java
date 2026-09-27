@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 
 public class BookmarksTreeJsonDeserializerTest {
@@ -44,6 +45,45 @@ public class BookmarksTreeJsonDeserializerTest {
 		expectedException.expectMessage("Invalid format : unknown version");
 		serializedBookmarks = serializedBookmarks.replace("1.0", "99.0");
 		deserialize(serializedBookmarks);
+	}
+
+	@Test
+	public void testDuplicateBookmarkIdIsInvalidFormat() {
+		String json = """
+				{"version":"1.0","bookmarks":{"id":"root","children":[
+				  {"id":"b1","properties":{"name":"one"}},
+				  {"id":"b1","properties":{"name":"two"}}]}}""";
+
+		assertThatThrownBy(() -> deserialize(json)).isInstanceOf(IOException.class)
+				.hasMessage("Invalid format : duplicate bookmark id b1 at path $.bookmarks.children[1]");
+	}
+
+	@Test
+	public void testBookmarkWithoutIdIsInvalidFormat() {
+		String json = """
+				{"version":"1.0","bookmarks":{"id":"root","children":[
+				  {"properties":{"name":"one"}}]}}""";
+
+		assertThatThrownBy(() -> deserialize(json)).isInstanceOf(IOException.class)
+				.hasMessage("Invalid format : bookmark without id at path $.bookmarks.children[0]");
+	}
+
+	@Test
+	public void testUnexpectedTokenIsInvalidFormat() {
+		String json = """
+				{"version":"1.0","bookmarks":{"id":"root","children":{"id":"b1"}}}""";
+
+		assertThatThrownBy(() -> deserialize(json)).isInstanceOf(IOException.class)
+				.hasMessageContaining("Invalid format : Expected BEGIN_ARRAY but was BEGIN_OBJECT");
+	}
+
+	@Test
+	public void testTruncatedFileIsIOException() {
+		String json = """
+				{"version":"1.0","bookmarks":{"id":"root","children":[
+				  {"id":"b1","properties":{"name":"o""";
+
+		assertThatThrownBy(() -> deserialize(json)).isInstanceOf(IOException.class);
 	}
 
 	private String serialize(BookmarksTree bookmarksTree, BookmarkId bookmarkFolderId) throws IOException {
