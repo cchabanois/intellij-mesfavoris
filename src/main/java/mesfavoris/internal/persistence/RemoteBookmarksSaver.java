@@ -1,7 +1,6 @@
 package mesfavoris.internal.persistence;
 
 import com.google.common.collect.Lists;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import mesfavoris.BookmarksException;
 import mesfavoris.internal.model.copy.BookmarksCopier;
@@ -13,6 +12,8 @@ import mesfavoris.model.modification.*;
 import mesfavoris.remote.*;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.time.Duration;
 import java.util.*;
 
 /**
@@ -21,11 +22,21 @@ import java.util.*;
  * @author cchabanois
  */
 public class RemoteBookmarksSaver {
-    private static final Logger LOG = Logger.getInstance(RemoteBookmarksSaver.class);
+    private static final int MAX_SAVE_ATTEMPTS = 5;
+    private static final Duration CONFLICT_RETRY_DELAY = Duration.ofMillis(200);
     private final RemoteBookmarksStoreManager remoteBookmarksStoreManager;
+    private final int maxSaveAttempts;
+    private final Duration conflictRetryDelay;
 
     public RemoteBookmarksSaver(RemoteBookmarksStoreManager remoteBookmarksStoreManager) {
+        this(remoteBookmarksStoreManager, MAX_SAVE_ATTEMPTS, CONFLICT_RETRY_DELAY);
+    }
+
+    RemoteBookmarksSaver(RemoteBookmarksStoreManager remoteBookmarksStoreManager, int maxSaveAttempts,
+                         Duration conflictRetryDelay) {
         this.remoteBookmarksStoreManager = remoteBookmarksStoreManager;
+        this.maxSaveAttempts = maxSaveAttempts;
+        this.conflictRetryDelay = conflictRetryDelay;
     }
 
     /**
@@ -54,7 +65,7 @@ public class RemoteBookmarksSaver {
             }
             return true;
         } catch (IOException e) {
-            LOG.error("Could not save bookmarks", e);
+            // logged by the caller
             throw new BookmarksException("Could not save bookmarks", e);
         }
 
@@ -69,11 +80,12 @@ public class RemoteBookmarksSaver {
      */
     private void applyModificationsToRemoteBookmarkFolder(RemoteBookmarkFolder remoteBookmarkFolder,
                                                           List<BookmarksModification> modifications, ProgressIndicator progressIndicator) throws IOException {
-        IRemoteBookmarksStore store = remoteBookmarksStoreManager
-                .getRemoteBookmarksStore(remoteBookmarkFolder.getRemoteBookmarkStoreId()).get();
+        String storeId = remoteBookmarkFolder.getRemoteBookmarkStoreId();
+        IRemoteBookmarksStore store = remoteBookmarksStoreManager.getRemoteBookmarksStore(storeId)
+                .orElseThrow(() -> new IOException("Remote bookmarks store not found: " + storeId));
 
         progressIndicator.setText("Saving to remote bookmark folder");
-        while (true) {
+        for (int attempt = 1; ; attempt++) {
             progressIndicator.setFraction(progressIndicator.getFraction() + 0.5 * (1.0 - progressIndicator.getFraction()));
             RemoteBookmarksTree remoteBookmarksTree = store.load(remoteBookmarkFolder.getBookmarkFolderId(),
                     progressIndicator);
@@ -92,8 +104,24 @@ public class RemoteBookmarksSaver {
                         remoteBookmarksTree.getEtag(), progressIndicator);
                 return;
             } catch (ConflictException e) {
-                // conflict occurred, reload and retry
+                // bounded: a remote that always conflicts would otherwise block every later save
+                if (attempt == maxSaveAttempts) {
+                    throw new IOException("Could not save remote bookmark folder "
+                            + remoteBookmarkFolder.getBookmarkFolderId() + ": still conflicting after "
+                            + maxSaveAttempts + " attempts", e);
+                }
+                progressIndicator.checkCanceled();
+                sleep(conflictRetryDelay.multipliedBy(attempt));
             }
+        }
+    }
+
+    private static void sleep(Duration duration) throws InterruptedIOException {
+        try {
+            Thread.sleep(duration.toMillis());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new InterruptedIOException("Interrupted while saving remote bookmark folder");
         }
     }
 
