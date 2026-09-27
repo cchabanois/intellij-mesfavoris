@@ -1,5 +1,6 @@
 package mesfavoris.github.repository;
 
+import com.intellij.externalProcessAuthHelper.AuthenticationMode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.NioFiles;
 import git4idea.commands.Git;
@@ -12,11 +13,13 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -50,7 +53,7 @@ public class GistRepository {
      * @param project       the project git commands run for
      * @param clone         the gist's clone on disk, whose lock every command holds
      * @param gitUrl        the gist's git url, without credentials: to clone, fetch and push
-     * @param tokenSupplier the GitHub token, added to {@code gitUrl} for each command and never written to disk
+     * @param tokenSupplier the GitHub token, passed to each remote command through its environment and never written to disk
      * @param userLogin     the GitHub login used as commit author, or null
      */
     GistRepository(Project project, GistClone clone, String gitUrl, Supplier<String> tokenSupplier,
@@ -96,7 +99,7 @@ public class GistRepository {
             }
             try {
                 Files.write(file, content);
-                runOrThrow(GitCommand.ADD, null, List.of(fileName));
+                runOrThrow(GitCommand.ADD, List.of(fileName));
                 commit("Update " + fileName);
                 push();
                 return head();
@@ -121,9 +124,8 @@ public class GistRepository {
     }
 
     private void push() throws IOException, ConflictException {
-        String url = authenticatedUrl();
-        GitCommandResult result = run(GitCommand.PUSH, url,
-                List.of("--no-verify", url, "HEAD:refs/heads/" + currentBranch()), Map.of());
+        GitCommandResult result = runRemote(GitCommand.PUSH,
+                List.of("--no-verify", gitUrl, "HEAD:refs/heads/" + currentBranch()));
         if (result.success()) {
             return;
         }
@@ -140,9 +142,9 @@ public class GistRepository {
             return;
         }
         String branch = currentBranch();
-        String url = authenticatedUrl();
-        runOrThrow(GitCommand.FETCH, url, List.of(url, "+refs/heads/" + branch + ":refs/remotes/origin/" + branch));
-        runOrThrow(GitCommand.RESET, null, List.of("--hard", "refs/remotes/origin/" + branch));
+        check(runRemote(GitCommand.FETCH, List.of(gitUrl, "+refs/heads/" + branch + ":refs/remotes/origin/" + branch)),
+                "fetch");
+        runOrThrow(GitCommand.RESET, List.of("--hard", "refs/remotes/origin/" + branch));
     }
 
     /** Returns true if the clone has just been created, and is thus up to date. */
@@ -162,23 +164,18 @@ public class GistRepository {
         // clone next to the final location then move it, so an interrupted clone never looks valid
         Path tempParent = Files.createTempDirectory(directory.getParent(), directory.getFileName() + CLONE_SUFFIX);
         try {
-            String url = authenticatedUrl();
+            Map<String, String> authEnvironment = authEnvironment();
             GitCommandResult result = Git.getInstance().runCommand(() -> {
-                GitLineHandler handler = new GitLineHandler(project, tempParent.toFile(), GitCommand.CLONE);
-                handler.setUrl(url); // masks the embedded token in logged commands
+                GitLineHandler handler = remoteHandler(tempParent, GitCommand.CLONE, authEnvironment);
                 // no symlinks: a gist file linking outside the clone must never be read or written through
                 handler.addParameters("--depth=1", "--config", "core.autocrlf=false",
-                        "--config", "core.symlinks=false", "--config", "commit.gpgsign=false", url);
+                        "--config", "core.symlinks=false", "--config", "commit.gpgsign=false", gitUrl);
                 handler.endOptions();
                 handler.addParameters(CLONE_DIR_NAME);
                 return handler;
             });
             check(result, "clone");
-            Path clone = tempParent.resolve(CLONE_DIR_NAME);
-            // keep the token out of .git/config: fetch and push pass the authenticated URL explicitly
-            GitCommandResult setUrl = run(clone, GitCommand.REMOTE, null, List.of("set-url", "origin", gitUrl), Map.of());
-            check(setUrl, "remote set-url");
-            Files.move(clone, directory, StandardCopyOption.ATOMIC_MOVE);
+            Files.move(tempParent.resolve(CLONE_DIR_NAME), directory, StandardCopyOption.ATOMIC_MOVE);
         } finally {
             try {
                 NioFiles.deleteRecursively(tempParent);
@@ -246,18 +243,13 @@ public class GistRepository {
         return result.success() ? result.getOutputAsJoinedString().trim() : null;
     }
 
-    private void runOrThrow(GitCommand command, @Nullable String url, List<String> params) throws IOException {
-        check(run(command, url, params, Map.of()), command.toString());
+    private void runOrThrow(GitCommand command, List<String> params) throws IOException {
+        check(run(command, null, params, Map.of()), command.toString());
     }
 
     private GitCommandResult run(GitCommand command, @Nullable String url, List<String> params,
                                  Map<String, String> environment) {
-        return run(directory, command, url, params, environment);
-    }
-
-    private GitCommandResult run(Path workingDirectory, GitCommand command, @Nullable String url,
-                                 List<String> params, Map<String, String> environment) {
-        return run(project, workingDirectory, command, url, params, environment);
+        return run(project, directory, command, url, params, environment);
     }
 
     private static GitCommandResult run(Project project, Path workingDirectory, GitCommand command,
@@ -273,15 +265,33 @@ public class GistRepository {
         });
     }
 
+    private GitCommandResult runRemote(GitCommand command, List<String> params) throws IOException {
+        Map<String, String> authEnvironment = authEnvironment();
+        return Git.getInstance().runCommand(() -> {
+            GitLineHandler handler = remoteHandler(directory, command, authEnvironment);
+            handler.addParameters(params);
+            return handler;
+        });
+    }
+
+    private GitLineHandler remoteHandler(Path workingDirectory, GitCommand command,
+                                         Map<String, String> authEnvironment) {
+        GitLineHandler handler = new GitLineHandler(project, workingDirectory.toFile(), command);
+        handler.setUrl(gitUrl);
+        // our token only: no IDE credentials, and no password dialog during a background sync
+        handler.setIgnoreAuthenticationMode(AuthenticationMode.NONE);
+        authEnvironment.forEach(handler::addCustomEnvironmentVariable);
+        return handler;
+    }
+
     private static void check(GitCommandResult result, String what) throws IOException {
         if (!result.success()) {
-            // git strips the userinfo (token) from URLs in its stderr, so this is safe to surface
             throw new IOException("git " + what + " failed for gist: " + result.getErrorOutputAsJoinedString());
         }
     }
 
-    private String authenticatedUrl() throws IOException {
-        return authenticatedGitUrl(gitUrl, tokenSupplier.get());
+    private Map<String, String> authEnvironment() throws IOException {
+        return authEnvironment(gitUrl, tokenSupplier.get());
     }
 
     /**
@@ -299,14 +309,23 @@ public class GistRepository {
         return result.success() && !url.isEmpty() ? url : null;
     }
 
-    /** Embeds the token as {@code https://x-access-token:<token>@host/...}; package-private for unit tests. */
-    static String authenticatedGitUrl(String gitUrl, String token) throws IOException {
+    /**
+     * Git config, passed through the environment, sending the token as an {@code Authorization} header to the
+     * gist's host only. Unlike the command line, the environment of a process is not readable by other users.
+     * Package-private for unit tests.
+     */
+    static Map<String, String> authEnvironment(String gitUrl, String token) throws IOException {
         URI uri = URI.create(gitUrl);
+        String origin;
         try {
-            return new URI(uri.getScheme(), "x-access-token:" + token, uri.getHost(), uri.getPort(),
-                    uri.getPath(), uri.getQuery(), uri.getFragment()).toString();
+            origin = new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), "/", null, null).toString();
         } catch (URISyntaxException e) {
             throw new IOException("Invalid gist git url: " + gitUrl, e);
         }
+        String credentials = Base64.getEncoder()
+                .encodeToString(("x-access-token:" + token).getBytes(StandardCharsets.UTF_8));
+        return Map.of("GIT_CONFIG_COUNT", "1",
+                "GIT_CONFIG_KEY_0", "http." + origin + ".extraHeader",
+                "GIT_CONFIG_VALUE_0", "Authorization: Basic " + credentials);
     }
 }

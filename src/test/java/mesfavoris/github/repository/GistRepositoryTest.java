@@ -13,7 +13,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -255,14 +257,20 @@ public class GistRepositoryTest extends BasePlatformTestCase {
         }
     }
 
-    public void testAuthenticatedGitUrl_embedsToken() throws Exception {
-        assertThat(GistRepository.authenticatedGitUrl("https://gist.github.com/abc123.git", "ghp_secret"))
-                .isEqualTo("https://x-access-token:ghp_secret@gist.github.com/abc123.git");
+    public void testAuthEnvironment_sendsTokenAsBasicAuthHeaderToGistHostOnly() throws Exception {
+        String credentials = Base64.getEncoder()
+                .encodeToString("x-access-token:ghp_secret".getBytes(StandardCharsets.UTF_8));
+
+        assertThat(GistRepository.authEnvironment("https://gist.github.com/abc123.git", "ghp_secret"))
+                .containsExactlyInAnyOrderEntriesOf(Map.of(
+                        "GIT_CONFIG_COUNT", "1",
+                        "GIT_CONFIG_KEY_0", "http.https://gist.github.com/.extraHeader",
+                        "GIT_CONFIG_VALUE_0", "Authorization: Basic " + credentials));
     }
 
-    public void testAuthenticatedGitUrl_keepsPortAndPath() throws Exception {
-        assertThat(GistRepository.authenticatedGitUrl("http://127.0.0.1:8080/gist/abc123.git", "tok"))
-                .isEqualTo("http://x-access-token:tok@127.0.0.1:8080/gist/abc123.git");
+    public void testAuthEnvironment_keepsPort() throws Exception {
+        assertThat(GistRepository.authEnvironment("http://127.0.0.1:8080/gist/abc123.git", "tok"))
+                .containsEntry("GIT_CONFIG_KEY_0", "http.http://127.0.0.1:8080/.extraHeader");
     }
 
     private GistResponse createGist(String fileName, String content) throws IOException {
