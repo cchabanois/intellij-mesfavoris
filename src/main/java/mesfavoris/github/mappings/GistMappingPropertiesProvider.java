@@ -21,7 +21,7 @@ public class GistMappingPropertiesProvider {
     }
 
     /** {@code properties} with the bookmark count updated for {@code bookmarksTree}. */
-    public Map<String, String> withBookmarksCount(Map<String, String> properties, BookmarksTree bookmarksTree) {
+    public static Map<String, String> withBookmarksCount(Map<String, String> properties, BookmarksTree bookmarksTree) {
         Map<String, String> props = new HashMap<>(properties);
         props.put(GistMapping.PROP_BOOKMARKS_COUNT, Integer.toString(bookmarksTree.size() - 1));
         return props;

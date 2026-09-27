@@ -35,17 +35,21 @@ public class GithubConnectionManager implements IGistRepositoryProvider {
     private final AtomicReference<State> state = new AtomicReference<>(State.disconnected);
 
     private volatile String accessToken;
+    private final GistRepositories gistRepositories;
     private volatile String apiBaseUrl;
     private volatile UserInfo userInfo;
     private volatile IGistApiClient gistApiClient;
 
     public GithubConnectionManager(Project project) {
-        this(project, project.getService(GithubUserInfoStore.class));
+        this(project, project.getService(GithubUserInfoStore.class),
+                ApplicationManager.getApplication().getService(GistRepositories.class));
     }
 
-    public GithubConnectionManager(Project project, GithubUserInfoStore userInfoStore) {
+    public GithubConnectionManager(Project project, GithubUserInfoStore userInfoStore,
+                                   GistRepositories gistRepositories) {
         this.project = project;
         this.userInfoStore = userInfoStore;
+        this.gistRepositories = gistRepositories;
     }
 
     public void init() {
@@ -136,9 +140,8 @@ public class GithubConnectionManager implements IGistRepositoryProvider {
     /** The local clone of a gist, authenticated with this connection's token. */
     @Override
     public GistRepository getGistRepository(String gistId) throws IOException {
-        GistRepositories repositories = GistRepositories.getInstance();
         // the url of an existing clone, else from the GitHub API: never from (possibly shared) project files
-        String gitUrl = repositories.getClonedGitUrl(project, gistId);
+        String gitUrl = gistRepositories.getClonedGitUrl(project, gistId);
         if (gitUrl == null) {
             IGistApiClient apiClient = gistApiClient;
             if (apiClient == null) {
@@ -150,7 +153,7 @@ public class GithubConnectionManager implements IGistRepositoryProvider {
             }
         }
         UserInfo user = userInfo;
-        return repositories.getRepository(project, gistId, gitUrl, this::getAccessToken,
+        return gistRepositories.getRepository(project, gistId, gitUrl, this::getAccessToken,
                 user != null ? user.getEmailAddress() : null);
     }
 

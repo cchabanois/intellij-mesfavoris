@@ -9,7 +9,6 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import mesfavoris.github.changes.GistChangeManager;
 import mesfavoris.github.mappings.GistMapping;
 import mesfavoris.github.mappings.GistMappingsStore;
-import mesfavoris.github.repository.GistRepositories;
 import mesfavoris.github.test.GithubConnectionRule;
 import mesfavoris.internal.persistence.RemoteBookmarksSaver;
 import mesfavoris.model.Bookmark;
@@ -58,7 +57,7 @@ public class GithubRemoteBookmarksStoreTest extends BasePlatformTestCase {
                 connectionRule.getConnectionManager(), connectionRule.getGistMappingsStore(),
                 executor, () -> Duration.ofSeconds(30));
         store = new GithubRemoteBookmarksStore(getProject(), connectionRule.getConnectionManager(),
-                connectionRule.getGistMappingsStore(), changeManager) {
+                connectionRule.getGistMappingsStore(), changeManager, connectionRule.getGistRepositories()) {
             @Override
             public RemoteBookmarksTree save(BookmarksTree bookmarksTree, BookmarkId bookmarkFolderId, String etag,
                                             ProgressIndicator indicator) throws IOException, ConflictException {
@@ -261,7 +260,7 @@ public class GithubRemoteBookmarksStoreTest extends BasePlatformTestCase {
         store.add(bookmarksTree, folderId, new EmptyProgressIndicator());
         store.load(folderId, new EmptyProgressIndicator());
         String gistId = connectionRule.getGistMappingsStore().getMapping(folderId).orElseThrow().getGistId();
-        Path clone = GistRepositories.getInstance().getDirectory(gistId);
+        Path clone = connectionRule.getGistRepositories().getDirectory(gistId);
         assertThat(clone.resolve(".git")).isDirectory();
         return clone;
     }

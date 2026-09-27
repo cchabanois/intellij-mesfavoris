@@ -6,7 +6,6 @@ import mesfavoris.github.client.GistResponse;
 import mesfavoris.github.client.IGistApiClient;
 import mesfavoris.github.mappings.GistMapping;
 import mesfavoris.github.mappings.GistMappingsStore;
-import mesfavoris.github.repository.GistRepositories;
 import mesfavoris.github.test.GithubConnectionRule;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkFolder;
@@ -72,7 +71,7 @@ public class ImportGistOperationTest extends BasePlatformTestCase {
         GistMapping mapping = mappings.getMapping(folderId).orElseThrow();
         assertThat(mapping.getGistId()).isEqualTo(gist.id);
         assertThat(mapping.getProperties()).containsEntry(GistMapping.PROP_GIST_URL, gist.html_url);
-        assertThat(GistRepositories.getInstance().getDirectory(gist.id).resolve(".git")).isDirectory();
+        assertThat(connectionRule.getGistRepositories().getDirectory(gist.id).resolve(".git")).isDirectory();
     }
 
     public void testImportGist_withoutBookmarksFile_throwsIOException() throws Exception {

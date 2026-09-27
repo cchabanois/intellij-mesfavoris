@@ -3,6 +3,7 @@ package mesfavoris.github.test;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.NioFiles;
 import com.intellij.testFramework.ServiceContainerUtil;
 import mesfavoris.github.GithubTestUser;
 import mesfavoris.github.connection.GithubConnectionManager;
@@ -11,6 +12,7 @@ import mesfavoris.github.integration.IGithubAccountResolver;
 import mesfavoris.github.mappings.GistMapping;
 import mesfavoris.github.mappings.GistMappingsStore;
 import mesfavoris.github.client.GistApiClient;
+import mesfavoris.github.repository.GistRepositories;
 import mesfavoris.remote.IRemoteBookmarksStore.State;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,6 +20,8 @@ import org.junit.rules.ExternalResource;
 
 import java.io.IOException;
 import java.net.http.HttpClient;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Optional;
 
 /**
@@ -35,6 +39,8 @@ public class GithubConnectionRule extends ExternalResource {
     private GithubConnectionManager connectionManager;
     private GistMappingsStore gistMappingsStore;
     private FakeGistApiServer fakeServer;
+    private Path gistRepositoriesDirectory;
+    private GistRepositories gistRepositories;
 
     public GithubConnectionRule(Project project, GithubTestUser user, boolean connect) {
         this.project = project;
@@ -62,8 +68,12 @@ public class GithubConnectionRule extends ExternalResource {
                 IGithubAccountResolver.class,
                 new TestGithubAccountResolver(token, apiBaseUrl));
 
+        // local gist clones in a temporary directory, deleted after the test
+        gistRepositoriesDirectory = Files.createTempDirectory("gist-repositories-");
+        gistRepositories = new GistRepositories(gistRepositoriesDirectory);
+
         GithubUserInfoStore userInfoStore = new GithubUserInfoStore();
-        connectionManager = new GithubConnectionManager(project, userInfoStore);
+        connectionManager = new GithubConnectionManager(project, userInfoStore, gistRepositories);
         connectionManager.init();
 
         gistMappingsStore = new GistMappingsStore(project);
@@ -86,6 +96,13 @@ public class GithubConnectionRule extends ExternalResource {
         } finally {
             if (fakeServer != null) {
                 fakeServer.stop();
+            }
+            if (gistRepositoriesDirectory != null) {
+                try {
+                    NioFiles.deleteRecursively(gistRepositoriesDirectory);
+                } catch (IOException e) {
+                    // ignore
+                }
             }
         }
     }
@@ -129,6 +146,10 @@ public class GithubConnectionRule extends ExternalResource {
 
     public GistMappingsStore getGistMappingsStore() {
         return gistMappingsStore;
+    }
+
+    public GistRepositories getGistRepositories() {
+        return gistRepositories;
     }
 
     private static class TestGithubAccountResolver implements IGithubAccountResolver {

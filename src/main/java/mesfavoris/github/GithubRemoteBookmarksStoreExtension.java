@@ -1,6 +1,7 @@
 package mesfavoris.github;
 
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import mesfavoris.github.actions.CopyGistLinkAction;
@@ -9,6 +10,7 @@ import mesfavoris.github.actions.ViewInGithubAction;
 import mesfavoris.github.changes.GistChangeManager;
 import mesfavoris.github.connection.GithubConnectionManager;
 import mesfavoris.github.mappings.GistMappingsStore;
+import mesfavoris.github.repository.GistRepositories;
 import mesfavoris.remote.AbstractRemoteBookmarksStore;
 import mesfavoris.remote.AbstractRemoteBookmarksStoreExtension;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +36,8 @@ public class GithubRemoteBookmarksStoreExtension extends AbstractRemoteBookmarks
         GistMappingsStore mappingsStore = project.getService(GistMappingsStore.class);
         ScheduledExecutorService executor = AppExecutorUtil.getAppScheduledExecutorService();
         GistChangeManager changeManager = new GistChangeManager(project, connectionManager, mappingsStore, executor);
-        return new GithubRemoteBookmarksStore(project, connectionManager, mappingsStore, changeManager);
+        return new GithubRemoteBookmarksStore(project, connectionManager, mappingsStore, changeManager,
+                ApplicationManager.getApplication().getService(GistRepositories.class));
     }
 
     @NotNull

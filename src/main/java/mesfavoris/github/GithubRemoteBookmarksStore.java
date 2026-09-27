@@ -47,17 +47,20 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
     private final GithubConnectionManager connectionManager;
     private final GistMappingsStore gistMappingsStore;
     private final GistChangeManager gistChangeManager;
+    private final GistRepositories gistRepositories;
     private final GistMappingPropertiesProvider propertiesProvider;
 
     public GithubRemoteBookmarksStore(Project project,
                                        GithubConnectionManager connectionManager,
                                        GistMappingsStore gistMappingsStore,
-                                       GistChangeManager gistChangeManager) {
+                                       GistChangeManager gistChangeManager,
+                                       GistRepositories gistRepositories) {
         super(project);
         this.project = project;
         this.connectionManager = connectionManager;
         this.gistMappingsStore = gistMappingsStore;
         this.gistChangeManager = gistChangeManager;
+        this.gistRepositories = gistRepositories;
         this.propertiesProvider = new GistMappingPropertiesProvider();
     }
 
@@ -93,7 +96,7 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
             public void mappingRemoved(BookmarkId bookmarkFolderId, String gistId) {
                 // not on the caller thread (often the EDT): it may wait for a git command holding the gist lock
                 ApplicationManager.getApplication().executeOnPooledThread(
-                        () -> GistRepositories.getInstance().delete(gistId));
+                        () -> gistRepositories.delete(gistId));
                 postMappingRemoved(bookmarkFolderId);
             }
         });
@@ -264,7 +267,7 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
 
     private void updateBookmarksCount(String gistId, BookmarksTree subTree) {
         gistMappingsStore.getMapping(gistId).ifPresent(mapping -> gistMappingsStore.update(gistId,
-                propertiesProvider.withBookmarksCount(mapping.getProperties(), subTree)));
+                GistMappingPropertiesProvider.withBookmarksCount(mapping.getProperties(), subTree)));
     }
 
     private byte[] serializeBookmarkFolder(BookmarksTree tree, BookmarkId bookmarkFolderId) throws IOException {

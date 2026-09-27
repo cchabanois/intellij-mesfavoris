@@ -1,6 +1,5 @@
 package mesfavoris.github.repository;
 
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Logger;
@@ -30,12 +29,8 @@ public final class GistRepositories {
     }
 
     @NonInjectable
-    GistRepositories(Path baseDirectory) {
+    public GistRepositories(Path baseDirectory) {
         this.baseDirectory = baseDirectory;
-    }
-
-    public static GistRepositories getInstance() {
-        return ApplicationManager.getApplication().getService(GistRepositories.class);
     }
 
     public GistRepository getRepository(Project project, String gistId, String gitUrl,
