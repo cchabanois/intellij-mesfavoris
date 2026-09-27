@@ -4,6 +4,20 @@
 
 ## [Unreleased]
 
+### Changed
+
+- GitHub Gist sync now goes through a local git clone of each Gist, kept in the IDE system directory: loading fetches and saving commits and pushes, so only the changes go over the network. Requires Git 2.31 or later, as configured in IntelliJ.
+- Importing a large (truncated) GitHub Gist now uses a shallow clone, which makes it faster.
+
+### Fixed
+
+- The bookmarks file is now written atomically, so a crash or a full disk during a save can no longer leave it truncated. An unreadable bookmarks file no longer prevents the plugin from starting: it is moved aside to `bookmarks.json.corrupted-<date>` and a notification tells what is wrong with it (e.g. a duplicate bookmark id and where it is).
+- Saving a shared folder to a remote store now gives up after repeated conflicts instead of retrying forever, which blocked all later bookmark saves.
+- Importing a remote bookmark folder under another remote folder is now prevented.
+- The notification shown when connecting to a remote store fails no longer displays `null` as the reason.
+- Moving a folder into itself or one of its subfolders now fails with an explicit error message.
+- The GitHub token is now passed to git through its environment instead of its command line, so it no longer shows up in the process list.
+
 ## [0.8.0] - 2026-08-16
 
 ### Added
