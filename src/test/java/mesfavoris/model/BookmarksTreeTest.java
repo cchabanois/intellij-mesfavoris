@@ -153,6 +153,32 @@ public class BookmarksTreeTest {
 	}
 
 	@Test
+	public void testCannotMoveFolderIntoItsSubfolder() {
+		// Given
+		BookmarkFolder subFolder = new BookmarkFolder(new BookmarkId("subFolderId"), "subFolder");
+		bookmarksTree = bookmarksTree.addBookmarks(bookmarkFolder1.getId(), Lists.newArrayList(subFolder));
+
+		// When
+		Throwable thrown = catchThrowable(() -> bookmarksTree.move(Lists.newArrayList(bookmarkFolder1.getId()),
+				subFolder.getId()));
+
+		// Then
+		assertThat(thrown).isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("Cannot move folder folder1Id into itself or one of its subfolders");
+	}
+
+	@Test
+	public void testCannotMoveFolderIntoItself() {
+		// When
+		Throwable thrown = catchThrowable(() -> bookmarksTree.moveBefore(Lists.newArrayList(bookmarkFolder1.getId()),
+				bookmarkFolder1.getId(), null));
+
+		// Then
+		assertThat(thrown).isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("Cannot move folder folder1Id into itself or one of its subfolders");
+	}
+
+	@Test
 	public void testMoveBookmarksAfterNull() {
 		// Given
 

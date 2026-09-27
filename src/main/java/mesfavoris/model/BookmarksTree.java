@@ -293,7 +293,8 @@ public class BookmarksTree implements Iterable<Bookmark> {
 		Set<BookmarkId> forbiddenIds = Sets.newHashSet(getPath(newParentId));
 		for (BookmarkId bookmarkId : bookmarkIds) {
 			if (forbiddenIds.contains(bookmarkId)) {
-				throw new IllegalArgumentException();
+				throw new IllegalArgumentException(MessageFormat
+						.format("Cannot move folder {0} into itself or one of its subfolders", bookmarkId));
 			}
 		}
 	}
