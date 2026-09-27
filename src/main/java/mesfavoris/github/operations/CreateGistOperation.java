@@ -1,6 +1,7 @@
 package mesfavoris.github.operations;
 import mesfavoris.github.client.IGistApiClient;
 import mesfavoris.github.client.GistResponse;
+import mesfavoris.github.mappings.GistMapping;
 
 import com.intellij.openapi.progress.ProgressIndicator;
 
@@ -21,7 +22,7 @@ public class CreateGistOperation {
             indicator.setText("Creating GitHub Gist for bookmark folder");
         }
         String description = "mesfavoris: " + bookmarkFolderName;
-        return apiClient.createGist(description, LoadGistOperation.BOOKMARKS_FILE_NAME,
+        return apiClient.createGist(description, GistMapping.BOOKMARKS_FILE_NAME,
                 new String(content, StandardCharsets.UTF_8));
     }
 }

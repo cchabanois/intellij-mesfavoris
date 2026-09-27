@@ -84,10 +84,11 @@ public class ImportBookmarksFromGithubAction extends AbstractBookmarkAction {
         List<GistResponse> gists = dialog.getSelectedGists();
         if (gists.isEmpty()) return;
 
-        importGists(project, apiClient, gistMappingsStore, bookmarksService, targetFolderId, gists);
+        importGists(project, apiClient, connectionManager, gistMappingsStore, bookmarksService, targetFolderId, gists);
     }
 
     private void importGists(@NotNull Project project, @NotNull IGistApiClient apiClient,
+                             @NotNull GithubConnectionManager connectionManager,
                              @NotNull GistMappingsStore gistMappingsStore,
                              @NotNull IBookmarksService bookmarksService,
                              @NotNull BookmarkId targetFolderId,
@@ -96,7 +97,8 @@ public class ImportBookmarksFromGithubAction extends AbstractBookmarkAction {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
                 indicator.setIndeterminate(false);
-                ImportGistOperation op = new ImportGistOperation(apiClient, gistMappingsStore, bookmarksService);
+                ImportGistOperation op = new ImportGistOperation(apiClient, connectionManager,
+                        gistMappingsStore, bookmarksService);
                 for (int i = 0; i < gists.size(); i++) {
                     if (indicator.isCanceled()) break;
                     GistResponse gist = gists.get(i);

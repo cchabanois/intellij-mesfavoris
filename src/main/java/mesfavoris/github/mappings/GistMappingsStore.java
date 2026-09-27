@@ -55,7 +55,7 @@ public final class GistMappingsStore
 
     public void add(BookmarkId bookmarkFolderId, String gistId, Map<String, String> properties) {
         if (mappings.put(bookmarkFolderId, new GistMapping(bookmarkFolderId, gistId, properties)) == null) {
-            fireMappingAdded(bookmarkFolderId);
+            fireMappingAdded(bookmarkFolderId, gistId);
         }
     }
 
@@ -72,8 +72,9 @@ public final class GistMappingsStore
     }
 
     public void remove(BookmarkId bookmarkFolderId) {
-        if (mappings.remove(bookmarkFolderId) != null) {
-            fireMappingRemoved(bookmarkFolderId);
+        GistMapping removed = mappings.remove(bookmarkFolderId);
+        if (removed != null) {
+            fireMappingRemoved(bookmarkFolderId, removed.getGistId());
         }
     }
 
@@ -105,12 +106,12 @@ public final class GistMappingsStore
         toRemove.forEach(m -> remove(m.getBookmarkFolderId()));
     }
 
-    private void fireMappingAdded(BookmarkId bookmarkFolderId) {
-        project.getMessageBus().syncPublisher(IGistMappingsListener.TOPIC).mappingAdded(bookmarkFolderId);
+    private void fireMappingAdded(BookmarkId bookmarkFolderId, String gistId) {
+        project.getMessageBus().syncPublisher(IGistMappingsListener.TOPIC).mappingAdded(bookmarkFolderId, gistId);
     }
 
-    private void fireMappingRemoved(BookmarkId bookmarkFolderId) {
-        project.getMessageBus().syncPublisher(IGistMappingsListener.TOPIC).mappingRemoved(bookmarkFolderId);
+    private void fireMappingRemoved(BookmarkId bookmarkFolderId, String gistId) {
+        project.getMessageBus().syncPublisher(IGistMappingsListener.TOPIC).mappingRemoved(bookmarkFolderId, gistId);
     }
 
     @Nullable

@@ -135,6 +135,16 @@ public class FakeGistGitServer {
         }
     }
 
+    /** The commit id at the tip of the gist's branch. */
+    public String head(String gistId) {
+        try (Repository repo = open(repoDir(gistId))) {
+            ObjectId head = repo.resolve(BRANCH);
+            return head != null ? head.name() : null;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     public void delete(String gistId) {
         try {
             FileUtils.delete(repoDir(gistId), FileUtils.RECURSIVE | FileUtils.IGNORE_ERRORS);
@@ -241,6 +251,7 @@ public class FakeGistGitServer {
     private void receivePack(HttpExchange exchange, Repository repo, String gistId) throws IOException {
         ReceivePack receivePack = new ReceivePack(repo);
         receivePack.setBiDirectionalPipe(false);
+        receivePack.setAllowNonFastForwards(false);
         receivePack.setPostReceiveHook((pack, commands) -> {
             try {
                 onPush.accept(gistId, readFiles(repo));

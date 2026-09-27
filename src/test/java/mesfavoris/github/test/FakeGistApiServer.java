@@ -5,14 +5,13 @@ import com.github.tomakehurst.wiremock.extension.ResponseDefinitionTransformerV2
 import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import mesfavoris.github.client.GistApiClient;
-import mesfavoris.github.client.content.DefaultGistFileContentProvider;
 import org.junit.rules.ExternalResource;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.net.http.HttpClient;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
@@ -86,11 +85,8 @@ public class FakeGistApiServer extends ExternalResource {
         return server.baseUrl();
     }
 
-    /** A {@link GistApiClient} wired to this fake, with the small + raw-HTTP content-recovery chain (no IDE). */
     public GistApiClient newApiClient() {
-        HttpClient httpClient = GistApiClient.newHttpClient();
-        return new GistApiClient(() -> TOKEN, this::baseUrl, httpClient, "",
-                DefaultGistFileContentProvider.create(null, httpClient, () -> TOKEN));
+        return new GistApiClient(() -> TOKEN, this::baseUrl, GistApiClient.newHttpClient());
     }
 
     /** A push replaced the gist's files: make the REST view follow the repository. */
@@ -171,7 +167,7 @@ public class FakeGistApiServer extends ExternalResource {
             if (path.startsWith("/gists/")) {
                 String id = path.substring("/gists/".length());
                 return switch (method) {
-                    case "GET" -> loadGist(id, ifNoneMatch);
+                    case "GET", "HEAD" -> loadGist(id, ifNoneMatch);
                     case "PATCH" -> updateGist(id, body);
                     case "DELETE" -> deleteGist(id);
                     default -> json(405, "{\"message\":\"Method Not Allowed\"}", null);
@@ -226,7 +222,7 @@ public class FakeGistApiServer extends ExternalResource {
         }
 
         private ResponseDefinition listGists() {
-            var array = new com.google.gson.JsonArray();
+            JsonArray array = new JsonArray();
             for (StoredGist gist : gists.values()) {
                 array.add(toJson(gist));
             }
@@ -272,6 +268,11 @@ public class FakeGistApiServer extends ExternalResource {
             JsonObject owner = new JsonObject();
             owner.addProperty("login", "test-user");
             obj.add("owner", owner);
+            JsonObject revision = new JsonObject();
+            revision.addProperty("version", gitServer.head(gist.id));
+            JsonArray history = new JsonArray();
+            history.add(revision);
+            obj.add("history", history);
             JsonObject files = new JsonObject();
             for (Map.Entry<String, String> entry : gist.files.entrySet()) {
                 String content = entry.getValue();

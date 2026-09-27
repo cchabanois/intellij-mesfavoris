@@ -41,6 +41,10 @@ public interface IRemoteBookmarksStore extends Disposable {
 
     RemoteBookmarksTree load(BookmarkId bookmarkFolderId, ProgressIndicator progressIndicator) throws IOException;
 
+    /**
+     * @param etag the etag of the remote version the tree is based on, or null to save without a conflict check
+     * @throws ConflictException if the remote version has changed since {@code etag}
+     */
     RemoteBookmarksTree save(BookmarksTree bookmarksTree, BookmarkId bookmarkFolderId, String etag,
                              ProgressIndicator progressIndicator) throws IOException, ConflictException;
 

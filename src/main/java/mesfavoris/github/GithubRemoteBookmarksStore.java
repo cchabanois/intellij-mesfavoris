@@ -2,6 +2,7 @@ package mesfavoris.github;
 import mesfavoris.github.client.IGistApiClient;
 import mesfavoris.github.client.GistResponse;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -14,7 +15,10 @@ import mesfavoris.github.mappings.GistMapping;
 import mesfavoris.github.mappings.GistMappingPropertiesProvider;
 import mesfavoris.github.mappings.GistMappingsStore;
 import mesfavoris.github.mappings.IGistMappingsListener;
-import mesfavoris.github.operations.*;
+import mesfavoris.github.operations.CreateGistOperation;
+import mesfavoris.github.operations.DeleteGistOperation;
+import mesfavoris.github.repository.GistRepositories;
+import mesfavoris.github.repository.GistRepository;
 import mesfavoris.model.Bookmark;
 import mesfavoris.model.BookmarkFolder;
 import mesfavoris.model.BookmarkId;
@@ -34,26 +38,29 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Synchronizes bookmark folders with GitHub Gists: one private Gist per folder, containing
- * a single {@code bookmarks.json} file. The {@code updated_at} field returned by the Gist API
- * is used as an optimistic-lock token (etag) to detect concurrent modifications.
+ * Synchronizes bookmark folders with GitHub Gists: one private Gist per folder, containing a single
+ * {@code bookmarks.json} file. Content goes through a local git clone of the gist ({@link GistRepository}); the
+ * commit id is the etag, and a push rejected because the gist moved surfaces as a {@link ConflictException}.
  */
 public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
     private final Project project;
     private final GithubConnectionManager connectionManager;
     private final GistMappingsStore gistMappingsStore;
     private final GistChangeManager gistChangeManager;
+    private final GistRepositories gistRepositories;
     private final GistMappingPropertiesProvider propertiesProvider;
 
     public GithubRemoteBookmarksStore(Project project,
                                        GithubConnectionManager connectionManager,
                                        GistMappingsStore gistMappingsStore,
-                                       GistChangeManager gistChangeManager) {
+                                       GistChangeManager gistChangeManager,
+                                       GistRepositories gistRepositories) {
         super(project);
         this.project = project;
         this.connectionManager = connectionManager;
         this.gistMappingsStore = gistMappingsStore;
         this.gistChangeManager = gistChangeManager;
+        this.gistRepositories = gistRepositories;
         this.propertiesProvider = new GistMappingPropertiesProvider();
     }
 
@@ -81,12 +88,15 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
 
         messageBusConnection.subscribe(IGistMappingsListener.TOPIC, new IGistMappingsListener() {
             @Override
-            public void mappingAdded(BookmarkId bookmarkFolderId) {
+            public void mappingAdded(BookmarkId bookmarkFolderId, String gistId) {
                 postMappingAdded(bookmarkFolderId);
             }
 
             @Override
-            public void mappingRemoved(BookmarkId bookmarkFolderId) {
+            public void mappingRemoved(BookmarkId bookmarkFolderId, String gistId) {
+                // not on the caller thread (often the EDT): it may wait for a git command holding the gist lock
+                ApplicationManager.getApplication().executeOnPooledThread(
+                        () -> gistRepositories.delete(gistId));
                 postMappingRemoved(bookmarkFolderId);
             }
         });
@@ -139,7 +149,8 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
         if (indicator != null) {
             indicator.setFraction(1.0);
         }
-        return new RemoteBookmarksTree(this, subTree, response.updated_at);
+        // no clone here: the first load creates it, and the created gist already tells its commit id
+        return new RemoteBookmarksTree(this, subTree, response.latestVersion());
     }
 
     @Override
@@ -168,19 +179,19 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
             indicator.setFraction(0.0);
         }
         String gistId = requireGistId(bookmarkFolderId);
-        LoadGistOperation.GistContents contents =
-                new LoadGistOperation(getApiClient()).loadGist(gistId, indicator);
+        GistRepository.Snapshot snapshot = connectionManager.getGistRepository(gistId)
+                .fetchLatest(GistMapping.BOOKMARKS_FILE_NAME);
         if (indicator != null) {
             indicator.setFraction(0.8);
         }
         IBookmarksTreeDeserializer deserializer = new BookmarksTreeJsonDeserializer();
         BookmarksTree subTree = deserializer.deserialize(
-                new StringReader(new String(contents.content(), StandardCharsets.UTF_8)));
-        gistMappingsStore.update(gistId, propertiesProvider.getProperties(contents.response(), subTree));
+                new StringReader(new String(snapshot.content(), StandardCharsets.UTF_8)));
+        updateBookmarksCount(gistId, subTree);
         if (indicator != null) {
             indicator.setFraction(1.0);
         }
-        return new RemoteBookmarksTree(this, subTree, contents.etag());
+        return new RemoteBookmarksTree(this, subTree, snapshot.commitId());
     }
 
     @Override
@@ -197,14 +208,17 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
         if (indicator != null) {
             indicator.setFraction(0.2);
         }
-        GistResponse response = new UpdateGistOperation(getApiClient())
-                .updateGist(gistId, content, etag, indicator);
+        GistRepository repository = connectionManager.getGistRepository(gistId);
+        // a null etag means no conflict check: save on top of the latest version
+        String expectedCommitId = etag != null ? etag
+                : repository.fetchLatest(GistMapping.BOOKMARKS_FILE_NAME).commitId();
+        String commitId = repository.commitAndPush(GistMapping.BOOKMARKS_FILE_NAME, content, expectedCommitId);
         BookmarksTree subTree = bookmarksTree.subTree(bookmarkFolderId);
-        gistMappingsStore.update(gistId, propertiesProvider.getProperties(response, subTree));
+        updateBookmarksCount(gistId, subTree);
         if (indicator != null) {
             indicator.setFraction(1.0);
         }
-        return new RemoteBookmarksTree(this, subTree, response.updated_at);
+        return new RemoteBookmarksTree(this, subTree, commitId);
     }
 
     @Override
@@ -249,6 +263,11 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
                 .map(GistMapping::getGistId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Folder not added to GitHub Gists: " + bookmarkFolderId));
+    }
+
+    private void updateBookmarksCount(String gistId, BookmarksTree subTree) {
+        gistMappingsStore.getMapping(gistId).ifPresent(mapping -> gistMappingsStore.update(gistId,
+                GistMappingPropertiesProvider.withBookmarksCount(mapping.getProperties(), subTree)));
     }
 
     private byte[] serializeBookmarkFolder(BookmarksTree tree, BookmarkId bookmarkFolderId) throws IOException {

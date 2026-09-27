@@ -8,7 +8,7 @@ public interface IGistMappingsListener {
     Topic<IGistMappingsListener> TOPIC =
             Topic.create("GistMappingsListener", IGistMappingsListener.class);
 
-    void mappingAdded(BookmarkId bookmarkFolderId);
+    void mappingAdded(BookmarkId bookmarkFolderId, String gistId);
 
-    void mappingRemoved(BookmarkId bookmarkFolderId);
+    void mappingRemoved(BookmarkId bookmarkFolderId, String gistId);
 }

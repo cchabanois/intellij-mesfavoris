@@ -1,7 +1,6 @@
 package mesfavoris.github.mappings;
 import mesfavoris.github.client.GistResponse;
 
-import mesfavoris.github.client.GistApiClient;
 import mesfavoris.model.BookmarksTree;
 
 import java.util.HashMap;
@@ -18,6 +17,12 @@ public class GistMappingPropertiesProvider {
         if (response.owner != null && response.owner.login != null) {
             props.put(GistMapping.PROP_OWNER_LOGIN, response.owner.login);
         }
+        return withBookmarksCount(props, bookmarksTree);
+    }
+
+    /** {@code properties} with the bookmark count updated for {@code bookmarksTree}. */
+    public static Map<String, String> withBookmarksCount(Map<String, String> properties, BookmarksTree bookmarksTree) {
+        Map<String, String> props = new HashMap<>(properties);
         props.put(GistMapping.PROP_BOOKMARKS_COUNT, Integer.toString(bookmarksTree.size() - 1));
         return props;
     }

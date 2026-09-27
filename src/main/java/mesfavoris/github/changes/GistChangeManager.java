@@ -11,6 +11,7 @@ import mesfavoris.github.mappings.GistMapping;
 import mesfavoris.github.mappings.IGistMappings;
 import mesfavoris.github.client.GistApiClient;
 import mesfavoris.github.client.IGistApiClient;
+import mesfavoris.model.BookmarkId;
 import mesfavoris.remote.IRemoteBookmarksStore.State;
 
 import java.io.IOException;
@@ -112,7 +113,7 @@ public class GistChangeManager implements Disposable {
         return connectionManager.getState() == State.connected && !closed.get();
     }
 
-    private void fireGistChanged(mesfavoris.model.BookmarkId bookmarkFolderId, String gistId) {
+    private void fireGistChanged(BookmarkId bookmarkFolderId, String gistId) {
         project.getMessageBus().syncPublisher(IGistChangeListener.TOPIC)
                 .gistChanged(bookmarkFolderId, gistId);
     }
