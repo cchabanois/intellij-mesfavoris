@@ -15,7 +15,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -207,25 +206,18 @@ public class GistRepositoryTest extends BasePlatformTestCase {
         assertThat(restContent(gist.id)).isEqualTo("{\"v\":3}");
     }
 
-    public void testPull_existingClone_usesTheGitUrlItWasClonedFrom() throws Exception {
+    public void testGetClonedGitUrl_isTheUrlTheGistWasClonedFrom() throws Exception {
         GistResponse gist = createGist(FILE_NAME, "{\"v\":1}");
-        AtomicInteger gitUrlRequests = new AtomicInteger();
-        GistRepository repository = repositories.getRepository(getProject(), gist.id,
-                () -> {
-                    gitUrlRequests.incrementAndGet();
-                    return gist.git_pull_url;
-                }, () -> token, "test-user");
-        String commitId = repository.pull(FILE_NAME).commitId();
+        assertThat(repositories.getClonedGitUrl(getProject(), gist.id)).isNull();
 
-        repository.commitAndPush(FILE_NAME, bytes("{\"v\":2}"), commitId);
-        repository.pull(FILE_NAME);
+        repository(gist).pull(FILE_NAME);
 
-        assertThat(gitUrlRequests).hasValue(1);
+        assertThat(repositories.getClonedGitUrl(getProject(), gist.id)).isEqualTo(gist.git_pull_url);
     }
 
     public void testGetRepository_invalidGistId_throwsIOException() {
         assertThatThrownBy(() -> repositories.getRepository(getProject(), "../outside",
-                () -> "https://gist.github.com/abc.git", () -> token, "test-user"))
+                "https://gist.github.com/abc.git", () -> token, "test-user"))
                 .isInstanceOf(IOException.class)
                 .hasMessageContaining("Invalid gist id");
     }
@@ -291,7 +283,7 @@ public class GistRepositoryTest extends BasePlatformTestCase {
     }
 
     private GistRepository repository(GistResponse gist) throws IOException {
-        return repositories.getRepository(getProject(), gist.id, () -> gist.git_pull_url, () -> token, "test-user");
+        return repositories.getRepository(getProject(), gist.id, gist.git_pull_url, () -> token, "test-user");
     }
 
     private String restContent(String gistId) throws IOException {

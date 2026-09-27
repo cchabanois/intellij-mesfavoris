@@ -176,7 +176,8 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
             indicator.setFraction(0.0);
         }
         String gistId = requireGistId(bookmarkFolderId);
-        GistRepository.Snapshot snapshot = getRepository(gistId).pull(GistMapping.BOOKMARKS_FILE_NAME);
+        GistRepository.Snapshot snapshot = connectionManager.getGistRepository(gistId)
+                .pull(GistMapping.BOOKMARKS_FILE_NAME);
         if (indicator != null) {
             indicator.setFraction(0.8);
         }
@@ -204,7 +205,8 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
         if (indicator != null) {
             indicator.setFraction(0.2);
         }
-        String commitId = getRepository(gistId).commitAndPush(GistMapping.BOOKMARKS_FILE_NAME, content, etag);
+        String commitId = connectionManager.getGistRepository(gistId)
+                .commitAndPush(GistMapping.BOOKMARKS_FILE_NAME, content, etag);
         BookmarksTree subTree = bookmarksTree.subTree(bookmarkFolderId);
         updateBookmarksCount(gistId, subTree);
         if (indicator != null) {
@@ -255,11 +257,6 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
                 .map(GistMapping::getGistId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Folder not added to GitHub Gists: " + bookmarkFolderId));
-    }
-
-    private GistRepository getRepository(String gistId) throws IOException {
-        // the git url comes from the GitHub API, never from mappings stored in (possibly shared) project files
-        return connectionManager.getGistRepository(gistId, () -> getApiClient().loadGist(gistId).git_pull_url);
     }
 
     private void updateBookmarksCount(String gistId, BookmarksTree subTree) {

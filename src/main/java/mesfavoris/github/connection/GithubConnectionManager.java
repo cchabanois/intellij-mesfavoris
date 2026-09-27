@@ -4,7 +4,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.ThrowableComputable;
 import mesfavoris.github.GithubRemoteBookmarksStoreExtension;
 import mesfavoris.github.integration.IGithubAccountResolver;
 import mesfavoris.github.operations.GetAuthenticatedUserOperation;
@@ -136,10 +135,22 @@ public class GithubConnectionManager implements IGistRepositoryProvider {
 
     /** The local clone of a gist, authenticated with this connection's token. */
     @Override
-    public GistRepository getGistRepository(String gistId, ThrowableComputable<String, IOException> gitUrlSupplier)
-            throws IOException {
+    public GistRepository getGistRepository(String gistId) throws IOException {
+        GistRepositories repositories = GistRepositories.getInstance();
+        // the url of an existing clone, else from the GitHub API: never from (possibly shared) project files
+        String gitUrl = repositories.getClonedGitUrl(project, gistId);
+        if (gitUrl == null) {
+            IGistApiClient apiClient = gistApiClient;
+            if (apiClient == null) {
+                throw new IOException("Not connected to GitHub");
+            }
+            gitUrl = apiClient.loadGist(gistId).git_pull_url;
+            if (gitUrl == null) {
+                throw new IOException("No git url for gist " + gistId);
+            }
+        }
         UserInfo user = userInfo;
-        return GistRepositories.getInstance().getRepository(project, gistId, gitUrlSupplier, this::getAccessToken,
+        return repositories.getRepository(project, gistId, gitUrl, this::getAccessToken,
                 user != null ? user.getEmailAddress() : null);
     }
 

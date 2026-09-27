@@ -5,7 +5,6 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.io.NioFiles;
 import com.intellij.serviceContainer.NonInjectable;
 import org.jetbrains.annotations.Nullable;
@@ -41,16 +40,16 @@ public final class GistRepositories {
         return ApplicationManager.getApplication().getService(GistRepositories.class);
     }
 
-    /**
-     * @param gitUrlSupplier gives the gist's git url when the clone has to be created; once cloned, the url
-     *                       recorded in the clone is used
-     */
-    public GistRepository getRepository(Project project, String gistId,
-                                        ThrowableComputable<String, IOException> gitUrlSupplier,
+    public GistRepository getRepository(Project project, String gistId, String gitUrl,
                                         Supplier<String> tokenSupplier, @Nullable String userLogin)
             throws IOException {
-        return new GistRepository(project, getDirectory(gistId), lock(gistId), gitUrlSupplier, tokenSupplier,
-                userLogin);
+        return new GistRepository(project, getDirectory(gistId), lock(gistId), gitUrl, tokenSupplier, userLogin);
+    }
+
+    /** The git url the gist's local clone was made from, or null if it has not been cloned yet. */
+    @Nullable
+    public String getClonedGitUrl(Project project, String gistId) throws IOException {
+        return GistRepository.readClonedGitUrl(project, getDirectory(gistId));
     }
 
     public Path getDirectory(String gistId) throws IOException {

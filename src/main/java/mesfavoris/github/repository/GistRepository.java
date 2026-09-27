@@ -1,7 +1,6 @@
 package mesfavoris.github.repository;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.io.NioFiles;
 import git4idea.commands.Git;
 import git4idea.commands.GitCommand;
@@ -35,7 +34,7 @@ public class GistRepository {
     private final Project project;
     private final Path directory;
     private final Lock lock;
-    private final ThrowableComputable<String, IOException> gitUrlSupplier;
+    private final String gitUrl;
     private final Supplier<String> tokenSupplier;
     @Nullable
     private final String userLogin;
@@ -44,13 +43,12 @@ public class GistRepository {
     public record Snapshot(String commitId, byte[] content) {
     }
 
-    GistRepository(Project project, Path directory, Lock lock,
-                   ThrowableComputable<String, IOException> gitUrlSupplier, Supplier<String> tokenSupplier,
+    GistRepository(Project project, Path directory, Lock lock, String gitUrl, Supplier<String> tokenSupplier,
                    @Nullable String userLogin) {
         this.project = project;
         this.directory = directory;
         this.lock = lock;
-        this.gitUrlSupplier = gitUrlSupplier;
+        this.gitUrl = gitUrl;
         this.tokenSupplier = tokenSupplier;
         this.userLogin = userLogin;
     }
@@ -159,11 +157,7 @@ public class GistRepository {
         // clone next to the final location then move it, so an interrupted clone never looks valid
         Path tempParent = Files.createTempDirectory(directory.getParent(), directory.getFileName() + CLONE_SUFFIX);
         try {
-            String gitUrl = gitUrlSupplier.compute();
-            if (gitUrl == null) {
-                throw new IOException("No git url for gist " + directory.getFileName());
-            }
-            String url = authenticatedGitUrl(gitUrl, tokenSupplier.get());
+            String url = authenticatedUrl();
             GitCommandResult result = Git.getInstance().runCommand(() -> {
                 GitLineHandler handler = new GitLineHandler(project, tempParent.toFile(), GitCommand.CLONE);
                 handler.setUrl(url); // masks the embedded token in logged commands
@@ -258,6 +252,11 @@ public class GistRepository {
 
     private GitCommandResult run(Path workingDirectory, GitCommand command, @Nullable String url,
                                  List<String> params, Map<String, String> environment) {
+        return run(project, workingDirectory, command, url, params, environment);
+    }
+
+    private static GitCommandResult run(Project project, Path workingDirectory, GitCommand command,
+                                        @Nullable String url, List<String> params, Map<String, String> environment) {
         return Git.getInstance().runCommand(() -> {
             GitLineHandler handler = new GitLineHandler(project, workingDirectory.toFile(), command);
             if (url != null) {
@@ -276,11 +275,23 @@ public class GistRepository {
         }
     }
 
-    /** The url the clone was made from: it lives in the IDE system directory, unlike shareable project files. */
     private String authenticatedUrl() throws IOException {
-        GitCommandResult result = run(GitCommand.REMOTE, null, List.of("get-url", "origin"), Map.of());
-        check(result, "remote get-url");
-        return authenticatedGitUrl(result.getOutputAsJoinedString().trim(), tokenSupplier.get());
+        return authenticatedGitUrl(gitUrl, tokenSupplier.get());
+    }
+
+    /**
+     * The url the clone in {@code directory} was made from, or null if there is no clone. It lives in the IDE
+     * system directory, unlike the (possibly shared) project files, so it can be trusted.
+     */
+    @Nullable
+    static String readClonedGitUrl(Project project, Path directory) {
+        if (!Files.isDirectory(directory.resolve(".git"))) {
+            return null;
+        }
+        GitCommandResult result = run(project, directory, GitCommand.CONFIG, null,
+                List.of("--get", "remote.origin.url"), Map.of());
+        String url = result.getOutputAsJoinedString().trim();
+        return result.success() && !url.isEmpty() ? url : null;
     }
 
     /** Embeds the token as {@code https://x-access-token:<token>@host/...}; package-private for unit tests. */
