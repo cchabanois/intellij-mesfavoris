@@ -249,6 +249,8 @@ Switch between the two schemes via the gear icon > **Swap Shortcuts with Intelli
 
 Bookmarks are stored per project in `.idea/mesfavoris/bookmarks.json`. You can commit this file to version control to share bookmarks with your team — as an alternative to Google Drive sync.
 
+If the file becomes unreadable (e.g. after a bad merge), it is moved aside to `bookmarks.json.corrupted-<date>` and a notification tells you why.
+
 ## Path Placeholders
 
 Path placeholders make bookmarks portable across machines and team members. Instead of storing absolute paths like `/home/alice/projects/myapp/src/Main.java`, Mes Favoris stores `${HOME}/projects/myapp/src/Main.java`.
@@ -314,6 +316,8 @@ Mes Favoris can sync bookmark folders to GitHub Gists, storing each folder as a 
 ### Connecting
 
 Click the **Connect to GitHub Gists** icon in the tool window toolbar. Authentication is handled via the built-in GitHub plugin — no extra credentials needed if you are already signed in to GitHub in IntelliJ.
+
+Gist sync requires **Git 2.31 or later**, as configured in IntelliJ (Settings > Version Control > Git). Each synced Gist is kept as a local git clone in the IDE system directory, so only changes go over the network.
 
 ### Sharing a bookmark folder to GitHub Gists
 
