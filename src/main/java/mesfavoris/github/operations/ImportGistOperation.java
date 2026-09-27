@@ -46,14 +46,11 @@ public class ImportGistOperation {
         }
 
         GistResponse gist = apiClient.loadGist(gistId);
-        if (gist.git_pull_url == null) {
-            throw new IOException("No git url for gist " + gistId);
-        }
 
         if (indicator != null) indicator.setFraction(0.3);
 
-        GistRepository.Snapshot snapshot =
-                repositoryProvider.getGistRepository(gistId, gist.git_pull_url).pull(GistMapping.BOOKMARKS_FILE_NAME);
+        GistRepository.Snapshot snapshot = repositoryProvider.getGistRepository(gistId, () -> gist.git_pull_url)
+                .pull(GistMapping.BOOKMARKS_FILE_NAME);
 
         if (indicator != null) indicator.setFraction(0.6);
 

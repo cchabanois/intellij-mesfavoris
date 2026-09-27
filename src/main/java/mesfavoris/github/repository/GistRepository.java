@@ -1,6 +1,7 @@
 package mesfavoris.github.repository;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.io.NioFiles;
 import git4idea.commands.Git;
 import git4idea.commands.GitCommand;
@@ -34,7 +35,7 @@ public class GistRepository {
     private final Project project;
     private final Path directory;
     private final Lock lock;
-    private final String gitUrl;
+    private final ThrowableComputable<String, IOException> gitUrlSupplier;
     private final Supplier<String> tokenSupplier;
     @Nullable
     private final String userLogin;
@@ -43,12 +44,13 @@ public class GistRepository {
     public record Snapshot(String commitId, byte[] content) {
     }
 
-    GistRepository(Project project, Path directory, Lock lock, String gitUrl, Supplier<String> tokenSupplier,
+    GistRepository(Project project, Path directory, Lock lock,
+                   ThrowableComputable<String, IOException> gitUrlSupplier, Supplier<String> tokenSupplier,
                    @Nullable String userLogin) {
         this.project = project;
         this.directory = directory;
         this.lock = lock;
-        this.gitUrl = gitUrl;
+        this.gitUrlSupplier = gitUrlSupplier;
         this.tokenSupplier = tokenSupplier;
         this.userLogin = userLogin;
     }
@@ -85,6 +87,7 @@ public class GistRepository {
                 throw new ConflictException();
             }
             Path file = directory.resolve(fileName);
+            checkNotSymbolicLink(file);
             if (Files.isRegularFile(file) && Arrays.equals(Files.readAllBytes(file), content)) {
                 return head;
             }
@@ -156,12 +159,17 @@ public class GistRepository {
         // clone next to the final location then move it, so an interrupted clone never looks valid
         Path tempParent = Files.createTempDirectory(directory.getParent(), directory.getFileName() + CLONE_SUFFIX);
         try {
-            String url = authenticatedUrl();
+            String gitUrl = gitUrlSupplier.compute();
+            if (gitUrl == null) {
+                throw new IOException("No git url for gist " + directory.getFileName());
+            }
+            String url = authenticatedGitUrl(gitUrl, tokenSupplier.get());
             GitCommandResult result = Git.getInstance().runCommand(() -> {
                 GitLineHandler handler = new GitLineHandler(project, tempParent.toFile(), GitCommand.CLONE);
                 handler.setUrl(url); // masks the embedded token in logged commands
+                // no symlinks: a gist file linking outside the clone must never be read or written through
                 handler.addParameters("--depth=1", "--config", "core.autocrlf=false",
-                        "--config", "commit.gpgsign=false", url);
+                        "--config", "core.symlinks=false", "--config", "commit.gpgsign=false", url);
                 handler.endOptions();
                 handler.addParameters(CLONE_DIR_NAME);
                 return handler;
@@ -173,7 +181,11 @@ public class GistRepository {
             check(setUrl, "remote set-url");
             Files.move(clone, directory, StandardCopyOption.ATOMIC_MOVE);
         } finally {
-            NioFiles.deleteQuietly(tempParent);
+            try {
+                NioFiles.deleteRecursively(tempParent);
+            } catch (IOException e) {
+                // leftovers are deleted before the next clone
+            }
         }
         return true;
     }
@@ -199,10 +211,17 @@ public class GistRepository {
 
     private byte[] readFile(String fileName) throws IOException {
         Path file = directory.resolve(fileName);
+        checkNotSymbolicLink(file);
         if (!Files.isRegularFile(file)) {
             throw new IOException("Gist " + directory.getFileName() + " does not contain " + fileName);
         }
         return Files.readAllBytes(file);
+    }
+
+    private static void checkNotSymbolicLink(Path file) throws IOException {
+        if (Files.isSymbolicLink(file)) {
+            throw new IOException(file.getFileName() + " is a symbolic link");
+        }
     }
 
     private String head() throws IOException {
@@ -257,8 +276,11 @@ public class GistRepository {
         }
     }
 
+    /** The url the clone was made from: it lives in the IDE system directory, unlike shareable project files. */
     private String authenticatedUrl() throws IOException {
-        return authenticatedGitUrl(gitUrl, tokenSupplier.get());
+        GitCommandResult result = run(GitCommand.REMOTE, null, List.of("get-url", "origin"), Map.of());
+        check(result, "remote get-url");
+        return authenticatedGitUrl(result.getOutputAsJoinedString().trim(), tokenSupplier.get());
     }
 
     /** Embeds the token as {@code https://x-access-token:<token>@host/...}; package-private for unit tests. */

@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -206,6 +207,73 @@ public class GistRepositoryTest extends BasePlatformTestCase {
         assertThat(restContent(gist.id)).isEqualTo("{\"v\":3}");
     }
 
+    public void testPull_existingClone_usesTheGitUrlItWasClonedFrom() throws Exception {
+        GistResponse gist = createGist(FILE_NAME, "{\"v\":1}");
+        AtomicInteger gitUrlRequests = new AtomicInteger();
+        GistRepository repository = repositories.getRepository(getProject(), gist.id,
+                () -> {
+                    gitUrlRequests.incrementAndGet();
+                    return gist.git_pull_url;
+                }, () -> token, "test-user");
+        String commitId = repository.pull(FILE_NAME).commitId();
+
+        repository.commitAndPush(FILE_NAME, bytes("{\"v\":2}"), commitId);
+        repository.pull(FILE_NAME);
+
+        assertThat(gitUrlRequests).hasValue(1);
+    }
+
+    public void testGetRepository_invalidGistId_throwsIOException() {
+        assertThatThrownBy(() -> repositories.getRepository(getProject(), "../outside",
+                () -> "https://gist.github.com/abc.git", () -> token, "test-user"))
+                .isInstanceOf(IOException.class)
+                .hasMessageContaining("Invalid gist id");
+    }
+
+    public void testDelete_invalidGistId_deletesNothing() throws Exception {
+        Path outside = Files.createTempDirectory(baseDirectory.getParent(), "outside-");
+        try {
+            repositories.delete("../" + outside.getFileName());
+
+            assertThat(outside).isDirectory();
+        } finally {
+            NioFiles.deleteRecursively(outside);
+        }
+    }
+
+    public void testPull_cloneDoesNotCheckOutSymbolicLinks() throws Exception {
+        GistResponse gist = createGist(FILE_NAME, "{}");
+
+        repository(gist).pull(FILE_NAME);
+
+        String config = Files.readString(repositories.getDirectory(gist.id).resolve(".git").resolve("config"));
+        assertThat(config).containsPattern("symlinks\\s*=\\s*false");
+    }
+
+    public void testCommitAndPush_fileReplacedBySymbolicLink_doesNotWriteThroughIt() throws Exception {
+        GistResponse gist = createGist(FILE_NAME, "{\"v\":1}");
+        GistRepository repository = repository(gist);
+        String commitId = repository.pull(FILE_NAME).commitId();
+        Path target = Files.createTempFile(baseDirectory.getParent(), "target-", ".txt");
+        try {
+            Files.writeString(target, "original");
+            Path file = repositories.getDirectory(gist.id).resolve(FILE_NAME);
+            Files.delete(file);
+            try {
+                Files.createSymbolicLink(file, target);
+            } catch (IOException | UnsupportedOperationException e) {
+                return; // no symbolic links on this platform
+            }
+
+            assertThatThrownBy(() -> repository.commitAndPush(FILE_NAME, bytes("{\"v\":2}"), commitId))
+                    .isInstanceOf(IOException.class)
+                    .hasMessageContaining("symbolic link");
+            assertThat(Files.readString(target)).isEqualTo("original");
+        } finally {
+            Files.deleteIfExists(target);
+        }
+    }
+
     public void testAuthenticatedGitUrl_embedsToken() throws Exception {
         assertThat(GistRepository.authenticatedGitUrl("https://gist.github.com/abc123.git", "ghp_secret"))
                 .isEqualTo("https://x-access-token:ghp_secret@gist.github.com/abc123.git");
@@ -222,8 +290,8 @@ public class GistRepositoryTest extends BasePlatformTestCase {
         return gist;
     }
 
-    private GistRepository repository(GistResponse gist) {
-        return repositories.getRepository(getProject(), gist.id, gist.git_pull_url, () -> token, "test-user");
+    private GistRepository repository(GistResponse gist) throws IOException {
+        return repositories.getRepository(getProject(), gist.id, () -> gist.git_pull_url, () -> token, "test-user");
     }
 
     private String restContent(String gistId) throws IOException {

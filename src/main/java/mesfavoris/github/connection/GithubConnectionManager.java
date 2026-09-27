@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.ThrowableComputable;
 import mesfavoris.github.GithubRemoteBookmarksStoreExtension;
 import mesfavoris.github.integration.IGithubAccountResolver;
 import mesfavoris.github.operations.GetAuthenticatedUserOperation;
@@ -135,9 +136,10 @@ public class GithubConnectionManager implements IGistRepositoryProvider {
 
     /** The local clone of a gist, authenticated with this connection's token. */
     @Override
-    public GistRepository getGistRepository(String gistId, String gitUrl) {
+    public GistRepository getGistRepository(String gistId, ThrowableComputable<String, IOException> gitUrlSupplier)
+            throws IOException {
         UserInfo user = userInfo;
-        return GistRepositories.getInstance().getRepository(project, gistId, gitUrl, this::getAccessToken,
+        return GistRepositories.getInstance().getRepository(project, gistId, gitUrlSupplier, this::getAccessToken,
                 user != null ? user.getEmailAddress() : null);
     }
 

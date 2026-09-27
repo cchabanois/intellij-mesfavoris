@@ -71,7 +71,7 @@ public class ImportGistOperationTest extends BasePlatformTestCase {
         assertThat(tree.getBookmark(childId)).isNotNull();
         GistMapping mapping = mappings.getMapping(folderId).orElseThrow();
         assertThat(mapping.getGistId()).isEqualTo(gist.id);
-        assertThat(mapping.getProperties()).containsEntry(GistMapping.PROP_GIT_URL, gist.git_pull_url);
+        assertThat(mapping.getProperties()).containsEntry(GistMapping.PROP_GIST_URL, gist.html_url);
         assertThat(GistRepositories.getInstance().getDirectory(gist.id).resolve(".git")).isDirectory();
     }
 

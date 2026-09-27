@@ -33,8 +33,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -260,20 +258,8 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
     }
 
     private GistRepository getRepository(String gistId) throws IOException {
-        GistMapping mapping = gistMappingsStore.getMapping(gistId)
-                .orElseThrow(() -> new IOException("No mapping for gist " + gistId));
-        String gitUrl = mapping.getProperties().get(GistMapping.PROP_GIT_URL);
-        if (gitUrl == null) {
-            // mapping created before gists were synchronized through git
-            gitUrl = getApiClient().loadGist(gistId).git_pull_url;
-            if (gitUrl == null) {
-                throw new IOException("No git url for gist " + gistId);
-            }
-            Map<String, String> properties = new HashMap<>(mapping.getProperties());
-            properties.put(GistMapping.PROP_GIT_URL, gitUrl);
-            gistMappingsStore.update(gistId, properties);
-        }
-        return connectionManager.getGistRepository(gistId, gitUrl);
+        // the git url comes from the GitHub API, never from mappings stored in (possibly shared) project files
+        return connectionManager.getGistRepository(gistId, () -> getApiClient().loadGist(gistId).git_pull_url);
     }
 
     private void updateBookmarksCount(String gistId, BookmarksTree subTree) {

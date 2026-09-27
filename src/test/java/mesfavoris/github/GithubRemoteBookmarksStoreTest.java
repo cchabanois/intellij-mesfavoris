@@ -190,24 +190,32 @@ public class GithubRemoteBookmarksStoreTest extends BasePlatformTestCase {
                 .containsExactlyInAnyOrder(new BookmarkId("b1"), new BookmarkId("b2"), new BookmarkId("b3"));
     }
 
-    public void testLoad_mappingWithoutGitUrl_fetchesAndStoresIt() throws Exception {
+    public void testLoad_ignoresGitUrlStoredInMapping() throws Exception {
         BookmarkId folderId = new BookmarkId("tree1");
         BookmarksTree bookmarksTree = new BookmarksTree(new BookmarkFolder(folderId, Maps.newHashMap()));
         connect();
         store.add(bookmarksTree, folderId, new EmptyProgressIndicator());
-        // mappings created before gists were synchronized through git have no git url
+        // a tampered project file must not redirect git (and the token) to another server
         GistMappingsStore mappings = connectionRule.getGistMappingsStore();
         GistMapping mapping = mappings.getMapping(folderId).orElseThrow();
-        String gitUrl = mapping.getProperties().get(GistMapping.PROP_GIT_URL);
-        Map<String, String> legacyProperties = new HashMap<>(mapping.getProperties());
-        legacyProperties.remove(GistMapping.PROP_GIT_URL);
-        mappings.update(mapping.getGistId(), legacyProperties);
+        Map<String, String> tamperedProperties = new HashMap<>(mapping.getProperties());
+        tamperedProperties.put("gitUrl", "http://127.0.0.1:9/evil.git");
+        mappings.update(mapping.getGistId(), tamperedProperties);
 
         RemoteBookmarksTree remote = store.load(folderId, new EmptyProgressIndicator());
 
         assertThat(remote.getBookmarksTree().toString()).isEqualTo(bookmarksTree.toString());
-        assertThat(mappings.getMapping(folderId).orElseThrow().getProperties())
-                .containsEntry(GistMapping.PROP_GIT_URL, gitUrl);
+    }
+
+    public void testLoad_mappingWithInvalidGistId_throwsIOException() throws Exception {
+        BookmarkId folderId = new BookmarkId("tree1");
+        connect();
+        // a tampered project file must not make a gist id point outside the local clones
+        connectionRule.getGistMappingsStore().add(folderId, "../../outside", Map.of());
+
+        assertThatThrownBy(() -> store.load(folderId, new EmptyProgressIndicator()))
+                .isInstanceOf(IOException.class)
+                .hasMessageContaining("Invalid gist id");
     }
 
     public void testRemove_deletesLocalClone() throws Exception {
