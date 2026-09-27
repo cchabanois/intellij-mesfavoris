@@ -8,16 +8,14 @@ import mesfavoris.persistence.IBookmarksTreeSerializer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
 
 public class LocalBookmarksSaver {
     private static final Logger LOG = Logger.getInstance(LocalBookmarksSaver.class);
@@ -40,13 +38,9 @@ public class LocalBookmarksSaver {
                 // serialized in memory first: the serializer closes the writer it is given
                 StringWriter buffer = new StringWriter();
                 bookmarksSerializer.serialize(bookmarksTree, bookmarksTree.getRootFolder().getId(), buffer);
-                ByteBuffer content = ByteBuffer.wrap(buffer.toString().getBytes(StandardCharsets.UTF_8));
-                try (FileChannel channel = FileChannel.open(temp, StandardOpenOption.CREATE,
-                        StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
-                    while (content.hasRemaining()) {
-                        channel.write(content);
-                    }
-                    channel.force(true);
+                try (FileOutputStream out = new FileOutputStream(temp.toFile())) {
+                    out.write(buffer.toString().getBytes(StandardCharsets.UTF_8));
+                    out.getFD().sync();
                 }
                 replace(temp, target);
             } finally {
