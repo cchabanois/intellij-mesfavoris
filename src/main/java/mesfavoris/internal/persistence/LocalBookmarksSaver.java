@@ -9,8 +9,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Writer;
-import java.nio.channels.Channels;
+import java.io.StringWriter;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;
@@ -37,11 +37,15 @@ public class LocalBookmarksSaver {
             // not Files.createTempFile: it would make the bookmarks file owner-only readable
             Path temp = target.resolveSibling(target.getFileName() + ".tmp");
             try {
+                // serialized in memory first: the serializer closes the writer it is given
+                StringWriter buffer = new StringWriter();
+                bookmarksSerializer.serialize(bookmarksTree, bookmarksTree.getRootFolder().getId(), buffer);
+                ByteBuffer content = ByteBuffer.wrap(buffer.toString().getBytes(StandardCharsets.UTF_8));
                 try (FileChannel channel = FileChannel.open(temp, StandardOpenOption.CREATE,
-                        StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
-                     Writer writer = Channels.newWriter(channel, StandardCharsets.UTF_8)) {
-                    bookmarksSerializer.serialize(bookmarksTree, bookmarksTree.getRootFolder().getId(), writer);
-                    writer.flush();
+                        StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
+                    while (content.hasRemaining()) {
+                        channel.write(content);
+                    }
                     channel.force(true);
                 }
                 replace(temp, target);
