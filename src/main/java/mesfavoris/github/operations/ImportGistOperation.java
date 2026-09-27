@@ -50,7 +50,7 @@ public class ImportGistOperation {
         if (indicator != null) indicator.setFraction(0.3);
 
         GistRepository.Snapshot snapshot = repositoryProvider.getGistRepository(gistId)
-                .pull(GistMapping.BOOKMARKS_FILE_NAME);
+                .fetchLatest(GistMapping.BOOKMARKS_FILE_NAME);
 
         if (indicator != null) indicator.setFraction(0.6);
 

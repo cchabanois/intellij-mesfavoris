@@ -67,44 +67,44 @@ public class GistRepositoryTest extends BasePlatformTestCase {
         }
     }
 
-    public void testPull_clonesGist() throws Exception {
+    public void testFetchLatest_clonesGist() throws Exception {
         GistResponse gist = createGist(FILE_NAME, "{\"v\":1}");
 
-        GistRepository.Snapshot snapshot = repository(gist).pull(FILE_NAME);
+        GistRepository.Snapshot snapshot = repository(gist).fetchLatest(FILE_NAME);
 
         assertThat(string(snapshot.content())).isEqualTo("{\"v\":1}");
         assertThat(snapshot.commitId()).isEqualTo(gist.latestVersion());
         assertThat(repositories.getDirectory(gist.id).resolve(".git")).isDirectory();
     }
 
-    public void testPull_returnsRemoteChanges() throws Exception {
+    public void testFetchLatest_returnsRemoteChanges() throws Exception {
         GistResponse gist = createGist(FILE_NAME, "{\"v\":1}");
         GistRepository repository = repository(gist);
-        String firstCommitId = repository.pull(FILE_NAME).commitId();
+        String firstCommitId = repository.fetchLatest(FILE_NAME).commitId();
         apiClient.updateGist(gist.id, FILE_NAME, "{\"v\":2}", null);
 
-        GistRepository.Snapshot snapshot = repository.pull(FILE_NAME);
+        GistRepository.Snapshot snapshot = repository.fetchLatest(FILE_NAME);
 
         assertThat(string(snapshot.content())).isEqualTo("{\"v\":2}");
         assertThat(snapshot.commitId()).isNotEqualTo(firstCommitId);
     }
 
-    public void testPull_recreatesDeletedClone() throws Exception {
+    public void testFetchLatest_recreatesDeletedClone() throws Exception {
         GistResponse gist = createGist(FILE_NAME, "{\"v\":1}");
-        repository(gist).pull(FILE_NAME);
+        repository(gist).fetchLatest(FILE_NAME);
         NioFiles.deleteRecursively(repositories.getDirectory(gist.id));
 
-        GistRepository.Snapshot snapshot = repository(gist).pull(FILE_NAME);
+        GistRepository.Snapshot snapshot = repository(gist).fetchLatest(FILE_NAME);
 
         assertThat(string(snapshot.content())).isEqualTo("{\"v\":1}");
     }
 
-    public void testPull_recreatesBrokenClone() throws Exception {
+    public void testFetchLatest_recreatesBrokenClone() throws Exception {
         GistResponse gist = createGist(FILE_NAME, "{\"v\":1}");
-        repository(gist).pull(FILE_NAME);
+        repository(gist).fetchLatest(FILE_NAME);
         Files.delete(repositories.getDirectory(gist.id).resolve(".git").resolve("HEAD"));
 
-        GistRepository.Snapshot snapshot = repository(gist).pull(FILE_NAME);
+        GistRepository.Snapshot snapshot = repository(gist).fetchLatest(FILE_NAME);
 
         assertThat(string(snapshot.content())).isEqualTo("{\"v\":1}");
     }
@@ -112,7 +112,7 @@ public class GistRepositoryTest extends BasePlatformTestCase {
     public void testCommitAndPush_afterGitWasKilled_ignoresStaleLockFiles() throws Exception {
         GistResponse gist = createGist(FILE_NAME, "{\"v\":1}");
         GistRepository repository = repository(gist);
-        String commitId = repository.pull(FILE_NAME).commitId();
+        String commitId = repository.fetchLatest(FILE_NAME).commitId();
         Path gitDirectory = repositories.getDirectory(gist.id).resolve(".git");
         Files.createFile(gitDirectory.resolve("index.lock"));
         Files.createFile(gitDirectory.resolve("HEAD.lock"));
@@ -122,28 +122,28 @@ public class GistRepositoryTest extends BasePlatformTestCase {
         assertThat(restContent(gist.id)).isEqualTo("{\"v\":2}");
     }
 
-    public void testPull_deletesTemporaryClonesLeftByKilledClone() throws Exception {
+    public void testFetchLatest_deletesTemporaryClonesLeftByKilledClone() throws Exception {
         GistResponse gist = createGist(FILE_NAME, "{\"v\":1}");
         Path staleClone = Files.createDirectories(baseDirectory.resolve(gist.id + ".clone-123").resolve("repo"));
 
-        repository(gist).pull(FILE_NAME);
+        repository(gist).fetchLatest(FILE_NAME);
 
         assertThat(staleClone.getParent()).doesNotExist();
         assertThat(repositories.getDirectory(gist.id).resolve(".git")).isDirectory();
     }
 
-    public void testPull_missingFile_throwsIOException() throws Exception {
+    public void testFetchLatest_missingFile_throwsIOException() throws Exception {
         GistResponse gist = createGist("other.json", "{}");
 
-        assertThatThrownBy(() -> repository(gist).pull(FILE_NAME))
+        assertThatThrownBy(() -> repository(gist).fetchLatest(FILE_NAME))
                 .isInstanceOf(IOException.class)
                 .hasMessageContaining(FILE_NAME);
     }
 
-    public void testPull_doesNotStoreTokenInClone() throws Exception {
+    public void testFetchLatest_doesNotStoreTokenInClone() throws Exception {
         GistResponse gist = createGist(FILE_NAME, "{}");
 
-        repository(gist).pull(FILE_NAME);
+        repository(gist).fetchLatest(FILE_NAME);
 
         String config = Files.readString(repositories.getDirectory(gist.id).resolve(".git").resolve("config"));
         assertThat(config).doesNotContain(token);
@@ -152,7 +152,7 @@ public class GistRepositoryTest extends BasePlatformTestCase {
     public void testCommitAndPush_updatesGist() throws Exception {
         GistResponse gist = createGist(FILE_NAME, "{\"v\":1}");
         GistRepository repository = repository(gist);
-        String commitId = repository.pull(FILE_NAME).commitId();
+        String commitId = repository.fetchLatest(FILE_NAME).commitId();
 
         String newCommitId = repository.commitAndPush(FILE_NAME, bytes("{\"v\":2}"), commitId);
 
@@ -165,7 +165,7 @@ public class GistRepositoryTest extends BasePlatformTestCase {
     public void testCommitAndPush_unchangedContent_createsNoCommit() throws Exception {
         GistResponse gist = createGist(FILE_NAME, "{\"v\":1}");
         GistRepository repository = repository(gist);
-        String commitId = repository.pull(FILE_NAME).commitId();
+        String commitId = repository.fetchLatest(FILE_NAME).commitId();
 
         assertThat(repository.commitAndPush(FILE_NAME, bytes("{\"v\":1}"), commitId)).isEqualTo(commitId);
     }
@@ -173,19 +173,19 @@ public class GistRepositoryTest extends BasePlatformTestCase {
     public void testCommitAndPush_staleExpectedCommit_throwsConflictException() throws Exception {
         GistResponse gist = createGist(FILE_NAME, "{\"v\":1}");
         GistRepository repository = repository(gist);
-        String staleCommitId = repository.pull(FILE_NAME).commitId();
+        String staleCommitId = repository.fetchLatest(FILE_NAME).commitId();
         apiClient.updateGist(gist.id, FILE_NAME, "{\"v\":2}", null);
-        repository.pull(FILE_NAME);
+        repository.fetchLatest(FILE_NAME);
 
         assertThatThrownBy(() -> repository.commitAndPush(FILE_NAME, bytes("{\"v\":3}"), staleCommitId))
                 .isInstanceOf(ConflictException.class);
         assertThat(restContent(gist.id)).isEqualTo("{\"v\":2}");
     }
 
-    public void testCommitAndPush_gistMovedSinceLastPull_throwsConflictExceptionAndResetsClone() throws Exception {
+    public void testCommitAndPush_gistMovedSinceLastFetch_throwsConflictExceptionAndResetsClone() throws Exception {
         GistResponse gist = createGist(FILE_NAME, "{\"v\":1}");
         GistRepository repository = repository(gist);
-        String commitId = repository.pull(FILE_NAME).commitId();
+        String commitId = repository.fetchLatest(FILE_NAME).commitId();
         apiClient.updateGist(gist.id, FILE_NAME, "{\"v\":2}", null);
 
         assertThatThrownBy(() -> repository.commitAndPush(FILE_NAME, bytes("{\"v\":3}"), commitId))
@@ -195,22 +195,11 @@ public class GistRepositoryTest extends BasePlatformTestCase {
                 .isEqualTo("{\"v\":1}");
     }
 
-    public void testCommitAndPush_withoutExpectedCommit_savesOnTopOfLatestVersion() throws Exception {
-        GistResponse gist = createGist(FILE_NAME, "{\"v\":1}");
-        GistRepository repository = repository(gist);
-        repository.pull(FILE_NAME);
-        apiClient.updateGist(gist.id, FILE_NAME, "{\"v\":2}", null);
-
-        repository.commitAndPush(FILE_NAME, bytes("{\"v\":3}"), null);
-
-        assertThat(restContent(gist.id)).isEqualTo("{\"v\":3}");
-    }
-
     public void testGetClonedGitUrl_isTheUrlTheGistWasClonedFrom() throws Exception {
         GistResponse gist = createGist(FILE_NAME, "{\"v\":1}");
         assertThat(repositories.getClonedGitUrl(getProject(), gist.id)).isNull();
 
-        repository(gist).pull(FILE_NAME);
+        repository(gist).fetchLatest(FILE_NAME);
 
         assertThat(repositories.getClonedGitUrl(getProject(), gist.id)).isEqualTo(gist.git_pull_url);
     }
@@ -233,10 +222,10 @@ public class GistRepositoryTest extends BasePlatformTestCase {
         }
     }
 
-    public void testPull_cloneDoesNotCheckOutSymbolicLinks() throws Exception {
+    public void testFetchLatest_cloneDoesNotCheckOutSymbolicLinks() throws Exception {
         GistResponse gist = createGist(FILE_NAME, "{}");
 
-        repository(gist).pull(FILE_NAME);
+        repository(gist).fetchLatest(FILE_NAME);
 
         String config = Files.readString(repositories.getDirectory(gist.id).resolve(".git").resolve("config"));
         assertThat(config).containsPattern("symlinks\\s*=\\s*false");
@@ -245,7 +234,7 @@ public class GistRepositoryTest extends BasePlatformTestCase {
     public void testCommitAndPush_fileReplacedBySymbolicLink_doesNotWriteThroughIt() throws Exception {
         GistResponse gist = createGist(FILE_NAME, "{\"v\":1}");
         GistRepository repository = repository(gist);
-        String commitId = repository.pull(FILE_NAME).commitId();
+        String commitId = repository.fetchLatest(FILE_NAME).commitId();
         Path target = Files.createTempFile(baseDirectory.getParent(), "target-", ".txt");
         try {
             Files.writeString(target, "original");

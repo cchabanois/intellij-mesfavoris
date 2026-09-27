@@ -140,6 +140,24 @@ public class GithubRemoteBookmarksStoreTest extends BasePlatformTestCase {
         assertThat(bookmarksTree.toString()).isEqualTo(remote.getBookmarksTree().toString());
     }
 
+    public void testSave_withoutEtag_savesOnTopOfLatestVersion() throws Exception {
+        BookmarkId folderId = new BookmarkId("tree1");
+        BookmarksTree bookmarksTree = new BookmarksTree(new BookmarkFolder(folderId, Maps.newHashMap()));
+        connect();
+        store.add(bookmarksTree, folderId, new EmptyProgressIndicator());
+        store.load(folderId, new EmptyProgressIndicator());
+        String gistId = connectionRule.getGistMappingsStore().getMapping(folderId).orElseThrow().getGistId();
+        // another client changes the gist after our last load
+        connectionRule.getConnectionManager().getGistApiClient().updateGist(gistId, GistMapping.BOOKMARKS_FILE_NAME,
+                serialize(addBookmark(bookmarksTree, folderId, "b2"), folderId), null);
+        BookmarksTree savedTree = bookmarksTree.setPropertyValue(folderId, "myProperty", "myPropertyValue");
+
+        store.save(savedTree, folderId, null, new EmptyProgressIndicator());
+
+        RemoteBookmarksTree remote = store.load(folderId, new EmptyProgressIndicator());
+        assertThat(remote.getBookmarksTree().toString()).isEqualTo(savedTree.toString());
+    }
+
     public void testConflictWhenSaving() throws Exception {
         BookmarksTree bookmarksTree = new BookmarksTree(new BookmarkFolder(new BookmarkId("tree1"), Maps.newHashMap()));
         connect();

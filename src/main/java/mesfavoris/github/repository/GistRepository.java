@@ -64,7 +64,7 @@ public class GistRepository {
     }
 
     /** Brings the clone to the latest version of the gist and returns the content of {@code fileName}. */
-    public Snapshot pull(String fileName) throws IOException {
+    public Snapshot fetchLatest(String fileName) throws IOException {
         lock.lock();
         try {
             update();
@@ -77,19 +77,14 @@ public class GistRepository {
     /**
      * Commits {@code content} as {@code fileName} on top of {@code expectedCommitId} and pushes it.
      *
-     * @param expectedCommitId the commit the content is based on, or null to save on top of the latest version
+     * @param expectedCommitId the commit the content is based on
      * @throws ConflictException if the gist has moved since {@code expectedCommitId}
      */
-    public String commitAndPush(String fileName, byte[] content, @Nullable String expectedCommitId)
+    public String commitAndPush(String fileName, byte[] content, String expectedCommitId)
             throws IOException, ConflictException {
         lock.lock();
         try {
-            if (expectedCommitId == null) {
-                update();
-                expectedCommitId = head();
-            } else {
-                ensureCloned();
-            }
+            ensureCloned();
             String head = head();
             if (!head.equals(expectedCommitId)) {
                 throw new ConflictException();

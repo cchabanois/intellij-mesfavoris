@@ -177,7 +177,7 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
         }
         String gistId = requireGistId(bookmarkFolderId);
         GistRepository.Snapshot snapshot = connectionManager.getGistRepository(gistId)
-                .pull(GistMapping.BOOKMARKS_FILE_NAME);
+                .fetchLatest(GistMapping.BOOKMARKS_FILE_NAME);
         if (indicator != null) {
             indicator.setFraction(0.8);
         }
@@ -205,8 +205,11 @@ public class GithubRemoteBookmarksStore extends AbstractRemoteBookmarksStore {
         if (indicator != null) {
             indicator.setFraction(0.2);
         }
-        String commitId = connectionManager.getGistRepository(gistId)
-                .commitAndPush(GistMapping.BOOKMARKS_FILE_NAME, content, etag);
+        GistRepository repository = connectionManager.getGistRepository(gistId);
+        // a null etag means no conflict check: save on top of the latest version
+        String expectedCommitId = etag != null ? etag
+                : repository.fetchLatest(GistMapping.BOOKMARKS_FILE_NAME).commitId();
+        String commitId = repository.commitAndPush(GistMapping.BOOKMARKS_FILE_NAME, content, expectedCommitId);
         BookmarksTree subTree = bookmarksTree.subTree(bookmarkFolderId);
         updateBookmarksCount(gistId, subTree);
         if (indicator != null) {
