@@ -43,11 +43,21 @@ public class GistRepository {
     public record Snapshot(String commitId, byte[] content) {
     }
 
-    GistRepository(Project project, Path directory, Lock lock, String gitUrl, Supplier<String> tokenSupplier,
+    /**
+     * Obtained through {@link GistRepositories#getRepository}, which validates the gist id and has one
+     * {@link GistClone} per gist.
+     *
+     * @param project       the project git commands run for
+     * @param clone         the gist's clone on disk, whose lock every command holds
+     * @param gitUrl        the gist's git url, without credentials: to clone, fetch and push
+     * @param tokenSupplier the GitHub token, added to {@code gitUrl} for each command and never written to disk
+     * @param userLogin     the GitHub login used as commit author, or null
+     */
+    GistRepository(Project project, GistClone clone, String gitUrl, Supplier<String> tokenSupplier,
                    @Nullable String userLogin) {
         this.project = project;
-        this.directory = directory;
-        this.lock = lock;
+        this.directory = clone.getDirectory();
+        this.lock = clone.getLock();
         this.gitUrl = gitUrl;
         this.tokenSupplier = tokenSupplier;
         this.userLogin = userLogin;
