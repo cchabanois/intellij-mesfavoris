@@ -33,6 +33,9 @@ public class BookmarksTreeJsonDeserializer implements IBookmarksTreeDeserializer
     public BookmarksTree deserialize(Reader reader) throws IOException {
         try (JsonReader jsonReader = new JsonReader(reader)) {
             return deserialize(jsonReader);
+        } catch (IllegalStateException e) {
+            // unexpected json token: gson's message tells what was expected and where
+            throw new IOException("Invalid format : " + e.getMessage(), e);
         }
     }
 
@@ -83,6 +86,7 @@ public class BookmarksTreeJsonDeserializer implements IBookmarksTreeDeserializer
     }
 
     private BookmarksTree deserializeBookmark(JsonReader reader, BookmarksTree bookmarksTree, BookmarkId parentId) throws IOException {
+        String path = reader.getPath();
         reader.beginObject();
         BookmarkId id = null;
         Map<String, String> properties = Collections.emptyMap();
@@ -100,6 +104,12 @@ public class BookmarksTreeJsonDeserializer implements IBookmarksTreeDeserializer
             } else {
                 reader.skipValue();
             }
+        }
+        if (id == null) {
+            throw new IOException("Invalid format : bookmark without id at path " + path);
+        }
+        if (bookmarksTree.getBookmark(id) != null) {
+            throw new IOException("Invalid format : duplicate bookmark id " + id + " at path " + path);
         }
         if (isFolder) {
             BookmarkFolder bookmarkFolder = new BookmarkFolder(id, properties);
