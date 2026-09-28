@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-09-28
+
 ### Changed
 
 - GitHub Gist sync now goes through a local git clone of each Gist, kept in the IDE system directory: loading fetches and saving commits and pushes, so only the changes go over the network. Requires Git 2.31 or later, as configured in IntelliJ.
@@ -269,7 +271,8 @@
   - Bookmark label providers for custom rendering
   - Bookmark properties providers for extracting metadata
 
-[Unreleased]: https://github.com/cchabanois/intellij-mesfavoris/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/cchabanois/intellij-mesfavoris/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/cchabanois/intellij-mesfavoris/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/cchabanois/intellij-mesfavoris/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/cchabanois/intellij-mesfavoris/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/cchabanois/intellij-mesfavoris/compare/v0.6.0...v0.7.0
